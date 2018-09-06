@@ -1,0 +1,6 @@
+[submodule "ext/kore"]
+	path = ext/kore
+	url = https://github.com/kframework/kore.git
+[submodule "ext/k"]
+	path = ext/k
+	url = https://github.com/kframework/k.git
