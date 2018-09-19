@@ -7,6 +7,8 @@ def basename_no_ext(path):
 class KProject(ninja.ninja_syntax.Writer):
     def __init__(self, builddir):
         self._builddir = builddir
+        if not os.path.exists(self.builddir()):
+            os.mkdir(self.builddir())
         super().__init__(open(self.builddir('generated.ninja'), 'w'))
         self.comment('This is a generated file')
         self.newline()
