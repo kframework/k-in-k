@@ -4,3 +4,6 @@
 [submodule "ext/k"]
 	path = ext/k
 	url = https://github.com/kframework/k.git
+[submodule "ext/pandoc-tangle"]
+	path = ext/pandoc-tangle
+	url = https://github.com/ehildenb/pandoc-tangle.git
