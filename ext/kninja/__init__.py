@@ -5,19 +5,33 @@ def basename_no_ext(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 class KProject(ninja.ninja_syntax.Writer):
-    def __init__(self, builddir):
+    def __init__(self, builddir, k_repo):
         self._builddir = builddir
+        self._k_repo = k_repo
         if not os.path.exists(self.builddir()):
             os.mkdir(self.builddir())
         super().__init__(open(self.builddir('generated.ninja'), 'w'))
         self.comment('This is a generated file')
+        self.include(self.kninjadir("prelude.ninja"))
         self.newline()
         self.variable('builddir', builddir)
+        self.variable('k_repository', self.krepodir())
+        self.build_k()
 
+    def kninjadir(self, *paths):
+        return os.path.join(os.path.dirname(__file__), *paths)
     def builddir(self, *paths):
         return os.path.join(self._builddir, *paths)
     def tangleddir(self, *paths):
         return self.builddir('tangled', *paths)
+    def krepodir(self, *paths):
+        return os.path.join(self._k_repo, *paths)
+    def kbindir(self, *paths):
+        return self.krepodir("k-distribution/target/release/k/bin/", *paths)
+
+    def build_k(self):
+        self.build(self.krepodir(".git"), "git-submodule-init")
+        self.build(self.kbindir("kompile"), "build-k", self.krepodir(".git"))
 
     def kdefinition(self, name, main, backend, alias):
         kdef = self.kdefinition_no_build( name

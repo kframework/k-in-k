@@ -7,7 +7,7 @@ import sys
 #
 class KinK(KProject):
     def __init__(self):
-        super().__init__(builddir = '.build')
+        super().__init__(builddir = '.build', k_repo = "ext/k")
         self.testdir = '$builddir/t/'
 
 kink = KinK()
