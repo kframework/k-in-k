@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Usage
+# =====
+#
+# Execute ninja:
+#
+#   ./build <arguments-to-ninja>
+#
+# Execute arbitary command in fully set up environment
+#
+#   ./build -- <arbitary-command>
+
+set -eu     # Fail on non-zero exit code, undefined variable
+
+base="$(cd "$(dirname "$0")"; pwd)"
+build_dir="$base/.build"
+k_submodule="$build_dir/k"
+
+# Helpers
+# =======
+
+log()  { echo >&2 "=== " $@ ; }
+fail() { log "$@"; exit 1   ; }
+
+init_env() {
+    type -t ninja > /dev/null || fail "ninja-build not available. Giving up."
+
+    # Since K needs a modified ocaml compiler, use a opam root directory private to
+    # this project so as not to intefere with other opam packages such as coq.
+    #
+    export OPAMROOT="$build_dir/opam"
+    eval $(opam config env)
+
+    export PYTHONPATH="$base/ext/"
+}
+
+# Main
+# ====
+
+init_env
+python3 lib/build.py
+[[ $# -lt 1 ]] || [[ -- != $1 ]] || { shift ; exec "$@" ; }
+exec ninja -f .build/generated.ninja "$@"
