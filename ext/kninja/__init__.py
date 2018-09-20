@@ -99,6 +99,7 @@ class KDefinition:
                                        , 'flags'     : krun_flags
                                        }
                          )
+        return output
 
     def check_actual_expected(self, name, actual, expected):
         self.writer.build( outputs   = name
