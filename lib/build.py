@@ -2,9 +2,24 @@
 
 from kninja import *
 import sys
+import os.path
 
 # Helpers
-#
+# =======
+
+def test_kfront_to_kore(proj, kdef, testfile):
+    out = main.krun( output = kink.builddir(testfile + '.out')
+                      , input  = testfile + ''
+                      )
+    kore = kdef.build( outputs = kink.builddir(testfile + '.kore')
+                     , rule = 'kore-from-config'
+                     , inputs = out
+                     )
+    main.check_actual_expected(os.path.basename(testfile), kore, testfile + '.expected')
+
+# Project Definition
+# ==================
+
 kink = KProject()
 main = kink.kdefinition( 'kink'
                        , main = kink.tangle('kink.md', kink.tangleddir('kink/kink.k'))
@@ -14,18 +29,11 @@ main = kink.kdefinition( 'kink'
                        )
 
 # Converting Frontend Definitions
-# ===============================
+# -------------------------------
 
 kink.rule( 'kore-from-config'
          , description = 'Extracting <kore> cell'
          , command = 'lib/kore-from-config $in $out'
          )
+test_kfront_to_kore(main, kink, 'foobar/t/foobar.kfront')
 
-fb_out = main.krun( output = kink.builddir('foobar/t/foobar.kfront.out')
-                  , input  = 'foobar/t/foobar.kfront'
-                  )
-kore = kink.build( outputs = kink.builddir('foobar/t/foobar.kfront.kore')
-                 , rule = 'kore-from-config'
-                 , inputs = fb_out
-                 )
-main.check_actual_expected('foobar.kfront.kore', kore, 'foobar/t/foobar.kfront.expected')
