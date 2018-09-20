@@ -1,2 +1,4 @@
-ksyntax(ksort("Foo"), klabel("bar" ))
-ksyntax(ksort("Foo"), klabel("buzz"))
+kmodule FOOBAR
+  ksyntax(ksort(Foo), klabel(bar))
+  ksyntax(ksort(Foo), klabel(buzz))
+endkmodule

@@ -10,6 +10,7 @@ main = kink.kdefinition( 'kink'
                        , main = kink.tangle('kink.md', kink.tangleddir('kink/kink.k'))
                        , backend = 'java'
                        , alias = 'kink'
+                       , kompile_flags = '-I .'
                        )
 main.krun_and_check( output_dir   = kink.builddir('foobar/t')
                    , input    = 'foobar/t/foobar.kfront'
