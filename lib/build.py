@@ -12,8 +12,20 @@ main = kink.kdefinition( 'kink'
                        , alias = 'kink'
                        , kompile_flags = '-I .'
                        )
-main.krun_and_check( output_dir   = kink.builddir('foobar/t')
-                   , input    = 'foobar/t/foobar.kfront'
-                   , expected = 'foobar/t/foobar.kfront.expected'
-                   )
 
+# Converting Frontend Definitions
+# ===============================
+
+kink.rule( 'kore-from-config'
+         , description = 'Extracting <kore> cell'
+         , command = 'lib/kore-from-config $in $out'
+         )
+
+fb_out = main.krun( output = kink.builddir('foobar/t/foobar.kfront.out')
+                  , input  = 'foobar/t/foobar.kfront'
+                  )
+kore = kink.build( outputs = kink.builddir('foobar/t/foobar.kfront.kore')
+                 , rule = 'kore-from-config'
+                 , inputs = fb_out
+                 )
+main.check_actual_expected('foobar.kfront.kore', kore, 'foobar/t/foobar.kfront.expected')
