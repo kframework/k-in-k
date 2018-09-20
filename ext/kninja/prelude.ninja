@@ -54,8 +54,9 @@ pool opam
 
 rule kompile
     description     = Kompiling $in ($backend)
-    command         = $k_bindir/kompile --backend $backend --debug $
+    command         = $k_bindir/kompile --backend $backend --debug $flags $
                                         --directory $$(dirname $$(dirname $out)) $in
+
 rule krun
     description     = Running $in ($directory)
     command         = $k_bindir/krun $flags --debug --directory $directory $in > $out

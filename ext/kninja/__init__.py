@@ -86,7 +86,7 @@ class KDefinition:
                          , 'kompile'
                          , main
                          , variables = { 'backend' : backend
-                                       , 'kompile_flags' : kompile_flags
+                                       , 'flags' : kompile_flags
                                        }
                          )
 
