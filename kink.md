@@ -135,7 +135,7 @@ module KFRONT-TO-KORE
 
    rule #declareSymbolsSentence( ksyntax( ksort( SRTNAME ) , klabel( SYMBOLNAME )) , SORTSET)
           =>
-        SetItem(symbol SYMBOLNAME { .Names } ( .Sorts ) : SRTNAME [.Patterns])
+        SetItem(symbol SYMBOLNAME { .Names } ( .Sorts ) : SRTNAME { .Sorts } [.Patterns])
            requires (sort SRTNAME { .Names } [ .Patterns] in SORTSET)
 
   syntax KItem        ::=  "#configurationModulesToTerm"

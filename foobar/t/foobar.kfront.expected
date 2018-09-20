@@ -3,8 +3,8 @@
 
 module FOOBAR
   sort Foo {  } [  ]
-  symbol bar {  } (  ) : Foo [  ]
-  symbol buzz {  } (  ) : Foo [  ]
+  symbol buzz {  } (  ) : Foo {  } [  ]
+  symbol bar {  } (  ) : Foo {  } [  ]
   
 endmodule [  ]
 
