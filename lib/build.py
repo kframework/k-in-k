@@ -5,10 +5,14 @@ import sys
 
 # Helpers
 #
-class KinK(KProject):
-    def __init__(self):
-        super().__init__(builddir = '.build', k_repo = "ext/k")
-        self.testdir = '$builddir/t/'
-
-kink = KinK()
+kink = KProject()
+main = kink.kdefinition( 'kink'
+                       , main = kink.tangle('kink.md', kink.tangleddir('kink/kink.k'))
+                       , backend = 'java'
+                       , alias = 'kink'
+                       )
+main.krun_and_check( output_dir   = kink.builddir('foobar/t')
+                   , input    = 'foobar/t/foobar.kfront'
+                   , expected = 'foobar/t/foobar.kfront.expected'
+                   )
 

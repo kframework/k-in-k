@@ -1,0 +1,3 @@
+<kink>
+  ksyntax ( ksort ( "Foo" ) , klabel ( "bar" ) )  ksyntax ( ksort ( "Foo" ) , klabel ( "buzz" ) )  .KFrontDeclarations
+</kink>

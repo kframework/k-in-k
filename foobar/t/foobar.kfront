@@ -1,0 +1,2 @@
+ksyntax(ksort("Foo"), klabel("bar" ))
+ksyntax(ksort("Foo"), klabel("buzz"))
