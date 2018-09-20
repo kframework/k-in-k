@@ -101,10 +101,10 @@ class KDefinition:
                          )
 
     def check_actual_expected(self, name, actual, expected):
-        self.writer.build( outputs   = [name]
+        self.writer.build( outputs   = name
                          , rule      = 'check-test-result'
-                         , inputs    = [actual]
-                         , implicit  = [expected]
+                         , inputs    = actual
+                         , implicit  = expected
                          , variables = { 'expected' : expected }
                          )
 
