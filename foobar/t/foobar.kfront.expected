@@ -3,7 +3,15 @@
     #done
   </k>
   <koreDefinition>
-    [ .Patterns ] module FOOBAR sort Foo { .Names } [ .Patterns ]  symbol bar { .Names } ( .Sorts ) : Foo [ .Patterns ]  symbol buzz { .Names } ( .Sorts ) : Foo [ .Patterns ]  .Declarations endmodule [ .Patterns ]  .Modules
+    [ .Patterns ]
+
+    module FOOBAR
+      sort Foo { .Names } [ .Patterns ]
+      symbol bar { .Names } ( .Sorts ) : Foo [ .Patterns ]
+      symbol buzz { .Names } ( .Sorts ) : Foo [ .Patterns ]
+      .Declarations
+     endmodule [ .Patterns ]
+    .Modules
   </koreDefinition>
   <kore>
     <definitionAttributes>

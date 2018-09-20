@@ -48,13 +48,13 @@ module KORE-COMMON
 
   syntax Names ::= List{Name, ","} [klabel(nameList)]
 
-  syntax Declarations ::= List{Declaration, ""} [klabel(declList)]
+  syntax Declarations ::= List{Declaration, ""} [klabel(declList), format(%1%2%n%3)]
 
-  syntax Module ::= "module" Name Declarations "endmodule" Attribute [klabel(module)]
+  syntax Module ::= "module" Name Declarations "endmodule" Attribute [klabel(module), format(%1 %2%i%n%3%n%d%4 %5)]
 
-  syntax Modules ::= List{Module, ""} [klabel(moduleList)]
+  syntax Modules ::= List{Module, ""} [klabel(moduleList), format(%1%2%n%3)]
 
-  syntax Definition ::= Attribute Modules [klabel(definition)]
+  syntax Definition ::= Attribute Modules [klabel(definition), format(%1%n%n%2)]
 
 endmodule
 
