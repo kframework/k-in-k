@@ -5,39 +5,60 @@ def basename_no_ext(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 class KProject(ninja.ninja_syntax.Writer):
-    def __init__(self, builddir, k_repo):
-        self._builddir = builddir
-        self._k_repo = k_repo
+    def __init__(self):
         if not os.path.exists(self.builddir()):
             os.mkdir(self.builddir())
         super().__init__(open(self.builddir('generated.ninja'), 'w'))
-        self.comment('This is a generated file')
-        self.include(self.kninjadir("prelude.ninja"))
-        self.newline()
-        self.variable('builddir', builddir)
-        self.variable('k_repository', self.krepodir())
-        self.build_k()
+        self.generate_ninja()
+
+# Directory Layout
+# ================
+#
+# Feel free to override these on a per project basis.
+#
+#   Directory used for external projects. We assume "ext/".
+    def extdir(self, *paths):
+        return os.path.join('ext', *paths)
+    def krepodir(self, *paths):
+        return self.extdir('k', *paths)
+    def kbindir(self, *paths):
+        return self.krepodir("k-distribution/target/release/k/bin/", *paths)
 
     def kninjadir(self, *paths):
         return os.path.join(os.path.dirname(__file__), *paths)
+
     def builddir(self, *paths):
-        return os.path.join(self._builddir, *paths)
+        return os.path.join('.build', *paths)
     def tangleddir(self, *paths):
         return self.builddir('tangled', *paths)
-    def krepodir(self, *paths):
-        return os.path.join(self._k_repo, *paths)
-    def kbindir(self, *paths):
-        return self.krepodir("k-distribution/target/release/k/bin/", *paths)
+
+# Generation of Ninja file
+#
+    def generate_ninja(self):
+        self.comment('This is a generated file')
+        self.include(self.kninjadir("prelude.ninja"))
+        self.newline()
+        self.variable('builddir', self.builddir())
+        self.variable('k_repository', self.krepodir())
+        self.variable('k_bindir', self.kbindir())
+        self.variable('tangle_repository', self.extdir('pandoc-tangle'))
+        self.build_k()
 
     def build_k(self):
         self.build(self.krepodir(".git"), "git-submodule-init")
         self.build(self.kbindir("kompile"), "build-k", self.krepodir(".git"))
+        self.build(self.extdir('pandoc-tangle', ".git"), "git-submodule-init")
 
-    def kdefinition(self, name, main, backend, alias):
+    def tangle(self, input, output):
+        self.build(output, 'tangle', input, implicit = [ '$tangle_repository/.git' ])
+        return output
+
+    def kdefinition(self, name, main, backend, alias, kompile_flags = None):
         kdef = self.kdefinition_no_build( name
                                         , kompiled_dirname = basename_no_ext(main) + '-kompiled'
                                         , alias = alias
                                         )
+        kdef.kompile(main, backend = backend, kompile_flags = kompile_flags)
         kdef.write_alias(alias)
         return kdef
 
@@ -59,6 +80,15 @@ class KDefinition:
         # TODO: This assumes that the timestamp file exists. This is not the case
         # in when using the OCaml interpreter.
         self.writer.build(alias, 'phony', self.get_timestamp_file())
+
+    def kompile(self, main, backend = 'java', kompile_flags = None):
+        self.writer.build( self.get_timestamp_file()
+                         , 'kompile'
+                         , main
+                         , variables = { 'backend' : backend
+                                       , 'kompile_flags' : kompile_flags
+                                       }
+                         )
 
     def krun(self, output, input, krun_flags = None):
         self.writer.build( outputs  = [output]
