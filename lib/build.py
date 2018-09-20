@@ -15,7 +15,7 @@ def test_kfront_to_kore(proj, kdef, testfile):
                      , rule = 'kore-from-config'
                      , inputs = out
                      )
-    kink.build( outputs = testfile + '.kore.parses'
+    kink.build( outputs = kink.builddir(testfile + '.kore.ast')
               , rule    = 'kore-parser'
               , inputs  = kore
               )
