@@ -63,7 +63,7 @@ module KORE-SYNTAX
   imports KORE-COMMON
 
   // TODO:: Fix this regexp.
-  syntax Name ::= r"[\\\\]?[-#a-zA-Z0-9]*"     [autoReject, token, prec(2)]
+  syntax Name ::= r"[\\\\]?[-\\'#a-zA-Z0-9]*"     [autoReject, token, prec(2)]
   syntax Name ::= r"\\rewrites"     [token, prec(2)]
 
 endmodule
