@@ -68,6 +68,14 @@ module KORE-SYNTAX
 
 endmodule
 
+module KORE-HELPERS
+  imports KORE-COMMON
+
+  syntax Declarations ::= Declarations "++Declarations" Declarations [function]
+  rule (D1 DS1) ++Declarations DS2 => D1 (DS1 ++Declarations DS2)
+  rule .Declarations ++Declarations DS2 => DS2 
+
+endmodule
 
 module KORE
 
