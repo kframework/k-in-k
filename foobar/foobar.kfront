@@ -7,6 +7,6 @@ kmodule FOOBAR
   ksyntax(ksort(SortKItem), klabel(dummy), )
   ksyntax(ksort(SortK), klabel(kseq), ksort(SortKItem) ; ksort(SortK))
 
-  ksyntax(ksort(Foo), klabel(bar), )
-  ksyntax(ksort(Foo), klabel(buzz), )
+  ksyntax(ksort(SortFoo), klabel(Lblbar'Unds'FOOBAR'Unds'), ) // bar
+  ksyntax(ksort(SortFoo), klabel(Lblbuzz'Unds'FOOBAR'Unds'), )
 endkmodule
