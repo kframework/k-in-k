@@ -24,7 +24,7 @@ def test_kfront_to_kore(proj, kdef, testfile):
 # Project Definition
 # ==================
 
-kink = KProject()
+proj = KProject()
 
 # Building Kore & Kore Support
 # ----------------------------
@@ -32,24 +32,24 @@ kink = KProject()
 ### Submodule init update
 
 # TODO: Figure out how to avoid calling `stack build` all the time.
-kink.rule( 'kore-parser'
+proj.rule( 'kore-parser'
          , description = 'kore-parser'
          , command     = 'stack build kore:exe:kore-parser && stack exec kore-parser $in > $out'
          )
-kink.build(kink.extdir('kore', '.git'), 'git-submodule-init')
+proj.build(proj.extdir('kore', '.git'), 'git-submodule-init')
 
 # Converting Frontend Definitions
 # -------------------------------
 
-main = kink.kdefinition( 'kink'
-                       , main = kink.tangle('kink.md', kink.tangleddir('kink/kink.k'))
+kink = proj.kdefinition( 'kink'
+                       , kink = proj.tangle('kink.md', proj.tangleddir('kink/kink.k'))
                        , backend = 'java'
                        , alias = 'kink'
                        , kompile_flags = '-I .'
                        )
-kink.rule( 'kore-from-config'
+proj.rule( 'kore-from-config'
          , description = 'Extracting <kore> cell'
          , command = 'lib/kore-from-config $in $out'
          )
-test_kfront_to_kore(kink, main, 'foobar/t/foobar.kfront')
+test_kfront_to_kore(proj, kink, 'foobar/t/foobar.kfront')
 
