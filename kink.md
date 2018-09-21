@@ -6,8 +6,9 @@ module KFRONT-SYNTAX
   imports KORE-SYNTAX
 
   syntax KFrontDeclarations ::= List{KFrontDeclaration, ""}
-  syntax KFrontDeclaration  ::= ksyntax(KFrontSort , KFrontLabel)
+  syntax KFrontDeclaration  ::= ksyntax(KFrontSort , KFrontLabel, KFrontSorts)
   syntax KFrontSort         ::= ksort(Name)
+  syntax KFrontSorts        ::= List{KFrontSort, ";"} [klabel(KFrontSorts)]
   syntax KFrontLabel        ::= klabel(Name)
 
   syntax KFrontModule     ::=  "kmodule" Name KFrontSentences "endkmodule"
@@ -84,10 +85,15 @@ module KFRONT-TO-KORE
              </koreModule>)
            </modules>
        </kore>
+```
 
+Pipeline Steps
+==============
+
+Collect sort declarations:
+
+```k
    rule #sortDeclaration( #processedDefintion( DEF ) ) => #pipelineStepHelper( SortsDeclaration, .KFrontModules | DEF )
-
-
    rule <k>
             (#pipelineStepHelper( SortsDeclaration, MODULE | kmodule NAME KSENTENCES endkmodule MODULES)
               =>
@@ -102,16 +108,25 @@ module KFRONT-TO-KORE
 
    syntax Declarations ::= #declareSorts(KFrontSentences, Set) [function]
    rule #declareSorts(.KFrontSentences, _) => .Declarations
-   rule #declareSorts(ksyntax(ksort(SORT:Name), _ ) KSS, DECLARED_SORTS)
+   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _) KSS, DECLARED_SORTS)
      => sort SORT { .Names } [ .Patterns ]
         #declareSorts(KSS, SetItem(SORT) DECLARED_SORTS)
      requires notBool(SORT in DECLARED_SORTS)
-   rule #declareSorts(ksyntax(ksort(SORT:Name), _ ) KSS, DECLARED_SORTS)
+   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _) KSS, DECLARED_SORTS)
      => #declareSorts(KSS, DECLARED_SORTS)
      requires SORT in DECLARED_SORTS
+```
 
+Collect symbol declarations
+
+```k
    syntax Declarations ::= #declareSymbols(KFrontSentences, Declarations) [function]
                          | #declareSymbolsSentence(KFrontSentence, Declarations) [function]
+
+// TODO: Take into account sort params. Will need to do a lookup.
+   syntax Sorts ::= KFrontSorts2KoreSorts(KFrontSorts) [function]
+   rule KFrontSorts2KoreSorts(.KFrontSorts)  => .Sorts
+   rule KFrontSorts2KoreSorts(ksort(N) ; SS) => N { .Sorts } , KFrontSorts2KoreSorts(SS)
 
    rule #symbolDeclaration( #processedDefintion ( DEF )) => #pipelineStepHelper( SymbolsDeclaration, .KFrontModules | DEF )
 
@@ -131,10 +146,12 @@ module KFRONT-TO-KORE
    rule #declareSymbols(KS KSS, SORTSSET)
      => #declareSymbolsSentence(KS, SORTSSET) ++Declarations #declareSymbols(KSS, SORTSSET)
 
-   rule #declareSymbolsSentence(ksyntax(ksort(SORT), klabel(SYMBOLNAME)), SORTSET)
-     => symbol SYMBOLNAME { .Names } ( .Sorts ) : SORT { .Sorts } [.Patterns]
+   rule #declareSymbolsSentence(ksyntax(ksort(SORT), klabel(SYMBOLNAME), ARGSORTS), SORTSET)
+     => symbol SYMBOLNAME { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
         .Declarations
+```
 
+```k
   syntax KItem        ::=  "#configurationModulesToTerm"
   syntax Declarations ::=  #toKoreSentences ( Set )     [function]
 
@@ -185,3 +202,4 @@ module KINK
   imports KFRONT-TO-KORE
 endmodule
 ```
+
