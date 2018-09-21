@@ -73,11 +73,18 @@ bar_kast = foobar_k5.kast( output = proj.builddir('foobar/programs/bar.foobar.ka
                          )
 out = proj.build( inputs  = bar_kast
                 , rule    = 'kore-exec'
-                , outputs = proj.builddir('foobar/programs/bar.foobar.out')
+                , outputs = proj.builddir('foobar/programs/bar.foobar.kink.out')
                 , implicit = foobar_kore
                 , variables = { 'kore' : foobar_kore
                               }
                 )
 foobar_k5.check_actual_expected('foobar/programs/bar.foobar.kink', out, 'foobar/programs/bar.foobar.expected')
 
-
+out = proj.build( inputs  = bar_kast
+                , rule    = 'kore-exec'
+                , outputs = proj.builddir('foobar/programs/bar.foobar.k5.out')
+                , implicit = 'foobar/foobar.handwritten.kore'
+                , variables = { 'kore' : 'foobar/foobar.handwritten.kore'
+                              }
+                )
+foobar_k5.check_actual_expected('foobar/programs/bar.foobar.handwritten', out, 'foobar/programs/bar.foobar.expected')

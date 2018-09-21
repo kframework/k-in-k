@@ -74,7 +74,9 @@ class KDefinition:
         self.alias            = alias
 
     def get_timestamp_file(self):
-        return os.path.join(self.directory, self.kompiled_dirname, 'timestamp')
+        return self.kompileddir('timestamp')
+    def kompileddir(self, *path):
+        return os.path.join(self.directory, self.kompiled_dirname, *path)
 
     def write_alias(self, alias):
         # TODO: This assumes that the timestamp file exists. This is not the case
