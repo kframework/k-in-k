@@ -1,4 +1,12 @@
 kmodule FOOBAR
-  ksyntax(ksort(Foo), klabel(bar))
-  ksyntax(ksort(Foo), klabel(buzz))
+  // K-BASIC + KSEQ
+  ksyntax(ksort(SortK), klabel(dotk), )
+
+  // No concrete KItems are declared, but we need the KItem sort to exist for kseq Sort
+  // TODO: Allow `ksyntax(ksort(SortKItem))`
+  ksyntax(ksort(SortKItem), klabel(dummy), )
+  ksyntax(ksort(SortK), klabel(kseq), ksort(SortKItem) ; ksort(SortK))
+
+  ksyntax(ksort(Foo), klabel(bar), )
+  ksyntax(ksort(Foo), klabel(buzz), )
 endkmodule

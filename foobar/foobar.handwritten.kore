@@ -11,7 +11,6 @@ module FOOBAR
 // module KSEQ
 // -----------
 
-
   symbol kseq{}(SortKItem{}, SortK{}) : SortK{} []
   symbol append{}(SortK{}, SortK{}) : SortK{} [function{}()]
   symbol dotk{}() : SortK{} []
