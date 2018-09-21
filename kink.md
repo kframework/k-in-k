@@ -1,9 +1,9 @@
 ```k
 requires "kore.k"
 
-module KFRONT-SYNTAX
+module KFRONT-COMMON
   imports STRING
-  imports KORE-SYNTAX
+  imports KORE-COMMON
 
   syntax KFrontDeclarations ::= List{KFrontDeclaration, ""}
   syntax KFrontDeclaration  ::= ksyntax(KFrontSort , KFrontLabel, KFrontSorts)
@@ -21,7 +21,7 @@ endmodule
 
 ```k
 module KFRONT-TO-KORE
-  imports KFRONT-SYNTAX
+  imports KFRONT-COMMON
   imports KORE-HELPERS
   imports DOMAINS
  
@@ -199,7 +199,8 @@ endmodule
 
 ```k
 module KINK-SYNTAX
-  imports KFRONT-SYNTAX
+  imports KORE-SYNTAX
+  imports KFRONT-COMMON
 endmodule
 
 module KINK
