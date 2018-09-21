@@ -57,6 +57,10 @@ rule kompile
     command         = $k_bindir/kompile --backend $backend --debug $flags $
                                         --directory $$(dirname $$(dirname $out)) $in
 
+rule kast
+    description     = kast $in ($directory)
+    command         = $k_bindir/kast $flags --debug --directory $directory $in > $out
+
 rule krun
     description     = Running $in ($directory)
     command         = $k_bindir/krun $flags --debug --directory $directory $in > $out

@@ -90,6 +90,16 @@ class KDefinition:
                                        }
                          )
 
+    def kast(self, output, input, kast_flags = None):
+        return self.writer.build( outputs  = output
+                                , rule     = 'kast'
+                                , inputs   = input
+                                , implicit = [self.alias]
+                                , variables = { 'directory' : self.directory
+                                              , 'flags'     : kast_flags
+                                              }
+                                )
+
     def krun(self, output, input, krun_flags = None):
         self.writer.build( outputs  = [output]
                          , rule     = 'krun'
