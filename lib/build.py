@@ -8,18 +8,18 @@ import os.path
 # =======
 
 def test_kfront_to_kore(proj, kdef, testfile):
-    out = main.krun( output = kink.builddir(testfile + '.out')
+    out = kdef.krun( output = proj.builddir(testfile + '.out')
                    , input  = testfile + ''
                    )
-    kore = kdef.build( outputs = kink.builddir(testfile + '.kore')
+    kore = proj.build( outputs = proj.builddir(testfile + '.kore')
                      , rule = 'kore-from-config'
                      , inputs = out
                      )
-    kink.build( outputs = kink.builddir(testfile + '.kore.ast')
+    proj.build( outputs = proj.builddir(testfile + '.kore.ast')
               , rule    = 'kore-parser'
               , inputs  = kore
               )
-    return main.check_actual_expected(os.path.basename(testfile), kore, testfile + '.expected')
+    return kdef.check_actual_expected(os.path.basename(testfile), kore, testfile + '.expected')
 
 # Project Definition
 # ==================
@@ -51,4 +51,5 @@ kink.rule( 'kore-from-config'
          , description = 'Extracting <kore> cell'
          , command = 'lib/kore-from-config $in $out'
          )
-test_kfront_to_kore(main, kink, 'foobar/t/foobar.kfront')
+test_kfront_to_kore(kink, main, 'foobar/t/foobar.kfront')
+
