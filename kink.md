@@ -6,10 +6,14 @@ module KFRONT-COMMON
   imports KORE-COMMON
 
   syntax KFrontDeclarations ::= List{KFrontDeclaration, ""}
-  syntax KFrontDeclaration  ::= ksyntax(KFrontSort , KFrontLabel, KFrontSorts)
+  syntax KFrontDeclaration  ::= ksyntax(KFrontSort , KFrontLabel, KFrontSorts, KFrontAttributes)
+                              | krule(KFrontLabel, KFrontLabel)
   syntax KFrontSort         ::= ksort(Name)
   syntax KFrontSorts        ::= List{KFrontSort, ";"} [klabel(KFrontSorts)]
   syntax KFrontLabel        ::= klabel(Name)
+  syntax KFrontAttribute    ::= kattribute(KFrontAttributeName)
+  syntax KFrontAttributes   ::= List{KFrontAttribute, ";"} [klabel(KFrontAttributes)]
+  syntax KFrontAttributeName ::= "function"
 
   syntax KFrontModule     ::=  "kmodule" Name KFrontSentences "endkmodule"
   syntax KFrontModules    ::=  List{KFrontModule, " "}                     [klabel(kauxModules)]
@@ -113,13 +117,15 @@ Collect sort declarations:
 
    syntax Declarations ::= #declareSorts(KFrontSentences, Set) [function]
    rule #declareSorts(.KFrontSentences, _) => .Declarations
-   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _) KSS, DECLARED_SORTS)
+   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _, _) KSS, DECLARED_SORTS)
      => sort SORT { .Names } [ .Patterns ]
         #declareSorts(KSS, SetItem(SORT) DECLARED_SORTS)
      requires notBool(SORT in DECLARED_SORTS)
-   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _) KSS, DECLARED_SORTS)
+   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _, _) KSS, DECLARED_SORTS)
      => #declareSorts(KSS, DECLARED_SORTS)
      requires SORT in DECLARED_SORTS
+   rule #declareSorts(krule(_, _) KSS, DECLARED_SORTS)
+     => #declareSorts(KSS, DECLARED_SORTS)
 ```
 
 Collect symbol declarations
@@ -149,8 +155,9 @@ Collect symbol declarations
    rule #declareSymbols(.KFrontSentences, Set) => .Declarations
    rule #declareSymbols(KS KSS, SORTSSET)
      => #declareSymbolsSentence(KS, SORTSSET) ++Declarations #declareSymbols(KSS, SORTSSET)
-
-   rule #declareSymbolsSentence(ksyntax(ksort(SORT), klabel(SYMBOLNAME), ARGSORTS), SORTSET)
+   rule #declareSymbolsSentence(krule(LHS, RHS), DECLARED_SORTS)
+     => .Declarations
+   rule #declareSymbolsSentence(ksyntax(ksort(SORT), klabel(SYMBOLNAME), ARGSORTS, _), SORTSET)
      => symbol SYMBOLNAME { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
         .Declarations
 ```
