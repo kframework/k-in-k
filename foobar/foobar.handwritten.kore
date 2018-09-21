@@ -1,12 +1,16 @@
 []
 
-module BASIC-K
+module FOOBAR
+
+// module BASIC-K
+// --------------
+
   sort SortK{} []
   sort SortKItem{} []
-endmodule []
 
-module KSEQ
-  import BASIC-K []
+// module KSEQ
+// -----------
+
 
   symbol kseq{}(SortKItem{}, SortK{}) : SortK{} []
   symbol append{}(SortK{}, SortK{}) : SortK{} [function{}()]
@@ -24,9 +28,9 @@ module KSEQ
       kseq{}(K1:SortKItem{},append{}(K2:SortK{},K3:SortK{})))
   []
 
-endmodule []
+// module INJ
+// ----------
 
-module INJ
   symbol inj{From,To}(From) : To []
 
   axiom{S1,S2,S3,R}
@@ -35,17 +39,12 @@ module INJ
       inj{S1,S3}(T:S1))
   []
 
-endmodule []
+// module K
+// --------
 
-module K
-  import KSEQ []
-  import INJ []
-endmodule []
 
-module FOOBAR
-
-// imports
-  import K []
+// module FOOBAR
+// -------------
 
 // sorts
   sort SortFoo{} []
