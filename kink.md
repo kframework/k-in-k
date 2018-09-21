@@ -21,8 +21,9 @@ endmodule
 ```k
 module KFRONT-TO-KORE
   imports KFRONT-SYNTAX
+  imports KORE-HELPERS
   imports DOMAINS
-
+ 
   syntax Processed   ::=  #processedDefintion ( KFrontDefinition )
 
   syntax Intermdiate ::=   #initialization    ( KFrontDefinition )
@@ -47,9 +48,9 @@ module KFRONT-TO-KORE
                     <definitionAttributes> [ .Patterns ] </definitionAttributes>
                     <modules>
                       <koreModule multiplicity="*">
-                        <name>               .K   </name>
-                        <sortDeclarations>   .Set </sortDeclarations>
-                        <symbolDeclarations> .Set </symbolDeclarations>
+                        <name> .K </name>
+                        <sortDeclarations> .Declarations </sortDeclarations>
+                        <symbolDeclarations> .Declarations </symbolDeclarations>
                       </koreModule>
                     </modules>
                   </kore>
@@ -84,11 +85,6 @@ module KFRONT-TO-KORE
            </modules>
        </kore>
 
-
-
-   syntax Set ::=   #declareSorts         ( KFrontSentences )     [function]
-                  | #declareSortsSentence ( KFrontSentence  )     [function]
-
    rule #sortDeclaration( #processedDefintion( DEF ) ) => #pipelineStepHelper( SortsDeclaration, .KFrontModules | DEF )
 
 
@@ -99,19 +95,23 @@ module KFRONT-TO-KORE
            ...
        </k>
        <koreModule>
-         <name>              NAME                              </name>
-         <sortDeclarations> .Set => #declareSorts( KSENTENCES ) </sortDeclarations>
+         <name>              NAME                                            </name>
+         <sortDeclarations> .Declarations => #declareSorts(KSENTENCES, .Set) </sortDeclarations>
          ...
        </koreModule>
 
-   rule #declareSorts( .KFrontSentences ) => .Set
-   rule #declareSorts( KSNTNC KSNTNCS ) => #declareSortsSentence( KSNTNC ) #declareSorts( KSNTNCS )
+   syntax Declarations ::= #declareSorts(KFrontSentences, Set) [function]
+   rule #declareSorts(.KFrontSentences, _) => .Declarations
+   rule #declareSorts(ksyntax(ksort(SORT:Name), _ ) KSS, DECLARED_SORTS)
+     => sort SORT { .Names } [ .Patterns ]
+        #declareSorts(KSS, SetItem(SORT) DECLARED_SORTS)
+     requires notBool(SORT in DECLARED_SORTS)
+   rule #declareSorts(ksyntax(ksort(SORT:Name), _ ) KSS, DECLARED_SORTS)
+     => #declareSorts(KSS, DECLARED_SORTS)
+     requires SORT in DECLARED_SORTS
 
-   rule #declareSortsSentence( ksyntax( ksort ( SORTNAME:Name ), _ )) => SetItem( sort SORTNAME { .Names } [ .Patterns ])
-   rule #declareSortsSentence( KS ) => .Set    [owise]
-
-   syntax Set ::=  #declareSymbols         ( KFrontSentences , Set ) [function]
-                 | #declareSymbolsSentence ( KFrontSentence , Set )  [function]
+   syntax Declarations ::= #declareSymbols(KFrontSentences, Declarations) [function]
+                         | #declareSymbolsSentence(KFrontSentence, Declarations) [function]
 
    rule #symbolDeclaration( #processedDefintion ( DEF )) => #pipelineStepHelper( SymbolsDeclaration, .KFrontModules | DEF )
 
@@ -122,21 +122,18 @@ module KFRONT-TO-KORE
            ...
        </k>
        <koreModule>
-         <name>               NAME                                          </name>
-         <sortDeclarations>   SORTSSET                                      </sortDeclarations>
-         <symbolDeclarations> .Set => #declareSymbols(KSENTENCES, SORTSSET) </symbolDeclarations>
+         <name>               NAME                                                </name>
+         <sortDeclarations>   SORTS:Declarations                                  </sortDeclarations>
+         <symbolDeclarations> .Declarations => #declareSymbols(KSENTENCES, SORTS) </symbolDeclarations>
        </koreModule>
 
-   rule #declareSymbols( .KFrontSentences, Set ) => .Set
+   rule #declareSymbols(.KFrontSentences, Set) => .Declarations
+   rule #declareSymbols(KS KSS, SORTSSET)
+     => #declareSymbolsSentence(KS, SORTSSET) ++Declarations #declareSymbols(KSS, SORTSSET)
 
-   rule #declareSymbols( KSNTNC KSNTNCS, SORTSSET)
-               =>
-        #declareSymbolsSentence( KSNTNC, SORTSSET) #declareSymbols( KSNTNCS, SORTSSET )
-
-   rule #declareSymbolsSentence( ksyntax( ksort( SRTNAME ) , klabel( SYMBOLNAME )) , SORTSET)
-          =>
-        SetItem(symbol SYMBOLNAME { .Names } ( .Sorts ) : SRTNAME { .Sorts } [.Patterns])
-           requires (sort SRTNAME { .Names } [ .Patterns] in SORTSET)
+   rule #declareSymbolsSentence(ksyntax(ksort(SORT), klabel(SYMBOLNAME)), SORTSET)
+     => symbol SYMBOLNAME { .Names } ( .Sorts ) : SORT { .Sorts } [.Patterns]
+        .Declarations
 
   syntax KItem        ::=  "#configurationModulesToTerm"
   syntax Declarations ::=  #toKoreSentences ( Set )     [function]
@@ -154,7 +151,7 @@ module KFRONT-TO-KORE
           _
             =>
           [ .Patterns ]
-             `module`( MODULENAME, #toKoreSentences( SYMBOLDECLS SORTDECLS ), [ .Patterns ])
+             `module`( MODULENAME, SORTDECLS ++Declarations SYMBOLDECLS, [ .Patterns ])
              .Modules
         </koreDefinition>
         <kore>
@@ -170,9 +167,6 @@ module KFRONT-TO-KORE
             ...
           </modules>
         </kore>
-
-  rule #toKoreSentences( .Set )                 => .Declarations
-  rule #toKoreSentences( SetItem (DECL) DECLS ) => DECL #toKoreSentences( DECLS )
 
   rule <k> (#configurationModulesToTerm => .K) ... </k>
        <kore>
