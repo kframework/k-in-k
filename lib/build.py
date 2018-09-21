@@ -56,7 +56,7 @@ proj.rule( 'kore-from-config'
          , description = 'Extracting <kore> cell'
          , command = 'lib/kore-from-config $in $out'
          )
-foobar_kore = test_kfront_to_kore(proj, kink, 'foobar/t/foobar.kfront')
+foobar_kore = test_kfront_to_kore(proj, kink, 'foobar/foobar.kfront')
 
 # Building and running definitions using the K5/Java translation
 # --------------------------------------------------------------
