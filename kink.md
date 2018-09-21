@@ -36,6 +36,8 @@ module KFRONT-TO-KORE
   syntax KItem      ::=  "#done"
                        | "#configurationDefinitionToTerm"
 
+  syntax Name ::= "inj" | "From" | "To"
+
   configuration <T>
                   <k>
                       #symbolDeclaration(
@@ -51,7 +53,10 @@ module KFRONT-TO-KORE
                       <koreModule multiplicity="*">
                         <name> .K </name>
                         <sortDeclarations> .Declarations </sortDeclarations>
-                        <symbolDeclarations> .Declarations </symbolDeclarations>
+                        <symbolDeclarations>
+                          (symbol inj { From , To , .Names } ( From , .Sorts) : To [ .Patterns ])
+                          .Declarations
+                        </symbolDeclarations>
                       </koreModule>
                     </modules>
                   </kore>
@@ -131,16 +136,15 @@ Collect symbol declarations
    rule #symbolDeclaration( #processedDefintion ( DEF )) => #pipelineStepHelper( SymbolsDeclaration, .KFrontModules | DEF )
 
 
-   rule <k> (#pipelineStepHelper( SymbolsDeclaration, MODULE | kmodule NAME KSENTENCES endkmodule MODULES)
-              =>
-            #pipelineStepHelper( SymbolsDeclaration, kmodule NAME KSENTENCES endkmodule MODULE | MODULES))
-           ...
-       </k>
-       <koreModule>
-         <name>               NAME                                                </name>
-         <sortDeclarations>   SORTS:Declarations                                  </sortDeclarations>
-         <symbolDeclarations> .Declarations => #declareSymbols(KSENTENCES, SORTS) </symbolDeclarations>
-       </koreModule>
+   rule <k> #pipelineStepHelper(SymbolsDeclaration, MODULE | kmodule NAME KSENTENCES endkmodule MODULES)
+         => #pipelineStepHelper(SymbolsDeclaration, kmodule NAME KSENTENCES endkmodule MODULE | MODULES)
+            ...
+        </k>
+        <koreModule>
+          <name>               NAME                                                       </name>
+          <sortDeclarations>   SORTS:Declarations                                         </sortDeclarations>
+          <symbolDeclarations> DS => DS ++Declarations #declareSymbols(KSENTENCES, SORTS) </symbolDeclarations>
+        </koreModule>
 
    rule #declareSymbols(.KFrontSentences, Set) => .Declarations
    rule #declareSymbols(KS KSS, SORTSSET)
