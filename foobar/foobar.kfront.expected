@@ -2,9 +2,15 @@
 [  ]
 
 module FOOBAR
-  sort Foo {  } [  ]
-  symbol buzz {  } (  ) : Foo {  } [  ]
-  symbol bar {  } (  ) : Foo {  } [  ]
+  sort SortK {  } [  ]
+  sort SortKItem {  } [  ]
+  sort SortFoo {  } [  ]
+  symbol inj { From , To } ( From ) : To [  ]
+  symbol dotk {  } (  ) : SortK {  } [  ]
+  symbol dummy {  } (  ) : SortKItem {  } [  ]
+  symbol kseq {  } ( SortKItem {  } , SortK {  } ) : SortK {  } [  ]
+  symbol Lblbar'Unds'FOOBAR'Unds' {  } (  ) : SortFoo {  } [  ]
+  symbol Lblbuzz'Unds'FOOBAR'Unds' {  } (  ) : SortFoo {  } [  ]
   
 endmodule [  ]
 
