@@ -17,7 +17,7 @@ module KFRONT-COMMON
 
   syntax KFrontModule     ::=  "kmodule" Name KFrontSentences "endkmodule"
   syntax KFrontModules    ::=  List{KFrontModule, " "}                     [klabel(kauxModules)]
-  syntax KFrontSentences  ::=  List{KFrontSentence, " "}                   [klabel(kauxSentences)]
+  syntax KFrontSentences  ::=  List{KFrontSentence, " "} [klabel(kauxSentences), format(%1%2%n%3)]
   syntax KFrontSentence   ::=  KFrontDeclaration
   syntax KFrontDefinition ::=  KFrontModules
 endmodule
@@ -43,13 +43,12 @@ module KFRONT-TO-KORE
   syntax Name ::= "inj" | "From" | "To"
 
   configuration <T>
-                  <k>
-                      #symbolDeclaration(
-                        #sortDeclaration(
-                          #initialization( $PGM:KFrontModules )
-                        )
-                      ) ~> #configurationDefinitionToTerm ~> #done
+                  <k> #createModules
+                   ~> #withEachSentence(#collectSortDeclarations(.Set))
+                   ~> #withEachSentence(#collectSymbols)
+                   ~> #toKoreSyntax
                   </k>
+                  <kfront> $PGM:KFrontModules </kfront>
                   <koreDefinition> .K </koreDefinition>
                   <kore>
                     <definitionAttributes> [ .Patterns ] </definitionAttributes>
@@ -65,116 +64,117 @@ module KFRONT-TO-KORE
                     </modules>
                   </kore>
                 </T>
-
-   syntax PipelineStep ::=     "Initialization"
-                             | "SortsDeclaration"
-                             | "SymbolsDeclaration"
-   syntax Intermediate ::=     "#pipelineStepHelper" "(" PipelineStep "," KFrontDefinition "|" KFrontDefinition ")"
-
-   rule #processedDefintion( _ ) ~> #done => #done
-
-   rule #initialization( AUXDEF ) => #pipelineStepHelper(Initialization, .KFrontModules | AUXDEF)
-
-   rule #pipelineStepHelper( _ ,  MODULES | .KFrontModules ) => #processedDefintion( MODULES )
-
-   rule <k>
-           (#pipelineStepHelper( Initialization, MODULE | kmodule MODULENAME KSNTNCS endkmodule MODULES)
-               =>
-            #pipelineStepHelper( Initialization, (kmodule MODULENAME KSNTNCS endkmodule) MODULE | MODULES))
-           ...
-        </k>
-        <kore>
-           ...
-           <modules>
-           ( .Bag
-              =>
-             <koreModule>
-               <name> MODULENAME </name>
-               ...
-             </koreModule>)
-           </modules>
-       </kore>
 ```
 
-Pipeline Steps
-==============
+For each empty module in the K Frontend syntax create a new `<koreModule>` cell:
+
+```k
+  syntax K ::= "#createModules" | #createModulesAux(KFrontModules)
+  rule <k> #createModules => #createModulesAux(MODULES) ... </k>
+       <kfront> MODULES </kfront>
+  rule <k> #createModulesAux(.KFrontModules) => .K ... </k>
+  rule <k> #createModulesAux(kmodule MNAME KS endkmodule MODULES)
+        => #createModulesAux(MODULES)
+           ...
+       </k>
+       <modules> .Bag
+              => <koreModule>
+                   <name> MNAME </name>
+                   ...
+                 </koreModule>
+             ...
+       </modules>
+```
+
+`#withEachSentence` is a helper function for walking over all `KFrontSentence`s in all modules:
+
+```k
+  syntax KFrontSentenceVisitor
+  syntax K ::= #withEachSentence(KFrontSentenceVisitor)
+             | #withEachSentenceAux(KFrontModules)
+             | #visit(KFrontSentenceVisitor, Name, KFrontSentence)
+             | #visitNext(KFrontSentenceVisitor)
+  rule <k> #withEachSentence(V)
+        => #visitNext(V) ~> #withEachSentenceAux(MODULES)
+           ...
+       </k>
+       <kfront> MODULES </kfront>
+  rule <k> #visitNext(V) ~> #withEachSentenceAux(kmodule MNAME .KFrontSentences endkmodule MODULES)
+        => #visitNext(V) ~> #withEachSentenceAux(MODULES)
+           ...
+       </k>
+  rule <k> #visitNext(V) ~> #withEachSentenceAux(.KFrontModules) => .K ... </k>
+  rule <k> #visitNext(V) ~> #withEachSentenceAux(kmodule MNAME (KS KSS) endkmodule MODULES)
+        => #visit(V, MNAME, KS) ~> #withEachSentenceAux(kmodule MNAME (KSS) endkmodule MODULES)
+           ...
+       </k>
+  syntax KFrontSentenceVisitor ::= "#nullVisitor"
+  rule #visit(#nullVisitor, _, _) => .K
+```
 
 Collect sort declarations:
 
 ```k
-   rule #sortDeclaration( #processedDefintion( DEF ) ) => #pipelineStepHelper( SortsDeclaration, .KFrontModules | DEF )
-   rule <k>
-            (#pipelineStepHelper( SortsDeclaration, MODULE | kmodule NAME KSENTENCES endkmodule MODULES)
-              =>
-             #pipelineStepHelper( SortsDeclaration, kmodule NAME KSENTENCES endkmodule MODULE | MODULES))
+  syntax KFrontSentenceVisitor ::= #collectSortDeclarations(Set)
+  rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), MNAME
+                 , ksyntax(ksort(SORT:Name), _, _, _))
+        => #visitNext(#collectSortDeclarations(DECLARED_SORTS SetItem(SORT)))
            ...
        </k>
        <koreModule>
-         <name>              NAME                                            </name>
-         <sortDeclarations> .Declarations => #declareSorts(KSENTENCES, .Set) </sortDeclarations>
+         <name> MNAME </name>
+         <sortDeclarations>
+           DS => DS ++Declarations sort SORT { .Names } [ .Patterns ] .Declarations
+         </sortDeclarations>
          ...
        </koreModule>
-
-   syntax Declarations ::= #declareSorts(KFrontSentences, Set) [function]
-   rule #declareSorts(.KFrontSentences, _) => .Declarations
-   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _, _) KSS, DECLARED_SORTS)
-     => sort SORT { .Names } [ .Patterns ]
-        #declareSorts(KSS, SetItem(SORT) DECLARED_SORTS)
-     requires notBool(SORT in DECLARED_SORTS)
-   rule #declareSorts(ksyntax(ksort(SORT:Name), _, _, _) KSS, DECLARED_SORTS)
-     => #declareSorts(KSS, DECLARED_SORTS)
-     requires SORT in DECLARED_SORTS
-   rule #declareSorts(krule(_, _) KSS, DECLARED_SORTS)
-     => #declareSorts(KSS, DECLARED_SORTS)
+    requires notBool(SORT in DECLARED_SORTS)
+    rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _
+                   , ksyntax(ksort(SORT:Name), _, _, _))
+          => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
+             ...
+         </k>
+      requires SORT in DECLARED_SORTS
+    rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _, krule(_, _))
+          => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
+             ...
+         </k>
+// // TODO: Why doesn't owise work?
+//   rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _, _)
+//         => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
+//            ...
+//        </k> [owise]
 ```
 
 Collect symbol declarations
 
 ```k
-   syntax Declarations ::= #declareSymbols(KFrontSentences, Declarations) [function]
-                         | #declareSymbolsSentence(KFrontSentence, Declarations) [function]
-
+  syntax KFrontSentenceVisitor ::= "#collectSymbols"
+  rule <k> #visit(#collectSymbols, MNAME, ksyntax(ksort(SORT:Name), klabel(LABEL), ARGSORTS, _))
+        => #visitNext(#collectSymbols)
+          ...
+      </k>
+      <koreModule>
+        <name> MNAME </name>
+        <symbolDeclarations>
+          DS => DS ++Declarations
+                symbol LABEL { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
+                .Declarations
+        </symbolDeclarations>
+        ...
+      </koreModule>
+  rule <k> #visit(#collectSymbols, _, _) => #visitNext(#collectSymbols) ... </k> [owise]
+       
 // TODO: Take into account sort params. Will need to do a lookup.
    syntax Sorts ::= KFrontSorts2KoreSorts(KFrontSorts) [function]
    rule KFrontSorts2KoreSorts(.KFrontSorts)  => .Sorts
    rule KFrontSorts2KoreSorts(ksort(N) ; SS) => N { .Sorts } , KFrontSorts2KoreSorts(SS)
-
-   rule #symbolDeclaration( #processedDefintion ( DEF )) => #pipelineStepHelper( SymbolsDeclaration, .KFrontModules | DEF )
-
-
-   rule <k> #pipelineStepHelper(SymbolsDeclaration, MODULE | kmodule NAME KSENTENCES endkmodule MODULES)
-         => #pipelineStepHelper(SymbolsDeclaration, kmodule NAME KSENTENCES endkmodule MODULE | MODULES)
-            ...
-        </k>
-        <koreModule>
-          <name>               NAME                                                       </name>
-          <sortDeclarations>   SORTS:Declarations                                         </sortDeclarations>
-          <symbolDeclarations> DS => DS ++Declarations #declareSymbols(KSENTENCES, SORTS) </symbolDeclarations>
-        </koreModule>
-
-   rule #declareSymbols(.KFrontSentences, Set) => .Declarations
-   rule #declareSymbols(KS KSS, SORTSSET)
-     => #declareSymbolsSentence(KS, SORTSSET) ++Declarations #declareSymbols(KSS, SORTSSET)
-   rule #declareSymbolsSentence(krule(LHS, RHS), DECLARED_SORTS)
-     => .Declarations
-   rule #declareSymbolsSentence(ksyntax(ksort(SORT), klabel(SYMBOLNAME), ARGSORTS, _), SORTSET)
-     => symbol SYMBOLNAME { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
-        .Declarations
 ```
 
 ```k
-  syntax KItem        ::=  "#configurationModulesToTerm"
-  syntax Declarations ::=  #toKoreSentences ( Set )     [function]
-
-  rule #processedDefintion( DEF ) ~> #configurationDefinitionToTerm
-        =>
-       #configurationDefinitionToTerm ~> #processedDefintion ( DEF )
-
-  rule <k> (#configurationDefinitionToTerm => #configurationModulesToTerm ) ... </k>
-       <koreDefinition> _ => [ .Patterns ] .Modules </koreDefinition>
-
+  syntax KItem        ::=  "#toKoreSyntax"
   // TODO (Issue): This rule doesn't handle multiple modules. Fix this rule.
-  rule <k> #configurationModulesToTerm ... </k>
+  rule <k> #toKoreSyntax ... </k>
        <koreDefinition>
           _
             =>
@@ -196,11 +196,14 @@ Collect symbol declarations
           </modules>
         </kore>
 
-  rule <k> (#configurationModulesToTerm => .K) ... </k>
+  rule <k> #toKoreSyntax => .K ... </k>
        <kore>
-        ...
-        <modules> .Bag </modules>
+         <modules> .Bag </modules>
+         ...
        </kore>
+```
+
+```k
 endmodule
 ```
 
