@@ -26,6 +26,7 @@ def test_kfront_to_kore(proj, kdef, testfile):
 # ==================
 
 proj = KProject()
+proj.build_ocaml()
 
 # Building Kore & Kore Support
 # ----------------------------
@@ -48,7 +49,7 @@ proj.build(proj.extdir('kore', '.git'), 'git-submodule-init')
 
 kink = proj.kdefinition( 'kink'
                        , main = proj.tangle('kink.md', proj.tangleddir('kink/kink.k'))
-                       , backend = 'java'
+                       , backend = 'ocaml'
                        , alias = 'kink'
                        , kompile_flags = '-I .'
                        )
@@ -78,7 +79,8 @@ out = proj.build( inputs  = bar_kast
                 , variables = { 'kore' : foobar_kore
                               }
                 )
-foobar_k5.check_actual_expected('foobar/programs/bar.foobar.kink', out, 'foobar/programs/bar.foobar.expected')
+test = foobar_k5.check_actual_expected('foobar/programs/bar.foobar.kink', out, 'foobar/programs/bar.foobar.expected')
+proj.default(test)
 
 out = proj.build( inputs  = bar_kast
                 , rule    = 'kore-exec'
@@ -87,4 +89,5 @@ out = proj.build( inputs  = bar_kast
                 , variables = { 'kore' : 'foobar/foobar.handwritten.kore'
                               }
                 )
-foobar_k5.check_actual_expected('foobar/programs/bar.foobar.handwritten', out, 'foobar/programs/bar.foobar.expected')
+test = foobar_k5.check_actual_expected('foobar/programs/bar.foobar.handwritten', out, 'foobar/programs/bar.foobar.expected')
+proj.default(test)

@@ -23,11 +23,22 @@ k_submodule="$build_dir/k"
 log()  { echo >&2 "=== " $@ ; }
 fail() { log "$@"; exit 1   ; }
 
+init_env() {
+    type -t ninja > /dev/null || fail "ninja-build not available. Giving up."
+
+    # Since K needs a modified ocaml compiler, use a opam root directory private to
+    # this project so as not to intefere with other opam packages such as coq.
+    #
+    export OPAMROOT="$build_dir/opam"
+    eval $(opam config env)
+
+    export PYTHONPATH="$base/ext/"
+}
+
 # Main
 # ====
 
-type -t ninja > /dev/null || fail "ninja-build not available. Giving up."
-export PYTHONPATH="$base/ext/"
+init_env
 python3 lib/build.py
 [[ $# -lt 1 ]] || [[ -- != $1 ]] || { shift ; exec "$@" ; }
 exec ninja -f .build/generated.ninja "$@"
