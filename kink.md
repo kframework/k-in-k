@@ -163,8 +163,10 @@ Collect symbol declarations
         </symbolDeclarations>
         ...
       </koreModule>
-  rule <k> #visit(#collectSymbols, _, _) => #visitNext(#collectSymbols) ... </k> [owise]
-       
+  rule <k> #visit(#collectSymbols, _, krule(_, _)) => #visitNext(#collectSymbols) ... </k>
+//  //TODO: Owise rule fails here as well.
+//  rule <k> #visit(#collectSymbols, _, _) => #visitNext(#collectSymbols) ... </k>
+
 // TODO: Take into account sort params. Will need to do a lookup.
    syntax Sorts ::= KFrontSorts2KoreSorts(KFrontSorts) [function]
    rule KFrontSorts2KoreSorts(.KFrontSorts)  => .Sorts
