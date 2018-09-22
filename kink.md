@@ -129,16 +129,16 @@ Collect sort declarations:
          ...
        </koreModule>
     requires notBool(SORT in DECLARED_SORTS)
-    rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _
-                   , ksyntax(ksort(SORT:Name), _, _, _))
-          => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
-             ...
-         </k>
-      requires SORT in DECLARED_SORTS
-    rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _, krule(_, _))
-          => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
-             ...
-         </k>
+  rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _
+                 , ksyntax(ksort(SORT:Name), _, _, _))
+        => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
+           ...
+       </k>
+    requires SORT in DECLARED_SORTS
+  rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _, krule(_, _))
+        => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
+           ...
+       </k>
 // // TODO: Why doesn't owise work?
 //   rule <k> #visit( #collectSortDeclarations(DECLARED_SORTS), _, _)
 //         => #visitNext(#collectSortDeclarations(DECLARED_SORTS))
@@ -153,16 +153,16 @@ Collect symbol declarations
   rule <k> #visit(#collectSymbols, MNAME, ksyntax(ksort(SORT:Name), klabel(LABEL), ARGSORTS, _))
         => #visitNext(#collectSymbols)
           ...
-      </k>
-      <koreModule>
-        <name> MNAME </name>
-        <symbolDeclarations>
-          DS => DS ++Declarations
-                symbol LABEL { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
-                .Declarations
-        </symbolDeclarations>
-        ...
-      </koreModule>
+       </k>
+       <koreModule>
+         <name> MNAME </name>
+         <symbolDeclarations>
+           DS => DS ++Declarations
+                 symbol LABEL { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
+                 .Declarations
+         </symbolDeclarations>
+         ...
+       </koreModule>
   rule <k> #visit(#collectSymbols, _, krule(_, _)) => #visitNext(#collectSymbols) ... </k>
 //  //TODO: Owise rule fails here as well.
 //  rule <k> #visit(#collectSymbols, _, _) => #visitNext(#collectSymbols) ... </k>
@@ -178,25 +178,25 @@ Collect symbol declarations
   // TODO (Issue): This rule doesn't handle multiple modules. Fix this rule.
   rule <k> #toKoreSyntax ... </k>
        <koreDefinition>
-          _
-            =>
-          [ .Patterns ]
-             `module`( MODULENAME, SORTDECLS ++Declarations SYMBOLDECLS, [ .Patterns ])
-             .Modules
-        </koreDefinition>
-        <kore>
-          ...
-          <modules>
-            (<koreModule>
-                <name>               MODULENAME  </name>
-                <sortDeclarations>   SORTDECLS   </sortDeclarations>
-                <symbolDeclarations> SYMBOLDECLS </symbolDeclarations>
-             </koreModule>
-               =>
-             .Bag)
-            ...
-          </modules>
-        </kore>
+         _
+           =>
+         [ .Patterns ]
+            `module`( MODULENAME, SORTDECLS ++Declarations SYMBOLDECLS, [ .Patterns ])
+            .Modules
+       </koreDefinition>
+       <kore>
+         ...
+         <modules>
+           (<koreModule>
+               <name>               MODULENAME  </name>
+               <sortDeclarations>   SORTDECLS   </sortDeclarations>
+               <symbolDeclarations> SYMBOLDECLS </symbolDeclarations>
+            </koreModule>
+              =>
+            .Bag)
+           ...
+         </modules>
+       </kore>
 
   rule <k> #toKoreSyntax => .K ... </k>
        <kore>
