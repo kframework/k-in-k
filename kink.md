@@ -28,7 +28,7 @@ module KFRONT-TO-KORE
   imports KFRONT-COMMON
   imports KORE-HELPERS
   imports DOMAINS
- 
+
   syntax Name ::= "inj" | "From" | "To"
 
   configuration <T>
@@ -44,7 +44,9 @@ module KFRONT-TO-KORE
                     <modules>
                       <koreModule multiplicity="*" type="List">
                         <name> .K </name>
-                        <sortDeclarations> .Declarations </sortDeclarations>
+                        <sorts>
+                          <sortDeclaration multiplicity="*" type="List" > .K </sortDeclaration>
+                        </sorts>
                         <symbolDeclarations>
                           (symbol inj { From , To , .Names } ( From , .Sorts) : To [ .Patterns ])
                           .Declarations
@@ -112,9 +114,9 @@ Collect sort declarations:
        </k>
        <koreModule>
          <name> MNAME </name>
-         <sortDeclarations>
-           DS => DS ++Declarations sort SORT { .Names } [ .Patterns ] .Declarations
-         </sortDeclarations>
+         <sorts> SS
+              => (SS <sortDeclaration> sort SORT { .Names } [ .Patterns ] </sortDeclaration>)
+         </sorts>
          ...
        </koreModule>
     requires notBool(SORT in DECLARED_SORTS)
@@ -163,35 +165,72 @@ Collect symbol declarations
 ```
 
 Finally, convert each `<module>` cell into actual kore syntax.
-TODO: This rule doesn't handle multiple modules.
+TODO: We don't handle multiple modules.
 
 ```k
-  syntax KItem        ::=  "#toKoreSyntax"
-  rule <k> #toKoreSyntax ... </k>
+  syntax KItem ::= "#toKoreSyntax"
+                 | "#writeSortDeclarations"
+                 | "#writeSymbolDeclarations"
+  rule <k> #toKoreSyntax
+        => #writeSortDeclarations ~> #writeSymbolDeclarations ~> #toKoreSyntax
+       </k>
        <koreDefinition>
-         _
-           =>
-         [ .Patterns ]
-            `module`( MODULENAME, SORTDECLS ++Declarations SYMBOLDECLS, [ .Patterns ])
-            .Modules
+        .K => [ .Patterns ]
+              `module`( MNAME , .Declarations , [.Patterns])
        </koreDefinition>
        <kore>
          <modules>
-           (<koreModule>
-               <name>               MODULENAME  </name>
-               <sortDeclarations>   SORTDECLS   </sortDeclarations>
-               <symbolDeclarations> SYMBOLDECLS </symbolDeclarations>
-            </koreModule>
-              =>
-            .Bag)
+           <koreModule>
+           <name> MNAME </name>
+           ...
+           </koreModule>
          </modules>
-       </kore>
-
-  rule <k> #toKoreSyntax => .K ... </k>
-       <kore>
-         <modules> .Bag </modules>
          ...
        </kore>
+```
+
+```k
+  rule <k> #writeSortDeclarations ... </k>
+       <koreDefinition>
+           [ ATTRS ] `module`( MNAME , DECS , [.Patterns])
+        => [ ATTRS ] `module`( MNAME , DECS ++Declarations SORTDECL, [.Patterns])
+       </koreDefinition>
+       <name> MNAME </name>
+       <sorts>
+         <sortDeclaration> SORTDECL:Declaration </sortDeclaration> => .Bag
+         ...
+       </sorts>
+
+  rule <k> #writeSortDeclarations => .K ... </k>
+       <sorts> .Bag </sorts>
+```
+
+```k
+  rule <k> #writeSymbolDeclarations => .K ... </k>
+       <koreDefinition>
+           [ ATTRS ] `module`( MNAME , DECS , [.Patterns])
+        => [ ATTRS ] `module`( MNAME , DECS ++Declarations SYMBOLDECLS, [.Patterns])
+       </koreDefinition>
+       <name> MNAME </name>
+       <symbolDeclarations>
+         SYMBOLDECLS:Declarations => .Declarations
+       </symbolDeclarations>
+```
+
+```k
+  rule <k> #toKoreSyntax ... </k>
+       <modules>
+         (<koreModule>
+             <sorts> .Bag </sorts>
+             <symbolDeclarations> .Declarations   </symbolDeclarations>
+             ...
+          </koreModule>
+            =>
+          .Bag)
+       </modules>
+
+  rule <k> #toKoreSyntax => .K ... </k>
+       <modules> .Bag </modules>
 ```
 
 ```k
