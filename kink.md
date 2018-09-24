@@ -47,10 +47,12 @@ module KFRONT-TO-KORE
                         <sorts>
                           <sortDeclaration multiplicity="*" type="List" > .K </sortDeclaration>
                         </sorts>
-                        <symbolDeclarations>
-                          (symbol inj { From , To , .Names } ( From , .Sorts) : To [ .Patterns ])
-                          .Declarations
-                        </symbolDeclarations>
+                        <symbols>
+                          <xsymbol multiplicity="*" type="List">
+                              <symbolName> .K:Name </symbolName>
+                              <symbolDeclaration> .K:Declaration </symbolDeclaration>
+                          </xsymbol>
+                        </symbols>
                       </koreModule>
                     </modules>
                   </kore>
@@ -71,6 +73,14 @@ For each empty module in the K Frontend syntax create a new `<koreModule>` cell:
        <modules> .Bag
               => <koreModule>
                    <name> MNAME </name>
+                   <symbols>
+                     <xsymbol>
+                       <symbolName> inj </symbolName>
+                       <symbolDeclaration>
+                           (symbol inj { From , To , .Names } ( From , .Sorts) : To [ .Patterns ])
+                           </symbolDeclaration>
+                     </xsymbol>
+                   </symbols>
                    ...
                  </koreModule>
              ...
@@ -147,11 +157,15 @@ Collect symbol declarations
        </k>
        <koreModule>
          <name> MNAME </name>
-         <symbolDeclarations>
-           DS => DS ++Declarations
-                 symbol LABEL { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
-                 .Declarations
-         </symbolDeclarations>
+         <symbols> .Bag =>
+           <xsymbol>
+             <symbolName> LABEL </symbolName>
+             <symbolDeclaration>
+               symbol LABEL { .Names } ( KFrontSorts2KoreSorts(ARGSORTS) ) : SORT { .Sorts } [.Patterns]
+             </symbolDeclaration>
+           </xsymbol>
+           ...
+         </symbols>
          ...
        </koreModule>
   rule <k> #visit(#collectSymbols, _, krule(_, _)) => #visitNext(#collectSymbols) ... </k>
@@ -206,15 +220,24 @@ TODO: We don't handle multiple modules.
 ```
 
 ```k
-  rule <k> #writeSymbolDeclarations => .K ... </k>
+  rule <k> #writeSymbolDeclarations ... </k>
        <koreDefinition>
            [ ATTRS ] `module`( MNAME , DECS , [.Patterns])
-        => [ ATTRS ] `module`( MNAME , DECS ++Declarations SYMBOLDECLS, [.Patterns])
+        => [ ATTRS ] `module`( MNAME , DECS ++Declarations SYMBOLDECL, [.Patterns])
        </koreDefinition>
        <name> MNAME </name>
-       <symbolDeclarations>
-         SYMBOLDECLS:Declarations => .Declarations
-       </symbolDeclarations>
+       <symbols>
+         <xsymbol>
+           <symbolDeclaration>
+             SYMBOLDECL:Declaration
+           </symbolDeclaration>
+           ...
+         </xsymbol> => .Bag
+         ...
+       </symbols>
+
+  rule <k> #writeSymbolDeclarations => .K ... </k>
+       <symbols> .Bag </symbols>
 ```
 
 ```k
@@ -222,7 +245,7 @@ TODO: We don't handle multiple modules.
        <modules>
          (<koreModule>
              <sorts> .Bag </sorts>
-             <symbolDeclarations> .Declarations   </symbolDeclarations>
+             <symbols> .Bag </symbols>
              ...
           </koreModule>
             =>
