@@ -70,11 +70,18 @@ endmodule
 
 module KORE-HELPERS
   imports KORE-COMMON
+  imports DOMAINS
 
   syntax Declarations ::= Declarations "++Declarations" Declarations [function]
   rule (D1 DS1) ++Declarations DS2 => D1 (DS1 ++Declarations DS2)
   rule .Declarations ++Declarations DS2 => DS2 
 
+  syntax Bool ::= Pattern "inPatterns" Patterns                      [function]
+  rule (P inPatterns           .Patterns) => false
+  rule (P inPatterns P:Pattern  ,  PS)    => true
+  rule (P inPatterns P1:Pattern ,  PS)
+    => (P inPatterns               PS)
+    requires notBool P ==K P1
 endmodule
 
 module KORE
