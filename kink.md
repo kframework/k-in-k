@@ -29,17 +29,6 @@ module KFRONT-TO-KORE
   imports KORE-HELPERS
   imports DOMAINS
  
-  syntax Processed   ::=  #processedDefintion ( KFrontDefinition )
-
-  syntax Intermdiate ::=   #initialization    ( KFrontDefinition )
-                         | #sortDeclaration   ( Intermdiate )   [strict]
-                         | #symbolDeclaration ( Intermdiate )   [strict]
-                         |  Processed
-
-  syntax KResult    ::= Processed
-  syntax KItem      ::=  "#done"
-                       | "#configurationDefinitionToTerm"
-
   syntax Name ::= "inj" | "From" | "To"
 
   configuration <T>
