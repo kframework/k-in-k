@@ -173,9 +173,11 @@ Collect symbol declarations
    rule KFrontSorts2KoreSorts(ksort(N) ; SS) => N { .Sorts } , KFrontSorts2KoreSorts(SS)
 ```
 
+Finally, convert each `<module>` cell into actual kore syntax.
+TODO: This rule doesn't handle multiple modules.
+
 ```k
   syntax KItem        ::=  "#toKoreSyntax"
-  // TODO (Issue): This rule doesn't handle multiple modules. Fix this rule.
   rule <k> #toKoreSyntax ... </k>
        <koreDefinition>
          _
@@ -185,7 +187,6 @@ Collect symbol declarations
             .Modules
        </koreDefinition>
        <kore>
-         ...
          <modules>
            (<koreModule>
                <name>               MODULENAME  </name>
@@ -194,7 +195,6 @@ Collect symbol declarations
             </koreModule>
               =>
             .Bag)
-           ...
          </modules>
        </kore>
 
