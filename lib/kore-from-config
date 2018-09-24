@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-commaSeparated = ['Sorts', 'Names']
-others = ['Modules', 'Patterns', 'Declarations']
+commaSeparated = ['Sorts', 'Names', 'Patterns']
+others = ['Modules', 'Declarations']
 
 import sys
 import string
