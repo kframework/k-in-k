@@ -53,7 +53,7 @@ module KFRONT-TO-KORE
                   <kore>
                     <definitionAttributes> [ .Patterns ] </definitionAttributes>
                     <modules>
-                      <koreModule multiplicity="*">
+                      <koreModule multiplicity="*" type="List">
                         <name> .K </name>
                         <sortDeclarations> .Declarations </sortDeclarations>
                         <symbolDeclarations>
