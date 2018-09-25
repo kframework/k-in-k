@@ -12,6 +12,37 @@ After installing python3, [ninja-build] and [pandoc] simply run `./build`.
 [pandoc]:      https://pandoc.org
 [ninja-build]: https://ninja-build.org
 
+Pipeline stages
+===============
+
+TODO: Choose better names for `EKore-0`, ...
+
+1.  Frontend K
+
+    -   Includes:
+        -   K Frontend syntax for defining grammar, rules, configuration
+        -   Rules may use:
+            -   User defined syntax (concrete syntax)
+            -   KAST syntax (abstract syntax)
+    -   Eliminate User defined syntax by converting to KAST
+    -   Choose KLabels for each production
+    -   `#bubble(...)` is replaced with KAST syntax
+    -   Disabiguation
+    -   ...
+2.  Extended-Kore 
+    *   (EKore-0 -> EKore-1)  : Turn productions into kore `symbol` declarations
+    *   (EKore-1 -> EKore-2)  : All sorts have `sort` declarations included
+    *   (EKore-2 -> EKore-3)  : Productions replaced with kore's `symbol` declaration
+    *   (EKore-3 -> EKore-3a) : Rules for functional symbols become axioms
+    *   (EKore-3 -> EKore-3b) : Other rules for symbols become `\rewrites` with contexts
+    *   ...
+3.  Pre-Kore : No more K frontend constructs
+    -   Generate "No Junk" Axioms
+    -   Generate Functional Axioms
+    -   Generate Strictness Axioms
+    -   Configuration concretization
+    -   ...
+
 Issues?
 =======
 
@@ -25,3 +56,5 @@ TODO:
 
 -   Using `Sets` etc makes output non-deterministic (e.g. the order of
     statements may be permuted). This makes testing hard.
+    
+
