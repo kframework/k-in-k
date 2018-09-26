@@ -28,14 +28,18 @@ TODO: Choose better names for `EKore-0`, ...
     -   Choose KLabels for each production
     -   `#bubble(...)` is replaced with KAST syntax
     -   Disabiguation
+    -   `require "file.k"` should be expanded to the contents of the file.
     -   ...
+
 2.  Extended-Kore 
+
     *   (EKore-0 -> EKore-1)  : Turn productions into kore `symbol` declarations
     *   (EKore-1 -> EKore-2)  : All sorts have `sort` declarations included
     *   (EKore-2 -> EKore-3)  : Productions replaced with kore's `symbol` declaration
     *   (EKore-3 -> EKore-3a) : Rules for functional symbols become axioms
     *   (EKore-3 -> EKore-3b) : Other rules for symbols become `\rewrites` with contexts
     *   ...
+
 3.  Pre-Kore : No more K frontend constructs
     -   Generate "No Junk" Axioms
     -   Generate Functional Axioms
