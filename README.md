@@ -33,11 +33,10 @@ TODO: Choose better names for `EKore-0`, ...
 
 2.  Extended-Kore 
 
-    *   (EKore-0 -> EKore-1)  : Turn productions into kore `symbol` declarations
-    *   (EKore-1 -> EKore-2)  : All sorts have `sort` declarations included
-    *   (EKore-2 -> EKore-3)  : Productions replaced with kore's `symbol` declaration
-    *   (EKore-3 -> EKore-3a) : Rules for functional symbols become axioms
-    *   (EKore-3 -> EKore-3b) : Other rules for symbols become `\rewrites` with contexts
+    *   (EKore-0 -> EKore-1)  : Turn `#KProduction`s into kore `sort` declarations
+    *   (EKore-1 -> EKore-2)  : `#KProduction`s replaced with kore's `symbol` declaration
+    *   (EKore-2 -> EKore-3)  : Rules for functional symbols become axioms
+    *   (EKore-? -> EKore-?)  : Other rules for symbols become `\rewrites` with contexts
     *   Define configuration cell sorts ...
     *   ...
 
