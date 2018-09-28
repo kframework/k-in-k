@@ -1,61 +1,59 @@
-#KDefinition{}(#emptyKRequireList{}(),
-               #KModuleList{}(
-               #KModuleList{}( #emptyKModuleList{}()
-                             , #KModule{}(\dv{KModuleName{}}("IMP-SYNTAX"),#NoKAttributesDeclaration{}()
-                                         ,#KImportList{}(#emptyKImportList{}()
-                                                        ,#KImport{}(\dv{KModuleName{}}("DOMAINS-SYNTAX"))
-                                                        )
-                                         , #KSentenceList{}(
-                                           #KSentenceList{}(
-                                           #KSentenceList{}(
-                                           #KSentenceList{}(
-                                           #KSentenceList{}(
-                                           #KSentenceList{}(#emptyKSentenceList{}() 
-                                                           ,#KSyntaxProduction{}(\dv{KSort{}}("AExp"),#PrioritySeqBlock{}(#ProdBlock{}(#ProdBlock{}(#ProdBlock{}(#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Int")),#NoKAttributesDeclaration{}()),#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Id")),#NoKAttributesDeclaration{}())),#KProductionWAttr{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"-\"")),#NonTerminal{}(\dv{KSort{}}("Int"))),#NoKAttributesDeclaration{}())),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#NonTerminal{}(\dv{KSort{}}("AExp")),#Terminal{}(\dv{KString{}}("\"/\""))),#NonTerminal{}(\dv{KSort{}}("AExp"))),#KAttributesDeclaration{}(#KAttributesList{}(#TagSimple{}(\dv{KEY{}}("left")),#TagSimple{}(\dv{KEY{}}("strict")))))),#NoAttribute{}(),#ProdBlock{}(#KProductionWAttr{}(#KProduction{}(#KProduction{}(#NonTerminal{}(\dv{KSort{}}("AExp")),#Terminal{}(\dv{KString{}}("\"+\""))),#NonTerminal{}(\dv{KSort{}}("AExp"))),#KAttributesDeclaration{}(#KAttributesList{}(#TagSimple{}(\dv{KEY{}}("left")),#TagSimple{}(\dv{KEY{}}("strict"))))),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"(\"")),#NonTerminal{}(\dv{KSort{}}("AExp"))),#Terminal{}(\dv{KString{}}("\")\""))),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("bracket")))))))
-                                                         ) ,#KSyntaxProduction{}(\dv{KSort{}}("BExp"),#PrioritySeqBlock{}(#ProdBlock{}(#ProdBlock{}(#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Bool")),#NoKAttributesDeclaration{}()),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#NonTerminal{}(\dv{KSort{}}("AExp")),#Terminal{}(\dv{KString{}}("\"<=\""))),#NonTerminal{}(\dv{KSort{}}("AExp"))),#KAttributesDeclaration{}(#KAttributesList{}(#TagSimple{}(\dv{KEY{}}("seqstrict")),#TagContent{}(\dv{KEY{}}("latex"),\dv{TAGList{}}("{#1}\\leq{#2}")))))),#KProductionWAttr{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"!\"")),#NonTerminal{}(\dv{KSort{}}("BExp"))),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("strict"))))),#NoAttribute{}(),#ProdBlock{}(#KProductionWAttr{}(#KProduction{}(#KProduction{}(#NonTerminal{}(\dv{KSort{}}("BExp")),#Terminal{}(\dv{KString{}}("\"&&\""))),#NonTerminal{}(\dv{KSort{}}("BExp"))),#KAttributesDeclaration{}(#KAttributesList{}(#TagSimple{}(\dv{KEY{}}("left")),#TagContent{}(\dv{KEY{}}("strict"),\dv{TAGList{}}("1"))))),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"(\"")),#NonTerminal{}(\dv{KSort{}}("BExp"))),#Terminal{}(\dv{KString{}}("\")\""))),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("bracket")))))))
-                                                         ),#KSyntaxProduction{}(\dv{KSort{}}("Block"),#ProdBlock{}(#KProductionWAttr{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"{\"")),#Terminal{}(\dv{KString{}}("\"}\""))),#NoKAttributesDeclaration{}()),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"{\"")),#NonTerminal{}(\dv{KSort{}}("Stmt"))),#Terminal{}(\dv{KString{}}("\"}\""))),#NoKAttributesDeclaration{}())))
-                                                         ),#KSyntaxProduction{}(\dv{KSort{}}("Stmt"),#PrioritySeqBlock{}(#ProdBlock{}(#ProdBlock{}(#ProdBlock{}(#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Block")),#NoKAttributesDeclaration{}()),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#KProduction{}(#NonTerminal{}(\dv{KSort{}}("Id")),#Terminal{}(\dv{KString{}}("\"=\""))),#NonTerminal{}(\dv{KSort{}}("AExp"))),#Terminal{}(\dv{KString{}}("\";\""))),#KAttributesDeclaration{}(#TagContent{}(\dv{KEY{}}("strict"),\dv{TAGList{}}("2"))))),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#KProduction{}(#KProduction{}(#KProduction{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"if\"")),#Terminal{}(\dv{KString{}}("\"(\""))),#NonTerminal{}(\dv{KSort{}}("BExp"))),#Terminal{}(\dv{KString{}}("\")\""))),#NonTerminal{}(\dv{KSort{}}("Block"))),#Terminal{}(\dv{KString{}}("\"else\""))),#NonTerminal{}(\dv{KSort{}}("Block"))),#KAttributesDeclaration{}(#TagContent{}(\dv{KEY{}}("strict"),\dv{TAGList{}}("1"))))),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#KProduction{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"while\"")),#Terminal{}(\dv{KString{}}("\"(\""))),#NonTerminal{}(\dv{KSort{}}("BExp"))),#Terminal{}(\dv{KString{}}("\")\""))),#NonTerminal{}(\dv{KSort{}}("Block"))),#NoKAttributesDeclaration{}())),#NoAttribute{}(),#KProductionWAttr{}(#KProduction{}(#NonTerminal{}(\dv{KSort{}}("Stmt")),#NonTerminal{}(\dv{KSort{}}("Stmt"))),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("left"))))))
-                                                         ),#KSyntaxProduction{}(\dv{KSort{}}("Pgm"),#KProductionWAttr{}(#KProduction{}(#KProduction{}(#KProduction{}(#Terminal{}(\dv{KString{}}("\"int\"")),#NonTerminal{}(\dv{KSort{}}("Ids"))),#Terminal{}(\dv{KString{}}("\";\""))),#NonTerminal{}(\dv{KSort{}}("Stmt"))),#NoKAttributesDeclaration{}()))
-                                                         ),#KSyntaxProduction{}(\dv{KSort{}}("Ids"),#KProductionWAttr{}(#List{}(\dv{KSort{}}("Id"),\dv{KString{}}("\",\"")),#NoKAttributesDeclaration{}()))))
-                             ) , #KModule{}(\dv{KModuleName{}}("IMP"),#NoKAttributesDeclaration{}(),
-                                                                      #KImportList{}(#KImportList{}(#emptyKImportList{}(),#KImport{}(\dv{KModuleName{}}("IMP-SYNTAX"))),#KImport{}(\dv{KModuleName{}}("DOMAINS")))
-                                           , #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}(
-                                             #KSentenceList{}( #emptyKSentenceList{}()
-                                                           ) , #KSyntaxProduction{}(\dv{KSort{}}("KResult"),#ProdBlock{}(#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Int")),#NoKAttributesDeclaration{}()),#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Bool")),#NoKAttributesDeclaration{}()))
-                                                           ) , #KConfiguration{}(#NoAttrs{}(\dv{Bubble{}}("<T color=\"yellow\">\r\n                  <k color=\"green\"> $PGM:Pgm </k>\r\n                  <state color=\"red\"> .Map </state>\r\n                </T>\r\n\r\n// AExp\r\n  "))))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("<k> X:Id => I ...</k> <state>... X |-> I ...</state>\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("I1 / I2 => I1 /Int I2  requires I2 =/=Int 0\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("I1 + I2 => I1 +Int I2\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("- I1 => 0 -Int I1\r\n// BExp\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("I1 <= I2 => I1 <=Int I2\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("! T => notBool T\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("true && B => B\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("false && _ => false\r\n// Block\r\n  ")))
-                                                           ) , #KRule{}(#Attrs{}(\dv{Bubble{}}("{} => .   "),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))))
-                                                           ) , #KRule{}(#Attrs{}(\dv{Bubble{}}("{S} => S  "),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("<k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>\r\n  ")))
-                                                           ) , #KRule{}(#Attrs{}(\dv{Bubble{}}("S1:Stmt S2:Stmt => S1 ~> S2  "),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("if (true)  S else _ => S\r\n  ")))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("if (false) _ else S => S\r\n  ")))
-                                                           ) , #KRule{}(#Attrs{}(\dv{Bubble{}}("while (B) S => if (B) {S while (B) S} else {}  "),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))))
-                                                           ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("<k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>\r\n    requires notBool (X in keys(Rho))\r\n  ")))
-                                                           ) , #KRule{}(#Attrs{}(\dv{Bubble{}}("int .Ids; S => S  "),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))))
-)             )              )                             )
+module IMP-SYNTAX
+  imports DOMAINS-SYNTAX
+  syntax AExp  ::= Int | Id
+                 | "-" Int
+                 | AExp "/" AExp              [left, strict]
+                 > AExp "+" AExp              [left, strict]
+                 | "(" AExp ")"               [bracket]
+  syntax BExp  ::= Bool
+                 | AExp "<=" AExp             [seqstrict, latex({#1}\leq{#2})]
+                 | "!" BExp                   [strict]
+                 > BExp "&&" BExp             [left, strict(1)]
+                 | "(" BExp ")"               [bracket]
+  syntax Block ::= "{" "}"
+                 | "{" Stmt "}"
+  syntax Stmt  ::= Block
+                 | Id "=" AExp ";"            [strict(2)]
+                 | "if" "(" BExp ")"
+                   Block "else" Block         [strict(1)]
+                 | "while" "(" BExp ")" Block
+                 > Stmt Stmt                  [left]
+  syntax Pgm ::= "int" Ids ";" Stmt
+  syntax Ids ::= List{Id,","}
+endmodule
+
+
+module IMP
+  imports IMP-SYNTAX
+  imports DOMAINS
+  syntax KResult ::= Int | Bool
+
+  configuration #parse(<T color="yellow">
+                         <k color="green"> $PGM:Pgm </k>
+                         <state color="red"> .Map </state>
+                       </T>)
+
+// AExp
+  rule #parse("<k> X:Id => I ...</k> <state>... X |-> I ...</state>")
+  rule #parse("I1 / I2 => I1 /Int I2")  requires I2 =/=Int 0
+  rule #parse("I1 + I2 => I1 +Int I2")
+  rule #parse("- I1 => 0 -Int I1")
+// BExp
+  rule #parse("I1 <= I2 => I1 <=Int I2")
+  rule #parse("! T => notBool T")
+  rule #parse("true && B => B")
+  rule #parse("false && _ => false")
+// Block
+  rule #parse("{} => .")  [structural]
+  rule #parse("{S} => S")  [structural]
+// Stmt
+  rule #parse("<k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>")
+  rule #parse("S1:Stmt S2:Stmt => S1 ~> S2")  [structural]
+  rule #parse("if (true)  S else _ => S")
+  rule #parse("if (false) _ else S => S")
+  rule #parse("while (B) S => if (B) {S while (B) S} else {}") [structural]
+// Pgm
+  rule #parse("<k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>")
+    requires notBool (X in keys(Rho))
+  rule int .Ids; S => S  [structural]
+endmodule
