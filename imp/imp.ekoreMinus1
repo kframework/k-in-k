@@ -58,7 +58,4 @@
                                                            ) , #KRule{}(#Attrs{}(\dv{Bubble{}}("while (B) S => if (B) {S while (B) S} else {}  "),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))))
                                                            ) , #KRule{}(#NoAttrs{}(\dv{Bubble{}}("<k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>\r\n    requires notBool (X in keys(Rho))\r\n  ")))
                                                            ) , #KRule{}(#Attrs{}(\dv{Bubble{}}("int .Ids; S => S  "),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))))
-                                                           ), #KSyntaxProduction{}(\dv{KSort{}}("Id"),#ProdBlock{}(#KProductionWAttr{}(#Terminal{}(\dv{KString{}}("\"n\"")),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("token"))))
-                                                                                                                   ,#KProductionWAttr{}(#Terminal{}(\dv{KString{}}("\"sum\"")),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("token"))))))))
-                             )
-              )
+)             )              )                             )

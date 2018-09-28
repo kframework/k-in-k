@@ -39,7 +39,6 @@
               #KSentenceList{}(
               #KSentenceList{}(
               #KSentenceList{}(
-              #KSentenceList{}(
               #KSentenceList{}( #emptyKSentenceList{}()
                             ) , #KSyntaxProduction{}(\dv{KSort{}}("KResult"),#ProdBlock{}(#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Int")),#NoKAttributesDeclaration{}()),#KProductionWAttr{}(#NonTerminal{}(\dv{KSort{}}("Bool")),#NoKAttributesDeclaration{}()))
                             ) , #KConfiguration{}(#NoAttrs{}(#KCellDeclaration( #KCellAttributes(\dv{String}("color"), \dv{String}("yellow"))
@@ -66,6 +65,4 @@
                             ) , #KRule{}(#Attrs{}(#KRewrite{}(`while(_)_`{}(B:Bool{}, S:Block{}), `if(_)_else_`{}(B:Bool{}, `{_}`{}(`__`{}(S:Block{}, `while(_)_`{}(B:Bool{}, S:Block{})))))), #KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural"))), #KRequires(\dv{Bool{}("true")))
                             ) , #KRule{}(#NoAttrs{}(#KBag{}(kcell{}(`int_;_`{}(#KRewrite(`IdList{}`(X:Id{}, Xs:IdList{}), Xs:IdList{}), VarUnds:Block{})), statecell{}( #KMapUnion(Rho:StateCellMap{}, #KRewrite{}(dotMap{}(), mapBinding{}(X:Id{}, \dv{Int}("0"))))))), #KRequires(`notBool_`{}(mapInKeys{}(X:Id{}, Rho:Map{}))))
                             ) , #KRule{}(#Attrs{}(`int_;_`{}(#KRewrite(dotIdList{}(), Xs:IdList{}), S:Block{}), #KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("structural")))),#KRequires(\dv{Bool{}("true"))) 
-                            ) , #KSyntaxProduction{}(\dv{KSort{}}("Id"),#ProdBlock{}(#KProductionWAttr{}(#Terminal{}(\dv{KString{}}("\"n\"")),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("token"))))
-                                                                                    ,#KProductionWAttr{}(#Terminal{}(\dv{KString{}}("\"sum\"")),#KAttributesDeclaration{}(#TagSimple{}(\dv{KEY{}}("token"))))))))
-              )
+)            )              )
