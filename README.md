@@ -38,17 +38,36 @@ TODO: Choose better names for `EKore-0`, ...
     *   (EKore-2 -> EKore-3)  : Productions replaced with kore's `symbol` declaration
     *   (EKore-3 -> EKore-3a) : Rules for functional symbols become axioms
     *   (EKore-3 -> EKore-3b) : Other rules for symbols become `\rewrites` with contexts
+    *   Define configuration cell sorts ...
     *   ...
 
 3.  Pre-Kore : No more K frontend constructs
     -   Generate "No Junk" Axioms
     -   Generate Functional Axioms
     -   Generate Strictness Axioms
+    -   Generate Configuration init functions
     -   Configuration concretization
     -   ...
 
+
+## Interesting files
+
+In the `imp/imp.ekore0` we sketch out what we expect the `ekore0` syntax to look like.
+
+* We Assume dotMap{}() and mapLookup{}(...)  are the symbols defined in `DOMAINS`
+
+* We use `_/_` etc as sugar for Lbl'Unds'Div'Unds'{}()
+ 
+TODO:
+
+-   Using `Sets` etc makes output non-deterministic (e.g. the order of
+    statements may be permuted). This makes testing hard.
+
 Issues?
 =======
+
+`kore.k`
+--------
 
 -   `kore.k` says that `Name` is a `Sort`, but I think it should be a
     `SortVariable` instead? `kore-parse` throws: "Sort variable 'Foo' not
@@ -56,9 +75,18 @@ Issues?
 -   `kore.k` has sort names like `Declaration` whereas `kore-parse` calls its
     corresponding construct `ObjectSentence`s. I think we should converge?
 
-TODO:
+ekore / `K-OUTER` syntax
+------------------------
 
--   Using `Sets` etc makes output non-deterministic (e.g. the order of
-    statements may be permuted). This makes testing hard.
-    
+-   How will AC lookuPs look
+-   Should `#KRequires(\dv{Bool{}("true"))` be `#KRequires(\top{..}())`
+-   Why are bubbles inside `#NoAttrs` / `#Attrs`, can we instead have:
+
+    `#KRule{}(#bubble(...), #KAttrs(#KAttrsEmpty(){}, #KRequires{}(...))`
+
+K-light
+-------
+
+-   We expect top-level `requires "file.k"` to be handled and `domains.k` etc to
+    be included in the definition.
 
