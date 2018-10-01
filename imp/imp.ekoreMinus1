@@ -28,32 +28,32 @@ module IMP
   imports DOMAINS
   syntax KResult ::= Int | Bool
 
-  configuration #parse(<T color="yellow">
+  configuration #bubble(<T color="yellow">
                          <k color="green"> $PGM:Pgm </k>
                          <state color="red"> .Map </state>
                        </T>)
 
 // AExp
-  rule #parse("<k> X:Id => I ...</k> <state>... X |-> I ...</state>")
-  rule #parse("I1 / I2 => I1 /Int I2")  requires I2 =/=Int 0
-  rule #parse("I1 + I2 => I1 +Int I2")
-  rule #parse("- I1 => 0 -Int I1")
+  rule #bubble("<k> X:Id => I ...</k> <state>... X |-> I ...</state>")
+  rule #bubble("I1 / I2 => I1 /Int I2")  requires #bubble("I2 =/=Int 0")
+  rule #bubble("I1 + I2 => I1 +Int I2")
+  rule #bubble("- I1 => 0 -Int I1")
 // BExp
-  rule #parse("I1 <= I2 => I1 <=Int I2")
-  rule #parse("! T => notBool T")
-  rule #parse("true && B => B")
-  rule #parse("false && _ => false")
+  rule #bubble("I1 <= I2 => I1 <=Int I2")
+  rule #bubble("! T => notBool T")
+  rule #bubble("true && B => B")
+  rule #bubble("false && _ => false")
 // Block
-  rule #parse("{} => .")  [structural]
-  rule #parse("{S} => S")  [structural]
+  rule #bubble("{} => .")  [structural]
+  rule #bubble("{S} => S")  [structural]
 // Stmt
-  rule #parse("<k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>")
-  rule #parse("S1:Stmt S2:Stmt => S1 ~> S2")  [structural]
-  rule #parse("if (true)  S else _ => S")
-  rule #parse("if (false) _ else S => S")
-  rule #parse("while (B) S => if (B) {S while (B) S} else {}") [structural]
+  rule #bubble("<k> X = I:Int; => . ...</k> <state>... X |-> (_ => I) ...</state>")
+  rule #bubble("S1:Stmt S2:Stmt => S1 ~> S2")  [structural]
+  rule #bubble("if (true)  S else _ => S")
+  rule #bubble("if (false) _ else S => S")
+  rule #bubble("while (B) S => if (B) {S while (B) S} else {}") [structural]
 // Pgm
-  rule #parse("<k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>")
-    requires #parse("notBool (X in keys(Rho))")
+  rule #bubble("<k> int (X,Xs => Xs);_ </k> <state> Rho:Map (.Map => X|->0) </state>")
+    requires #bubble("notBool (X in keys(Rho))")
   rule int .Ids; S => S  [structural]
 endmodule
