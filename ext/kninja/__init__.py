@@ -4,6 +4,11 @@ import os
 def basename_no_ext(path):
     return os.path.splitext(os.path.basename(path))[0]
 
+# KProject
+# ========
+#
+# A KProject manages a single `ninja` build file.
+
 class KProject(ninja.ninja_syntax.Writer):
     def __init__(self):
         if not os.path.exists(self.builddir()):
@@ -14,27 +19,47 @@ class KProject(ninja.ninja_syntax.Writer):
 # Directory Layout
 # ================
 #
-# Feel free to override these on a per project basis.
-#
-#   Directory used for external projects. We assume "ext/".
+# Users may subclass KProjects, and override these methods for alternate project
+# layouts.
+
+# Dependency Paths
+# ----------------
+
+# Directory for storing submodules used by KNinja
     def extdir(self, *paths):
         return os.path.join('ext', *paths)
+
+# Path to the K Framework
     def krepodir(self, *paths):
         return self.extdir('k', *paths)
+
+# Directory where K binaries are stored
     def kbindir(self, *paths):
         return self.krepodir("k-distribution/target/release/k/bin/", *paths)
+
+# Path to the KNinja project
     def kninjadir(self, *paths):
         return os.path.join(os.path.dirname(__file__), *paths)
 
+# Build Paths
+# -----------
+
+# The project's main build directory
     def builddir(self, *paths):
         return os.path.join('.build', *paths)
+
+# Directory to output tangled files in
     def tangleddir(self, *paths):
         return self.builddir('tangled', *paths)
+
+# Directory to build OPAM in. We use this instead of `~/.opam` so that we don't
+# intefere with system functionality.
     def opamroot(self, *paths):
         return self.builddir('opam', *paths)
 
-# Generation of Ninja file
-#
+# Generating the Ninja build script
+# =================================
+
     def generate_ninja(self):
         self.comment('This is a generated file')
         self.include(self.kninjadir("prelude.ninja"))
