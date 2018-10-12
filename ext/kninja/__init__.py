@@ -1,8 +1,128 @@
 import kninja.ninja.ninja_syntax
 import os
+import sys
 
 def basename_no_ext(path):
     return os.path.splitext(os.path.basename(path))[0]
+def is_subpath(path, parent):
+    return os.path.abspath(path).startswith(os.path.abspath(parent) + os.sep)
+
+class Target():
+    def __init__(self, proj, path):
+        self.proj = proj
+        self.path = path
+
+    def __str__(self):
+        return self.path
+
+    def then(self, rule):
+        target = rule.get_build_edge_target_path(self)
+        return rule.build_edge(self.proj, self, target)
+
+    def alias(self, alias):
+        self.proj.build(alias, 'phony', self.path)
+        return self
+
+    def default(self):
+        self.proj.default(self.path)
+        return self
+
+    @staticmethod
+    def to_paths(value):
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return list(map(Target.to_paths, value))
+        if isinstance(value, str):
+            return value
+        if isinstance(value, Target):
+            return value.path
+
+class KDefinition(Target):
+    def __init__(self, proj, kompiled_dirname, target):
+        self._directory = os.path.dirname(kompiled_dirname)
+        assert(self.directory(os.path.basename(kompiled_dirname), 'timestamp') == target)
+        super().__init__(proj, target)
+
+    def directory(self, *path):
+        return os.path.join(self._directory, *path)
+
+    def krun(self, krun_flags = None):
+        return self.proj.rule( 'krun'
+                             , description = 'Running $in ($directory)'
+                             , command = '$k_bindir/krun $flags --debug --directory $directory $in > $out'
+                             , ext = 'krun'
+                             ) \
+                             .variables(directory = self.directory()) \
+                             .implicit(self.path)
+
+    def kast(self):
+        return self.proj.rule( 'kast'
+                             , description = 'kast $in ($directory)'
+                             , command     = '"$k_bindir/kast" $flags --debug --directory "$directory" "$in" > "$out"'
+                             , ext = 'kast'
+                             ) \
+                             .variables(directory = self.directory()) \
+                             .implicit(self.path)
+
+
+class Rule():
+    def __init__(self, name, description, command, ext = None):
+        self.name = name
+        self.description = description
+        self.command = command
+        self._ext = ext
+
+        self._output           = None
+        self._implicit         = None
+        self._implicit_outputs = None
+        self._pool             = None
+        self._variables        = {}
+
+    def ext(self, ext)                          : self._ext              = ext              ; return self
+    def output(self, output)                    : self._output           = output           ; return self
+    def implicit(self, implicit)                : self._implicit         = implicit         ; return self
+    def implicit_outputs(self, implicit_outputs): self._implicit_outputs = implicit_outputs ; return self
+    def pool(self, pool)                        : self._pool             = pool             ; return self
+    def variables(self, **variables):
+        # Merge the two dictionaries
+        self._variables = { **self._variables, **variables }
+        return self
+
+    def get_build_edge_target_path(self, source):
+        if self._output: return self._output
+        if self._ext:
+            path = source.path
+            if not(is_subpath(path, source.proj.builddir(''))):
+                # TODO: This is very simplistic, assumes that all paths are
+                # relative to topdir, or are prefixed with builddir
+                path = source.proj.builddir(path)
+            return path + '.' + self._ext
+        raise ValueError("Dont know how to generate target path for rule '%s'" % (self.name))
+
+    def build_edge(self, proj, source, target):
+        proj.build( rule = self.name
+                  , inputs = source.path, outputs = target, implicit = Target.to_paths(self._implicit)
+                  , implicit_outputs = self._implicit_outputs, pool = self._pool, variables = self._variables
+                  )
+        return Target(proj, target)
+
+class KompileRule(Rule):
+    def __init__(self):
+        super().__init__('kompile', 'foo', 'bar')
+
+    def output(self, output):
+        raise ValueError("Cannot set ouput for Kompile -- use the directory variable instead")
+
+    def kompiled_dirname(self, source):
+        return self._variables.get('directory') + '/' + basename_no_ext(source.path) + '-kompiled'
+
+    def get_build_edge_target_path(self, source):
+        return  self.kompiled_dirname(source) + '/timestamp'
+
+    def build_edge(self, proj, source, target):
+        super().build_edge(proj, source, target)
+        return KDefinition(proj, self.kompiled_dirname(source), target)
 
 # KProject
 # ========
@@ -15,6 +135,8 @@ class KProject(ninja.ninja_syntax.Writer):
             os.mkdir(self.builddir())
         super().__init__(open(self.builddir('generated.ninja'), 'w'))
         self.generate_ninja()
+
+        self.written_rules = {}
 
 # Directory Layout
 # ================
@@ -81,92 +203,39 @@ class KProject(ninja.ninja_syntax.Writer):
         self.include(self.kninjadir('build-ocaml.ninja'))
         self.default('ocaml-deps')
 
-    def tangle(self, input, output):
-        self.build(output, 'tangle', input, implicit = [ '$tangle_repository/.git' ])
-        return output
+    def rule(self, name, description, command, ext = None):
+        rule = Rule(name, description, command, ext)
+        if not(name in self.written_rules):
+            super().rule(name, description = description, command = command)
+            self.written_rules[name] = rule
+        return rule
 
-    def kdefinition(self, name, main, backend, alias, kompile_flags = None):
-        kdef = self.kdefinition_no_build( name
-                                        , kompiled_dirname = basename_no_ext(main) + '-kompiled'
-                                        , alias = alias
-                                        )
-        kdef.kompile(main, backend = backend, kompile_flags = kompile_flags)
-        kdef.write_alias(alias)
-        return kdef
+    def source(self, path):
+        return Target(self, path)
+
+    def tangle(self, tangle_selector = '.k'):
+        return self.rule( 'tangle',
+                          description = 'Tangling $in',
+                          command     = 'LUA_PATH=$tangle_repository/?.lua '
+                                      + 'pandoc $in -o $out --metadata=code:$tangle_selector --to "$tangle_repository/tangle.lua"'
+                        ) \
+                   .variables(tangle_selector = tangle_selector) \
+
+    def kompile(self):
+        self.rule( 'kompile'
+                 , description = 'Kompiling $in ($backend)'
+                 , command     = '$k_bindir/kompile --backend $backend --debug $flags '
+                               + '--directory $$(dirname $$(dirname $out)) $in'
+                 )
+        return KompileRule()
 
     def kdefinition_no_build(self, name, kompiled_dirname, alias):
         return KDefinition(self, name, self.builddir(name), kompiled_dirname, alias)
 
-class KDefinition:
-    def __init__(self, writer, name, directory, kompiled_dirname, alias):
-        self.writer           = writer
-        self.name             = name
-        self.directory        = directory
-        self.kompiled_dirname = kompiled_dirname
-        self.alias            = alias
-
-    def get_timestamp_file(self):
-        return self.kompileddir('timestamp')
-    def kompileddir(self, *path):
-        return os.path.join(self.directory, self.kompiled_dirname, *path)
-
-    def write_alias(self, alias):
-        # TODO: This assumes that the timestamp file exists. This is not the case
-        # in when using the OCaml interpreter.
-        self.writer.build(alias, 'phony', self.get_timestamp_file())
-
-    def kompile(self, main, backend = 'java', kompile_flags = None):
-        self.writer.build( self.get_timestamp_file()
-                         , 'kompile'
-                         , main
-                         , variables = { 'backend' : backend
-                                       , 'flags' : kompile_flags
-                                       }
-                         )
-
-    def kast(self, output, input, kast_flags = None):
-        return self.writer.build( outputs  = output
-                                , rule     = 'kast'
-                                , inputs   = input
-                                , implicit = [self.alias]
-                                , variables = { 'directory' : self.directory
-                                              , 'flags'     : kast_flags
-                                              }
-                                )
-
-    def krun(self, output, input, krun_flags = None):
-        self.writer.build( outputs  = [output]
-                         , rule     = 'krun'
-                         , inputs   = [input]
-                         , implicit = [self.alias]
-                         , variables = { 'directory' : self.directory
-                                       , 'flags'     : krun_flags
-                                       }
-                         )
-        return output
-
-    def check_actual_expected(self, name, actual, expected):
-        return self.writer.build( outputs   = name
-                                , rule      = 'check-test-result'
-                                , inputs    = actual
-                                , implicit  = expected
-                                , variables = { 'expected' : expected }
-                                )
-
-    def krun_and_check(self, output_dir, input, expected, krun_flags = None):
-        basename  = os.path.basename(input)
-        actual    = os.path.join(output_dir, basename + '.' + self.name + '.actual')
-        test_name = input + '.' + self.name + '.krun'
-        self.writer.comment(input + ' (' + self.name + ')')
-        self.krun( output = actual
-                 , input  = input
-                 , krun_flags = krun_flags
-                 )
-
-        self.check_actual_expected( name     = test_name
-                                  , actual   = actual
-                                  , expected = expected
-                                  )
-        self.writer.default(test_name)
-        self.writer.newline()
-
+    def check(self, expected):
+        return self.rule( 'check-test-result'
+                        , description = 'Checking $in'
+                        , command = 'git diff --no-index $in $expected'
+                        , ext = 'test') \
+                   .variables(expected = expected) \
+                   .implicit([expected])

@@ -4,90 +4,66 @@ from kninja import *
 import sys
 import os.path
 
-# Helpers
-# =======
-
-def test_kfront_to_kore(proj, kdef, testfile):
-    out = kdef.krun( output = proj.builddir(testfile + '.out')
-                   , input  = testfile + ''
-                   )
-    kore = proj.build( outputs = proj.builddir(testfile + '.kore')
-                     , rule = 'kore-from-config'
-                     , inputs = out
-                     )
-    proj.build( outputs = proj.builddir(testfile + '.kore.ast')
-              , rule    = 'kore-parser'
-              , inputs  = kore
-              )
-    kdef.check_actual_expected(os.path.basename(testfile), kore, testfile + '.expected')
-    return kore
-
 # Project Definition
 # ==================
 
 proj = KProject()
 proj.build_ocaml()
-
-# Building Kore & Kore Support
-# ----------------------------
-
-### Submodule init update
-
-# TODO: Figure out how to avoid calling `stack build` all the time.
-proj.rule( 'kore-parser'
-         , description = 'kore-parser'
-         , command     = 'stack build kore:exe:kore-parser && stack exec -- kore-parser $in > $out'
-         )
-proj.rule( 'kore-exec'
-         , description = 'kore-exec'
-         , command     = 'stack build kore:exe:kore-exec && stack exec -- kore-exec $kore --module FOOBAR --pattern $in > $out'
-         )
 proj.build(proj.extdir('kore', '.git'), 'git-submodule-init')
+
+# Non-standard rules needed for K in K
+# ------------------------------------
+
+kore_from_config = proj.rule( 'kore-from-config'
+                            , description = 'Extracting <kore> cell'
+                            , command = 'lib/kore-from-config $in $out'
+                            , ext = 'kore'
+                            )
+kore_parser = proj.rule( 'kore-parser'
+                       , description = 'kore-parser'
+                       , command     = 'stack build kore:exe:kore-parser && stack exec -- kore-parser $in > $out'
+                       )
+def kore_exec(kore, ext = 'kore-exec'):
+    return proj.rule( 'kore-exec'
+                    , description = 'kore-exec'
+                    , command     = 'stack build kore:exe:kore-exec && stack exec -- kore-exec $kore --module FOOBAR --pattern $in > $out'
+                    ) \
+                    .variables(kore = kore) \
+                    .implicit(kore)
 
 # Converting Frontend Definitions
 # -------------------------------
 
-kink = proj.kdefinition( 'kink'
-                       , main = proj.tangle('kink.md', proj.tangleddir('kink/kink.k'))
-                       , backend = 'ocaml'
-                       , alias = 'kink'
-                       , kompile_flags = '-I .'
-                       )
-proj.rule( 'kore-from-config'
-         , description = 'Extracting <kore> cell'
-         , command = 'lib/kore-from-config $in $out'
-         )
-foobar_kore = test_kfront_to_kore(proj, kink, 'foobar/foobar.kfront')
+kink = proj.source('kink.md') \
+           .then(proj.tangle().output(proj.tangleddir('kink.k'))) \
+           .then(proj.kompile().variables(backend = 'ocaml', flags = '-I .', directory = proj.builddir('kink'))) \
+           .alias('kink')
 
-# Building and running definitions using the K5/Java translation
-# --------------------------------------------------------------
+def translate_with_kink(testfile):
+    kore = testfile.then(kink.krun()) \
+                   .then(kore_from_config)
+    kore.then(kore_parser.output(proj.builddir(testfile.path + '.kore.ast')))
+    kore.then(proj.check(testfile.path + '.expected'))
+    return kore
 
-foobar_k5 = proj.kdefinition( 'foobar-k5'
-                            , main = 'foobar/foobar.k'
-                            , backend = 'kore'
-                            , alias = 'foobar-k5'
-                            , kompile_flags = '--syntax-module FOOBAR'
-                            )
-bar_kast = foobar_k5.kast( output = proj.builddir('foobar/programs/bar.foobar.kast')
-                         , input  =               'foobar/programs/bar.foobar'
-                         , kast_flags = '--kore'
-                         )
-out = proj.build( inputs  = bar_kast
-                , rule    = 'kore-exec'
-                , outputs = proj.builddir('foobar/programs/bar.foobar.kink.out')
-                , implicit = foobar_kore
-                , variables = { 'kore' : foobar_kore
-                              }
-                )
-test = foobar_k5.check_actual_expected('foobar/programs/bar.foobar.kink', out, 'foobar/programs/bar.foobar.expected')
-proj.default(test)
+# Foobar
+# ------
 
-out = proj.build( inputs  = bar_kast
-                , rule    = 'kore-exec'
-                , outputs = proj.builddir('foobar/programs/bar.foobar.k5.out')
-                , implicit = 'foobar/foobar.handwritten.kore'
-                , variables = { 'kore' : 'foobar/foobar.handwritten.kore'
-                              }
-                )
-test = foobar_k5.check_actual_expected('foobar/programs/bar.foobar.handwritten', out, 'foobar/programs/bar.foobar.expected')
-proj.default(test)
+foobar_kink = translate_with_kink(proj.source('foobar/foobar.kfront'))
+
+# Build the foobar definition using K5.
+# 
+foobar_k5 = proj.source('foobar/foobar.k') \
+                .then(proj.kompile().variables( directory = proj.builddir('foobar')
+                                              , backend = 'kore'
+                                              , flags = '--syntax-module FOOBAR'
+                     )                        ) \
+# Use the K5 definition to convert foobar programs to kast format
+bar_kast = proj.source('foobar/programs/bar.foobar') \
+               .then(foobar_k5.kast().variables(flags = '--kore'))
+bar_kast.then(kore_exec(foobar_kink).ext('kink.kore-exec')) \
+        .then(proj.check('foobar/programs/bar.foobar.expected')) \
+        .default()
+bar_kast.then(kore_exec(proj.source('foobar/foobar.handwritten.kore')).ext('handwriten.kore-exec')) \
+        .then(proj.check(proj.source('foobar/programs/bar.foobar.expected'))) \
+        .default()

@@ -9,12 +9,6 @@ rule python3-generator
 # Literate programming
 # --------------------
 
-tangle_selector = .k
-rule tangle
-    description = Tangling $in
-    command     = LUA_PATH=$tangle_repository/?.lua    $
-                  pandoc $in -o $out --metadata=code:$tangle_selector --to "$tangle_repository/tangle.lua"
-
 # Initializing submodules
 # -----------------------
 
@@ -52,29 +46,9 @@ pool opam
 # Basic K Toolchain
 # -----------------
 
-rule kompile
-    description     = Kompiling $in ($backend)
-    command         = $k_bindir/kompile --backend $backend --debug $flags $
-                                        --directory $$(dirname $$(dirname $out)) $in
-
-rule kast
-    description     = kast $in ($directory)
-    command         = $k_bindir/kast $flags --debug --directory $directory $in > $out
-
-rule krun
-    description     = Running $in ($directory)
-    command         = $k_bindir/krun $flags --debug --directory $directory $in > $out
-
 rule kprove
     description     = Checking specification $in
     command         = $k_bindir/kprove $flags --directory $directory $in
-
-# Testing
-# -------
-
-rule check-test-result
-    description = Checking $in
-    command = git diff --no-index $in $expected
 
 # Advanced OCaml Backend Usage
 # ----------------------------
