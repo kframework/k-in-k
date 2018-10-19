@@ -121,7 +121,7 @@ module KAST2
                    | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
 endmodule
 
-module OUTER-K5-KAST-SYNTAX
+module EKORE-SYNTAX
   imports SYNTAX-DECL
   imports TOKENS-SYNTAX
   imports KAST2
@@ -131,13 +131,12 @@ module OUTER-K5-KAST-SYNTAX
   syntax OptionalAttributes ::= "" [klabel(noKAttributesDeclaration)]
 endmodule
 
-module OUTER-K5-KAST
+module EKORE
   imports SYNTAX-DECL
   imports KAST
   syntax AssocAttribute     ::= "noAssoc" [klabel(noAttribute)]
   syntax OptionalAttributes ::= "noAtt"   [klabel(noKAttributesDeclaration)]
 
 //  configuration <k> $PGM:KDefinition </k>
-
 endmodule
 ```

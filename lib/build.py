@@ -34,15 +34,18 @@ def kore_exec(kore, ext = 'kore-exec'):
 
 # -----------------------------------------------------------------------------
 
-outer_k5_kast = proj.source('outer-k5-kast.md') \
-                    .then(proj.tangle().output(proj.tangleddir('outer-k5-kast.k'))) \
-                    .then(proj.kompile()
-                                .variables( backend = 'java'
-                                          , directory = proj.builddir('outer-k5-kast'))) \
-                    .alias('ekore0')
-
+ekore = proj.source('ekore.md') \
+            .then(proj.tangle().output(proj.tangleddir('ekore.k'))) \
+            .then(proj.kompile()
+                        .implicit(proj.source('kore.k'))
+                        .variables( backend = 'java'
+                                  , directory = proj.builddir('ekore')
+                                  , flags = '-I .'
+                                  ))
 proj.source('imp/imp.ekore0') \
-    .then(outer_k5_kast.krun())
+    .then(ekore.krun())
+proj.source('foobar/foobar.ekore0') \
+    .then(ekore.krun())
 
 # Probably needs to be removed?
 # =============================
@@ -68,7 +71,7 @@ def translate_with_kink(testfile):
 foobar_kink = translate_with_kink(proj.source('foobar/foobar.kfront'))
 
 # Build the foobar definition using K5.
-# 
+#
 foobar_k5 = proj.source('foobar/foobar.k') \
                 .then(proj.kompile().variables( directory = proj.builddir('foobar')
                                               , backend = 'kore'
