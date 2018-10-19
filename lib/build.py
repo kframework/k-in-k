@@ -43,13 +43,17 @@ ekore = proj.source('ekore.md') \
                                   , flags = '-I .'
                                   ))
 proj.source('imp/imp.ekore0') \
-    .then(ekore.krun())
+    .then(ekore.krun()) \
+    .default()
 proj.source('foobar/foobar.ekore0') \
-    .then(ekore.krun())
+    .then(ekore.krun()) \
+    .default()
 proj.source('imp/imp.ekore1') \
-    .then(ekore.krun())
+    .then(ekore.krun()) \
+    .default()
 proj.source('foobar/foobar.ekore1') \
-    .then(ekore.krun())
+    .then(ekore.krun()) \
+    .default()
 
 # Probably needs to be removed?
 # =============================
