@@ -4,7 +4,9 @@ module TOKENS
   syntax UpperName
   syntax LowerName
   syntax Numbers
-  syntax KoreName
+  syntax KoreName    ::= UpperName | LowerName
+  syntax KModuleName ::= UpperName
+  syntax KSort       ::= UpperName
 endmodule
 
 // TODO: UpperName is used for K modules names and shouldn't allow primes or #s.
@@ -17,7 +19,6 @@ module TOKENS-SYNTAX
                      | "left" [token] // I have no idea why I need to redeclare 'left', but it gives a parsing error otherwise
   syntax Numbers   ::= r"[\\+-]?[0-9]+"        [token]
 
-  syntax KoreName ::= UpperName | LowerName
   syntax KoreName ::= r"\\rewrites"     [token, prec(2)]
 endmodule
 

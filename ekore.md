@@ -29,7 +29,7 @@ module SYNTAX-DECL
 
   syntax KModule       ::= "module" KModuleName OptionalAttributes
                                     KImportList
-                                    EKoreDeclarationList
+                                    Declarations
                            "endmodule"
                                [klabel(kModule), format(%1 %2 %3%i%n%4%n%5%n%d%6)]
   syntax KModuleList   ::= List{KModule, ""}  [klabel(kModuleList), format(%1%2%n%n%3)]
@@ -37,17 +37,14 @@ module SYNTAX-DECL
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
 
   syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
-  syntax EKoreDeclarationList ::= List{EKoreDeclaration, ""}  [klabel(kSentenceList), format(%1%2%n%3)]
 
-  syntax EKoreDeclaration ::=
-                       "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
-                     | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
-                     | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
-                     | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
-                     | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
-                     | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
-                     | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
-                     | Declaration
+  syntax Declaration ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
+                       | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
+                       | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
+                       | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
+                       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
+                       | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
+                       | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
 
   syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
                         | KNeTagSet
@@ -80,7 +77,7 @@ module SYNTAX-DECL
   syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
   syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
 
-  syntax EKoreDeclaration ::= "configuration" Contents [klabel(kConfiguration)]
+  syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
                      | "rule"    Contents [klabel(kRule)]
                      | "context" Contents [klabel(kContext)]
 
