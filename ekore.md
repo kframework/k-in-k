@@ -116,7 +116,7 @@ module KAST2
                    | r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
   syntax KList2  ::= KList2 "," KList2 [left, klabel(klist)]
                    | K2
-                   | ".KList" [klabel(emptyKList)]
+                   | "" [klabel(emptyKList)]
   syntax VarName ::= UpperName [token]
                    | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
 endmodule
