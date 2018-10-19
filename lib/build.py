@@ -31,6 +31,22 @@ def kore_exec(kore, ext = 'kore-exec'):
                     .variables(kore = kore) \
                     .implicit(kore)
 
+
+# -----------------------------------------------------------------------------
+
+outer_k5_kast = proj.source('outer-k5-kast.md') \
+                    .then(proj.tangle().output(proj.tangleddir('outer-k5-kast.k'))) \
+                    .then(proj.kompile()
+                                .variables( backend = 'java'
+                                          , directory = proj.builddir('outer-k5-kast'))) \
+                    .alias('ekore0')
+
+proj.source('imp/imp.ekore0') \
+    .then(outer_k5_kast.krun())
+
+# Probably needs to be removed?
+# =============================
+
 # Converting Frontend Definitions
 # -------------------------------
 
