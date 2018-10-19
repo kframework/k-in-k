@@ -22,7 +22,6 @@ module K-DEFINITION
   syntax KDefinition   ::= KRequireList KModuleList [klabel(kDefinition), format(%1%n%n%2)]
 
   syntax KRequire      ::= "require" KString [klabel(kRequire)]
-
   syntax KRequireList  ::= List{KRequire, ""}  [klabel(KRequireList), format(%1%2%n%3)]
 
   syntax KModule       ::= "module" KModuleName OptionalAttributes
@@ -33,7 +32,6 @@ module K-DEFINITION
   syntax KModuleList   ::= List{KModule, ""}  [klabel(kModuleList), format(%1%2%n%n%3)]
 
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
-
   syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 endmodule
 
@@ -82,8 +80,8 @@ module EKORE-DECLARATIONS
   syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
 
   syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
-                     | "rule"    Contents [klabel(kRule)]
-                     | "context" Contents [klabel(kContext)]
+                       | "rule"    Contents [klabel(kRule)]
+                       | "context" Contents [klabel(kContext)]
 
   syntax Pattern
   syntax Contents ::= Pattern                        [klabel(noAttrs)]
