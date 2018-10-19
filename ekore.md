@@ -19,6 +19,7 @@ endmodule
 module SYNTAX-DECL
   imports KSTRING
   imports ATTRIBUTES
+  imports KORE-COMMON
 
   syntax KDefinition   ::= KRequireList KModuleList [klabel(kDefinition), format(%1%n%n%2)]
 
@@ -45,6 +46,7 @@ module SYNTAX-DECL
                      | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
                      | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
                      | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
+                     | Declaration
 
   syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
                         | KNeTagSet
