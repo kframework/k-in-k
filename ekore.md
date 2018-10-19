@@ -1,20 +1,8 @@
+This grammar is supposed to accept as input a full K definition
+which includes modules, syntax declarations and rules as kast.
+
 ```k
-// Copyright (c) 2015-2018 K Team. All Rights Reserved.
-// written by Radu Mereuta
-// This grammar is supposed to accept as input a full K definition
-// which includes modules, syntax declarations and rules as kast.
-
-module TOKENS
-  syntax UpperName
-  syntax LowerName
-  syntax Numbers
-endmodule
-
-module TOKENS-SYNTAX
-  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9]*" [token]
-  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9]*" [token] | "left" [token] // I have no idea why I need to redeclare 'left', but it gives a parsing error otherwise
-  syntax Numbers   ::= r"[\\+-]?[0-9]+"        [token]
-endmodule
+requires "kore.k"
 
 module ATTRIBUTES
   imports KSTRING

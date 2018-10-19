@@ -1,18 +1,38 @@
 // Written by Xiaohong Chen (hreada)
 
-module KORE-COMMON
+module TOKENS
+  syntax UpperName
+  syntax LowerName
+  syntax Numbers
+  syntax KoreName
+endmodule
 
+// TODO: UpperName is used for K modules names and shouldn't allow primes or #s.
+
+module TOKENS-SYNTAX
+  imports TOKENS
+
+  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#]*" [token]
+  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#]*" [token]
+                     | "left" [token] // I have no idea why I need to redeclare 'left', but it gives a parsing error otherwise
+  syntax Numbers   ::= r"[\\+-]?[0-9]+"        [token]
+
+  syntax KoreName ::= UpperName | LowerName
+  syntax KoreName ::= r"\\rewrites"     [token, prec(2)]
+endmodule
+
+
+module KORE-COMMON
+  imports TOKENS
   imports STRING-SYNTAX
 
-  syntax Name // defined in KORE-SYNTAX
-
-  syntax Sort ::= Name | Name "{" Sorts "}" [klabel(nameParam)]
+  syntax Sort ::= KoreName | KoreName "{" Sorts "}" [klabel(nameParam)]
 
   syntax Sorts ::= List{Sort, ","} [klabel(sortList)]
 
-  syntax Symbol ::= Name "{" Sorts "}" [klabel(symbolSorts)]
+  syntax Symbol ::= KoreName "{" Sorts "}" [klabel(symbolSorts)]
 
-  syntax Variable ::= Name ":" Sort [klabel(varType)]
+  syntax Variable ::= KoreName ":" Sort [klabel(varType)]
 
   syntax Pattern ::= Variable
                    | String
@@ -39,18 +59,18 @@ module KORE-COMMON
   syntax Attribute ::= "[" Patterns "]"
 
   syntax Declaration ::=
-    "import" Name Attribute
-  | "sort" Name "{" Names "}" Attribute
-  | "hook-sort" Name "{" Names "}" Attribute
-  | "symbol" Name "{" Names "}" "(" Sorts ")" ":" Sort Attribute
-  | "hook-symbol" Name "{" Names "}" "(" Sorts ")" ":" Sort Attribute
+    "import" KoreName Attribute
+  | "sort" KoreName "{" Names "}" Attribute
+  | "hook-sort" KoreName "{" Names "}" Attribute
+  | "symbol" KoreName "{" Names "}" "(" Sorts ")" ":" Sort Attribute
+  | "hook-symbol" KoreName "{" Names "}" "(" Sorts ")" ":" Sort Attribute
   | "axiom" "{" Names "}" Pattern Attribute
 
-  syntax Names ::= List{Name, ","} [klabel(nameList)]
+  syntax Names ::= List{KoreName, ","} [klabel(nameList)]
 
   syntax Declarations ::= List{Declaration, ""} [klabel(declList), format(%1%2%n%3)]
 
-  syntax Module ::= "module" Name Declarations "endmodule" Attribute [klabel(module), format(%1 %2%i%n%3%n%d%4 %5)]
+  syntax Module ::= "module" KoreName Declarations "endmodule" Attribute [klabel(module), format(%1 %2%i%n%3%n%d%4 %5)]
 
   syntax Modules ::= List{Module, ""} [klabel(moduleList), format(%1%2%n%3)]
 
@@ -59,13 +79,8 @@ module KORE-COMMON
 endmodule
 
 module KORE-SYNTAX
-
   imports KORE-COMMON
-
-  // TODO:: Fix this regexp.
-  syntax Name ::= r"[\\\\]?[-\\'#a-zA-Z0-9]*"     [autoReject, token, prec(2)]
-  syntax Name ::= r"\\rewrites"     [token, prec(2)]
-
+  imports TOKENS-SYNTAX
 endmodule
 
 module KORE-HELPERS
@@ -96,7 +111,7 @@ module KORE
   // \or(X, X) => X
   rule \or{_}(X, X) => X [anywhere]
 
-  syntax Name ::= "inj" [token, prec(2)]
+  syntax KoreName ::= "inj" [token, prec(2)]
 
   // inj composition - performs a similar step to TreeCleanerVisitor.java
   rule inj{Y,Z}(inj{X,Y}(W)) => inj{X,Z}(W) [anywhere]
