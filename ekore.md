@@ -16,10 +16,8 @@ module ATTRIBUTES
                 | KEY "(" KString ")"     [klabel(tagString)]
 endmodule
 
-module SYNTAX-DECL
-  imports KSTRING
-  imports ATTRIBUTES
-  imports KORE-COMMON
+module K-DEFINITION
+  imports EKORE-DECLARATIONS
 
   syntax KDefinition   ::= KRequireList KModuleList [klabel(kDefinition), format(%1%n%n%2)]
 
@@ -37,6 +35,12 @@ module SYNTAX-DECL
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
 
   syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
+endmodule
+
+module EKORE-DECLARATIONS
+  imports KSTRING
+  imports ATTRIBUTES
+  imports KORE-COMMON
 
   syntax Declaration ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
                        | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
@@ -91,7 +95,7 @@ endmodule
 
 module KAST2
   imports TOKENS-SYNTAX
-  imports SYNTAX-DECL
+  imports EKORE-DECLARATIONS
   syntax K2      ::= KLabel2 "(" KList2 ")" [klabel(kapp)]
                    | VarName ":" KSort [klabel(cast)]
                    | VarName
@@ -109,8 +113,13 @@ module KAST2
                    | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
 endmodule
 
+module EKORE-COMMON
+  imports K-DEFINITION
+  imports EKORE-DECLARATIONS
+endmodule
+
 module EKORE-SYNTAX
-  imports SYNTAX-DECL
+  imports EKORE-COMMON
   imports TOKENS-SYNTAX
   imports KAST2
   syntax Pattern ::= K2
@@ -120,7 +129,7 @@ module EKORE-SYNTAX
 endmodule
 
 module EKORE
-  imports SYNTAX-DECL
+  imports EKORE-COMMON
   imports KAST
   syntax AssocAttribute     ::= "noAssoc" [klabel(noAttribute)]
   syntax OptionalAttributes ::= "noAtt"   [klabel(noKAttributesDeclaration)]
