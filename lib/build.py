@@ -46,6 +46,10 @@ proj.source('imp/imp.ekore0') \
     .then(ekore.krun())
 proj.source('foobar/foobar.ekore0') \
     .then(ekore.krun())
+proj.source('imp/imp.ekore1') \
+    .then(ekore.krun())
+proj.source('foobar/foobar.ekore1') \
+    .then(ekore.krun())
 
 # Probably needs to be removed?
 # =============================

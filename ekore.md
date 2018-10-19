@@ -17,7 +17,7 @@ module ATTRIBUTES
 endmodule
 
 module K-DEFINITION
-  imports EKORE-DECLARATIONS
+  imports EKORE1-DECLARATIONS
 
   syntax KDefinition   ::= KRequireList KModuleList [klabel(kDefinition), format(%1%n%n%2)]
 
@@ -35,7 +35,7 @@ module K-DEFINITION
   syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 endmodule
 
-module EKORE-DECLARATIONS
+module EKORE1-DECLARATIONS
   imports KSTRING
   imports ATTRIBUTES
   imports KORE-COMMON
@@ -83,7 +83,6 @@ module EKORE-DECLARATIONS
                        | "rule"    Contents [klabel(kRule)]
                        | "context" Contents [klabel(kContext)]
 
-  syntax Pattern
   syntax Contents ::= Pattern                        [klabel(noAttrs)]
                     | Pattern KAttributesDeclaration [klabel(attrs), prefer]
 
@@ -91,37 +90,34 @@ module EKORE-DECLARATIONS
   syntax KSort       ::= UpperName [token]
 endmodule
 
-module KAST2
+module EKORE0-DECLARATIONS
   imports TOKENS-SYNTAX
-  imports EKORE-DECLARATIONS
-  syntax K2      ::= KLabel2 "(" KList2 ")" [klabel(kapp)]
-                   | VarName ":" KSort [klabel(cast)]
-                   | VarName
-                   | "#token" "(" KString "," KString ")" [klabel(ktoken)]
-                   | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
-                   | ".K"  [klabel(emptyK)]
-                   > K2 "~>" K2 [left, klabel(ksequence)]
-                   > K2 "=>" K2 [non-assoc, klabel(krewrite)]
+  imports EKORE1-DECLARATIONS
+  syntax Variable ::= VarName ":" KSort [klabel(cast)]
+                    | VarName
+
+  syntax Pattern  ::= "#token" "(" KString "," KString ")" [klabel(ktoken)]
+                    | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
+                    | Pattern "requires" Pattern [klabel(requiresClause)]
+                    // TODO: Can we enforce disallowing nested rewrites at syntax?
+                    > Pattern "~>" Pattern [left, klabel(ksequence)]
+                    > Pattern "=>" Pattern [non-assoc, klabel(krewrite)]
   syntax KLabel2 ::= LowerName [token]
                    | r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
-  syntax KList2  ::= KList2 "," KList2 [left, klabel(klist)]
-                   | K2
-                   | "" [klabel(emptyKList)]
+  syntax Symbol  ::= KLabel2
   syntax VarName ::= UpperName [token]
                    | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
 endmodule
 
 module EKORE-COMMON
   imports K-DEFINITION
-  imports EKORE-DECLARATIONS
+  imports EKORE1-DECLARATIONS
 endmodule
 
 module EKORE-SYNTAX
   imports EKORE-COMMON
   imports TOKENS-SYNTAX
-  imports KAST2
-  syntax Pattern ::= K2
-                   | K2 "requires" K2 [klabel(requiresClause)]
+  imports EKORE0-DECLARATIONS
   syntax AssocAttribute     ::= "" [klabel(noAttribute)]
   syntax OptionalAttributes ::= "" [klabel(noKAttributesDeclaration)]
 endmodule
