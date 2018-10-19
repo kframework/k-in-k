@@ -32,26 +32,26 @@ module SYNTAX-DECL
   imports KSTRING
   imports ATTRIBUTES
 
-  syntax KDefinition   ::= KRequireList KModuleList [klabel(kDefinition)]
+  syntax KDefinition   ::= KRequireList KModuleList [klabel(kDefinition), format(%1%n%n%2)]
 
   syntax KRequire      ::= "require" KString [klabel(kRequire)]
 
-  syntax KRequireList  ::= List{KRequire, ""}  [klabel(KRequireList)]
+  syntax KRequireList  ::= List{KRequire, ""}  [klabel(KRequireList), format(%1%2%n%3)]
 
   syntax KModule       ::= "module" KModuleName OptionalAttributes
                                     KImportList
                                     KSentenceList
                            "endmodule"
-                               [klabel(kModule)]
-  syntax KModuleList   ::= List{KModule, ""}  [klabel(kModuleList)]
+                               [klabel(kModule), format(%1 %2 %3%i%n%4%n%5%n%d%6)]
+  syntax KModuleList   ::= List{KModule, ""}  [klabel(kModuleList), format(%1%2%n%n%3)]
 
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
 
-  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList)]
-  syntax KSentenceList ::= List{KSentence, ""}  [klabel(kSentenceList)]
+  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
+  syntax KSentenceList ::= List{KSentence, ""}  [klabel(kSentenceList), format(%1%2%n%3)]
 
   syntax KSentence ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
-                     | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction)]
+                     | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
                      | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
                      | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
                      | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
@@ -71,7 +71,7 @@ module SYNTAX-DECL
                            | "r" KString [klabel(regexTerminal)]
                            | "NeList" "{" KSort "," KString "}" [klabel(neListProd)]
                            |   "List" "{" KSort "," KString "}" [klabel(listProd)]
-  syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock)]
+  syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4)]
                             | ProdBlock
   syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
                           | "right:"     [klabel(rightAttribute)]
