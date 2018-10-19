@@ -60,13 +60,13 @@ module KORE-COMMON
 
   syntax Declaration ::=
     "import" KoreName Attribute
-  | "sort" KoreName "{" Names "}" Attribute
-  | "hook-sort" KoreName "{" Names "}" Attribute
-  | "symbol" KoreName "{" Names "}" "(" Sorts ")" ":" Sort Attribute
-  | "hook-symbol" KoreName "{" Names "}" "(" Sorts ")" ":" Sort Attribute
-  | "axiom" "{" Names "}" Pattern Attribute
+  | "sort" KoreName "{" KoreNames "}" Attribute
+  | "hook-sort" KoreName "{" KoreNames "}" Attribute
+  | "symbol" KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
+  | "hook-symbol" KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
+  | "axiom" "{" KoreNames "}" Pattern Attribute
 
-  syntax Names ::= List{KoreName, ","} [klabel(nameList)]
+  syntax KoreNames ::= List{KoreName, ","} [klabel(nameList)]
 
   syntax Declarations ::= List{Declaration, ""} [klabel(declList), format(%1%2%n%3)]
 
