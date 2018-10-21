@@ -31,8 +31,6 @@ module K-DEFINITION
                                [klabel(kModule), format(%1 %2 %3%i%n%4%n%5%n%d%6)]
   syntax KModuleList   ::= List{KModule, ""}  [klabel(kModuleList), format(%1%2%n%n%3)]
 
-  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
-  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 endmodule
 
 module EKORE1-DECLARATIONS
@@ -82,6 +80,11 @@ module EKORE1-DECLARATIONS
   syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
                        | "rule"    Contents [klabel(kRule)]
                        | "context" Contents [klabel(kContext)]
+
+
+  syntax Declaration   ::= KImport
+  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
+  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 
   syntax Contents ::= Pattern                        [klabel(noAttrs)]
                     | Pattern KAttributesDeclaration [klabel(attrs), prefer]
