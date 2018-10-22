@@ -16,7 +16,7 @@ proj.build(proj.extdir('kore', '.git'), 'git-submodule-init')
 
 kore_from_config = proj.rule( 'kore-from-config'
                             , description = 'Extracting <kore> cell'
-                            , command = 'lib/kore-from-config $in $out'
+                            , command = 'lib/kore-from-config $cell $in $out'
                             , ext = 'kore'
                             )
 kore_parser = proj.rule( 'kore-parser'

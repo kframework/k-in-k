@@ -1,30 +1,36 @@
 #!/usr/bin/env python3
 
-commaSeparated = ['Sorts', 'Names', 'Patterns']
-others = ['Modules', 'Declarations']
-
 import sys
 import string
 import re
+
+# Usage: kore-from-config <cell> <input> <output>
+cell = sys.argv[1]
+in_file = sys.argv[2]
+out_file = sys.argv[3]
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
         return text[len(prefix):]
     return text
 
-# Remove unwanted units from Lists etc.
-# =====================================
+input = open(in_file).read()
+open_tag = '<' + cell + '>'
+close_tag = '</' + cell + '>'
 
-input = open(sys.argv[1]).read()
-begin = re.search('<koreDefinition>', input)
-end   = re.search('</koreDefinition>', input)
-
+begin = re.search(open_tag, input)
+end   = re.search(close_tag, input)
 kore = input[begin.end():end.start()]
+
+# Remove unwanted units from Lists etc.
+commaSeparated = ['Sorts', 'Names', 'Patterns', 'AttrList']
+others = ['Modules', 'Declarations', 'KImportList', 'KoreNames']
 for listSort in commaSeparated:
     kore = kore.replace(' , .' + listSort, '')
 for listSort in commaSeparated + others:
     kore = kore.replace('.'   + listSort, '')
-outfile = open(sys.argv[2], 'w')
-for line in kore.split("\n"):
-    prefix = "    "
-    print(remove_prefix(line, prefix), file = outfile)
+
+outfile = open(out_file, 'w')
+for line in kore.split("\n")[1:-1]:
+    prefix = "  "
+    print(remove_prefix(line, prefix).rstrip(), file = outfile)
