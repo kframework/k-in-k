@@ -127,7 +127,5 @@ module EKORE
   imports KAST
   syntax AssocAttribute     ::= "noAssoc" [klabel(noAttribute)]
   syntax OptionalAttributes ::= "noAtt"   [klabel(noKAttributesDeclaration)]
-
-//  configuration <k> $PGM:KDefinition </k>
 endmodule
 ```

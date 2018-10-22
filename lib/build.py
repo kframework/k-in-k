@@ -31,66 +31,21 @@ def kore_exec(kore, ext = 'kore-exec'):
                     .variables(kore = kore) \
                     .implicit(kore)
 
-
-# -----------------------------------------------------------------------------
+# Kore to K Pipeline
+# ------------------
 
 ekore = proj.source('ekore.md') \
-            .then(proj.tangle().output(proj.tangleddir('ekore.k'))) \
-            .then(proj.kompile()
-                        .implicit(proj.source('kore.k'))
-                        .variables( backend = 'java'
-                                  , directory = proj.builddir('ekore')
-                                  , flags = '-I .'
-                                  ))
-proj.source('imp/imp.ekore0') \
-    .then(ekore.krun()) \
-    .default()
-proj.source('foobar/foobar.ekore0') \
-    .then(ekore.krun()) \
-    .default()
-proj.source('imp/imp.ekore1') \
-    .then(ekore.krun()) \
-    .default()
-proj.source('foobar/foobar.ekore1') \
-    .then(ekore.krun()) \
-    .default()
-
-# Probably needs to be removed?
-# =============================
-
-# Converting Frontend Definitions
-# -------------------------------
-
+            .then(proj.tangle().output(proj.tangleddir('ekore.k')))
 kink = proj.source('kink.md') \
            .then(proj.tangle().output(proj.tangleddir('kink.k'))) \
-           .then(proj.kompile().variables(backend = 'ocaml', flags = '-I .', directory = proj.builddir('kink'))) \
-           .alias('kink')
+           .then(proj.kompile()
+                        .implicit([proj.source('kore.k'), ekore])
+                        .variables( backend = 'java'
+                                  , directory = proj.builddir('kink')
+                                  , flags = '-I . --syntax-module EKORE-SYNTAX'
+                                  ))
+proj.source('imp/imp.ekore0').then(kink.krun()).default()
+proj.source('imp/imp.ekore1').then(kink.krun()).default()
+proj.source('foobar/foobar.ekore0').then(kink.krun()).default()
+proj.source('foobar/foobar.ekore1').then(kink.krun()).default()
 
-def translate_with_kink(testfile):
-    kore = testfile.then(kink.krun()) \
-                   .then(kore_from_config)
-    kore.then(kore_parser.output(proj.builddir(testfile.path + '.kore.ast')))
-    kore.then(proj.check(testfile.path + '.expected'))
-    return kore
-
-# Foobar
-# ------
-
-foobar_kink = translate_with_kink(proj.source('foobar/foobar.kfront'))
-
-# Build the foobar definition using K5.
-#
-foobar_k5 = proj.source('foobar/foobar.k') \
-                .then(proj.kompile().variables( directory = proj.builddir('foobar')
-                                              , backend = 'kore'
-                                              , flags = '--syntax-module FOOBAR'
-                     )                        ) \
-# Use the K5 definition to convert foobar programs to kast format
-bar_kast = proj.source('foobar/programs/bar.foobar') \
-               .then(foobar_k5.kast().variables(flags = '--kore'))
-bar_kast.then(kore_exec(foobar_kink).ext('kink.kore-exec')) \
-        .then(proj.check('foobar/programs/bar.foobar.expected')) \
-        .default()
-bar_kast.then(kore_exec(proj.source('foobar/foobar.handwritten.kore')).ext('handwriten.kore-exec')) \
-        .then(proj.check(proj.source('foobar/programs/bar.foobar.expected'))) \
-        .default()
