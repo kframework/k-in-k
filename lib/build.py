@@ -35,7 +35,7 @@ def kore_exec(kore, ext = 'kore-exec'):
 # ------------------
 
 ekore = proj.source('ekore.md') \
-            .then(proj.tangle().output(proj.tangleddir('ekore.k')))
+
 kink = proj.source('kink.md') \
            .then(proj.tangle().output(proj.tangleddir('kink.k'))) \
            .then(proj.kompile()
@@ -44,8 +44,14 @@ kink = proj.source('kink.md') \
                                   , directory = proj.builddir('kink')
                                   , flags = '-I . --syntax-module EKORE-SYNTAX'
                                   ))
+
 proj.source('imp/imp.ekore0').then(kink.krun()).default()
 proj.source('imp/imp.ekore1').then(kink.krun()).default()
+
 proj.source('foobar/foobar.ekore0').then(kink.krun()).default()
-proj.source('foobar/foobar.ekore1').then(kink.krun()).default()
+proj.source('foobar/foobar.ekore1') \
+    .then(kink.krun()) \
+    .then(kore_from_config.variables(cell = 'k')) \
+    .then(proj.check(proj.source('foobar/foobar.ekore2'))) \
+    .default()
 
