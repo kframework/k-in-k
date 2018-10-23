@@ -63,7 +63,6 @@ module K-DEFINITION-SYNTAX
 endmodule
 
 module EKORE1-DECLARATIONS
-  imports KSTRING
   imports ATTRIBUTES
   imports KORE-COMMON
 
