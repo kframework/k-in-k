@@ -11,6 +11,18 @@ module ATTRIBUTES
   syntax TagContent ::= UpperName | LowerName | Numbers
   syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents)]
   syntax KEY ::= LowerName
+  syntax Attr ::= tagSimple(LowerName)    [klabel(tagSimple)]
+                | KEY "(" TagContents ")" [klabel(tagContent)]
+                | KEY "(" KString ")"     [klabel(tagString)]
+endmodule
+
+module ATTRIBUTES-SYNTAX
+  imports KSTRING
+  imports TOKENS-SYNTAX
+
+  syntax TagContent ::= UpperName | LowerName | Numbers
+  syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents)]
+  syntax KEY ::= LowerName
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
