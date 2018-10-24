@@ -2,8 +2,9 @@ module TOKENS
   syntax UpperName
   syntax LowerName
   syntax Numbers
-  syntax KoreName    ::= UpperName | LowerName
   syntax KModuleName ::= UpperName
+  syntax KoreName    ::= UpperName | LowerName
+                       | KModuleName
   syntax KSort       ::= UpperName
 endmodule
 
@@ -64,10 +65,12 @@ module KORE-COMMON
 
   syntax KoreNames ::= List{KoreName, ","} [klabel(nameList)]
 
-  syntax Module ::= "module" KoreName Declarations "endmodule" Attribute [klabel(module), format(%1 %2%i%n%3%n%d%4 %5)]
-  syntax Modules ::= List{Module, ""} [klabel(moduleList), format(%1%2%n%3)]
+  syntax KoreModule ::= "module" KoreName Declarations "endmodule" Attribute [klabel(koreModule), format(%1 %2%i%n%3%n%d%4 %5)]
+  syntax Module ::= KoreModule
+  syntax Modules ::= List{Module, ""} [klabel(koreModules), format(%1%2%n%3)]
 
-  syntax Definition ::= Attribute Modules [klabel(definition), format(%1%n%n%2)]
+  syntax KoreDefinition ::= Attribute Modules [klabel(koreDefinition), format(%1%n%n%2)]
+  syntax Definition ::= KoreDefinition
 endmodule
 
 module KORE-SYNTAX

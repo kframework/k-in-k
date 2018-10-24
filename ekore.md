@@ -47,8 +47,7 @@ module K-DEFINITION-SYNTAX
                                     Declarations
                            "endmodule"
                                [klabel(kModule), format(%1 %2 %3%i%n%4%n%5%n%d%6)]
-  syntax KModuleList   ::= List{KModule, ""}  [klabel(kModuleList), format(%1%2%n%n%3)]
-
+  syntax Module        ::= KModule
 endmodule
 
 module EKORE1-DECLARATIONS
