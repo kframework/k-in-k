@@ -23,10 +23,40 @@ EKORE1 extends KORE with frontend syntax for `syntax`, `rule`s,
 or even kast syntax, but only for the Kore notation for referencing symbols.
 
 ```k
-module EKORE1-DECLARATIONS-SYNTAX
-  imports KSTRING
-  imports ATTRIBUTES-SYNTAX
+module EKORE1-DECLARATIONS-COMMON
   imports KORE-COMMON
+  imports ATTRIBUTES-COMMON
+
+  syntax Tag ::= UpperName | LowerName
+  syntax KNeTagSet    ::= NeList{Tag, ""} [klabel(kTagSet)]
+
+  syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
+  syntax OptionalAttributes ::= KAttributesDeclaration
+
+  syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
+                          | "right:"     [klabel(rightAttribute)]
+                          | "non-assoc:" [klabel(nonAssocAttribute)]
+  syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
+
+  syntax KSortList ::= KSortList "," KSort [klabel(kSortList)]
+                     | KSort
+  syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
+                            | Tag "(" KSortList ")" OptionalAttributes [klabel(kFuncProductionWAttr)]
+                            |     "(" KSortList ")" OptionalAttributes [klabel(kTupleProductionWAttr)]
+  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
+                        | KNeTagSet
+  syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock)]
+                     | KProductionWAttr
+  syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4)]
+                            | ProdBlock
+
+
+  syntax KProductionItem
+  syntax KProduction ::= KProductionItem
+                       | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
+
+  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
+  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 
   syntax Declaration ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
                        | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
@@ -36,38 +66,26 @@ module EKORE1-DECLARATIONS-SYNTAX
                        | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
                        | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
 
-  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
-                        | KNeTagSet
-  syntax KNeTagSet    ::= NeList{Tag, ""} [klabel(kTagSet)]
+  syntax Contents
+  syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
+                       | "rule"    Contents [klabel(kRule)]
+                       | "context" Contents [klabel(kContext)]
+endmodule
 
-  syntax Tag ::= UpperName | LowerName
+module EKORE1-DECLARATIONS-SYNTAX
+  imports EKORE1-DECLARATIONS-COMMON
+  imports ATTRIBUTES-SYNTAX
 
-  syntax KProduction ::= KProductionItem
-                       | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
   syntax KProductionItem ::= KSort       [klabel(nonTerminal)]
                            | KString     [klabel(terminal)]
                            | "r" KString [klabel(regexTerminal)]
                            | "NeList" "{" KSort "," KString "}" [klabel(neListProd)]
                            |   "List" "{" KSort "," KString "}" [klabel(listProd)]
-  syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4)]
-                            | ProdBlock
-  syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
-                          | "right:"     [klabel(rightAttribute)]
-                          | "non-assoc:" [klabel(nonAssocAttribute)]
-                          | ""           [klabel(noAttribute)]
-  syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock)]
-                     | KProductionWAttr
-  syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
-                            | Tag "(" KSortList ")" OptionalAttributes [klabel(kFuncProductionWAttr)]
-                            |     "(" KSortList ")" OptionalAttributes [klabel(kTupleProductionWAttr)]
-  syntax KSortList ::= KSortList "," KSort [klabel(kSortList)]
-                     | KSort
+
+  syntax AssocAttribute  ::= "" [klabel(noAttribute)]
 
   syntax OptionalAttributes ::= KAttributesDeclaration
                               | "" [klabel(noKAttributesDeclaration)]
-
-  syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
-  syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
 
   syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
                        | "rule"    Contents [klabel(kRule)]
@@ -81,81 +99,42 @@ module EKORE1-DECLARATIONS-SYNTAX
 endmodule
 
 module EKORE1-DECLARATIONS
+  imports EKORE1-DECLARATIONS-COMMON
   imports ATTRIBUTES
-  imports KORE-COMMON
 
-  syntax Declaration ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
-                       | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
-                       | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
-                       | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
-                       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
-                       | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
-                       | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
-
-  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
-                        | KNeTagSet
-  syntax KNeTagSet    ::= NeList{Tag, ""} [klabel(kTagSet)]
-
-  syntax Tag ::= UpperName | LowerName
-
-  syntax KProduction ::= KProductionItem
-                       | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
   syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal)]
                            | terminal(KString)          [klabel(terminal)]
                            | regexTerminal(KString)     [klabel(regexTerminal)]
                            | neListProd(KSort, KString) [klabel(neListProd)]
                            | listProd(KSort,KString)    [klabel(listProd)]
-  syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4)]
-                            | ProdBlock
-  syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
-                          | "right:"     [klabel(rightAttribute)]
-                          | "non-assoc:" [klabel(nonAssocAttribute)]
-                          | "noAssoc" [klabel(noAttribute)]
-  syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock)]
-                     | KProductionWAttr
-  syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
-                            | Tag "(" KSortList ")" OptionalAttributes [klabel(kFuncProductionWAttr)]
-                            |     "(" KSortList ")" OptionalAttributes [klabel(kTupleProductionWAttr)]
-  syntax KSortList ::= KSortList "," KSort [klabel(kSortList)]
-                     | KSort
-
+  syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
   syntax OptionalAttributes ::= KAttributesDeclaration
                               | "noAtt" [klabel(noKAttributesDeclaration)]
-
-  syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
-  syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
-
-  syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
-                       | "rule"    Contents [klabel(kRule)]
-                       | "context" Contents [klabel(kContext)]
-
-  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
-  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
-
   syntax Contents ::= noAttrs(Pattern)                       [klabel(noAttrs)]
                     | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
 endmodule
 
-
-module ATTRIBUTES
+module ATTRIBUTES-COMMON
   imports KSTRING
   imports TOKENS
 
+  syntax Attr
   syntax TagContent ::= UpperName | LowerName | Numbers
   syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents)]
   syntax KEY ::= LowerName
+endmodule
+
+module ATTRIBUTES
+  imports ATTRIBUTES-COMMON
   syntax Attr ::= tagSimple(LowerName)    [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
 endmodule
 
 module ATTRIBUTES-SYNTAX
-  imports KSTRING
+  imports ATTRIBUTES-COMMON
   imports TOKENS-SYNTAX
 
-  syntax TagContent ::= UpperName | LowerName | Numbers
-  syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents)]
-  syntax KEY ::= LowerName
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
