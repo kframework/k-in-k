@@ -24,7 +24,7 @@ kore = input[begin.end():end.start()]
 
 # Remove unwanted units from Lists etc.
 commaSeparated = ['Sorts', 'Names', 'Patterns', 'AttrList']
-others = ['Modules', 'Declarations', 'KImportList', 'KoreNames']
+others = ['Modules', 'Declarations', 'KImportList', 'KoreNames', 'TagContents']
 for listSort in commaSeparated:
     kore = kore.replace(' , .' + listSort, '')
 for listSort in commaSeparated + others:

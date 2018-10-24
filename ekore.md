@@ -95,7 +95,7 @@ module K-PRODUCTION-COMMON
                             |     "(" KSortList ")" OptionalAttributes [klabel(kTupleProductionWAttr)]
   syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
                         | KNeTagSet
-  syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock)]
+  syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock), format(%1%n%2 %3)]
                      | KProductionWAttr
   syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4)]
                             | ProdBlock
@@ -131,7 +131,7 @@ module K-PRODUCTION
   imports K-PRODUCTION-COMMON
   syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
   syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal)]
-                           | terminal(KString)          [klabel(terminal)]
+                           | terminal(KString)          [klabel(terminal), format(%3)]
                            | regexTerminal(KString)     [klabel(regexTerminal)]
                            | neListProd(KSort, KString) [klabel(neListProd)]
                            | listProd(KSort,KString)    [klabel(listProd)]
@@ -153,7 +153,7 @@ endmodule
 
 module CONFIG-RULE-CONTEXT
   imports CONFIG-RULE-CONTEXT-COMMON
-  syntax Contents ::= noAttrs(Pattern)                       [klabel(noAttrs)]
+  syntax Contents ::= noAttrs(Pattern)                       [klabel(noAttrs), format(%3)]
                     | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
 endmodule
 
@@ -187,7 +187,7 @@ endmodule
 
 module ATTRIBUTES
   imports ATTRIBUTES-COMMON
-  syntax Attr ::= tagSimple(LowerName)    [klabel(tagSimple)]
+  syntax Attr ::= tagSimple(LowerName)    [klabel(tagSimple), format(%3)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
   syntax OptionalAttributes ::= "noAtt" [klabel(noKAttributesDeclaration)]
@@ -216,7 +216,7 @@ module EXTEND-PATTERNS-WITH-KAST
                     | wrappedklabel(KLabel2)           [klabel(wrappedklabel)]
                     | requiresClause(Pattern, Pattern) [klabel(requiresClause)]
                     > ksequence(Pattern, Pattern)      [left, klabel(ksequence)]
-                    > krewrite(Pattern, Pattern)       [non-assoc, klabel(krewrite)]
+                    > krewrite(Pattern, Pattern)       [non-assoc, klabel(krewrite), format(%3 => %5)]
   syntax KLabel2 ::= LowerName
   syntax Symbol  ::= KLabel2
   syntax VarName ::= UpperName
