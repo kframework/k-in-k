@@ -99,24 +99,38 @@ module EKORE1-DECLARATIONS
                        | "rule"    Contents [klabel(kRule)]
                        | "context" Contents [klabel(kContext)]
 
-
-  syntax Declaration   ::= KImport
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
   syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 
   syntax Contents ::= Pattern                        [klabel(noAttrs)]
                     | Pattern KAttributesDeclaration [klabel(attrs), prefer]
-
-  syntax KModuleName ::= UpperName [token]
-  syntax KSort       ::= UpperName [token]
 endmodule
 
-module EKORE0-DECLARATIONS
-  imports TOKENS-SYNTAX
+module EKORE1-DECLARATIONS-SYNTAX
   imports EKORE1-DECLARATIONS
+endmodule
+
+
+module EKORE0-DECLARATIONS
+  imports TOKENS
+  imports EKORE1-DECLARATIONS
+  syntax Variable ::= cast(VarName, KSort) [klabel(cast)]
+                    | VarName
+  syntax Pattern  ::= ktoken(KString, KString)         [klabel(ktoken)]
+                    | wrappedklabel(KLabel2)           [klabel(wrappedklabel)]
+                    | requiresClause(Pattern, Pattern) [klabel(requiresClause)]
+                    > ksequence(Pattern, Pattern)      [left, klabel(ksequence)]
+                    > krewrite(Pattern, Pattern)       [non-assoc, klabel(krewrite)]
+  syntax KLabel2 ::= LowerName
+  syntax Symbol  ::= KLabel2
+  syntax VarName ::= UpperName
+endmodule
+
+module EKORE0-DECLARATIONS-SYNTAX
+  imports TOKENS
+  imports EKORE1-DECLARATIONS-SYNTAX
   syntax Variable ::= VarName ":" KSort [klabel(cast)]
                     | VarName
-
   syntax Pattern  ::= "#token" "(" KString "," KString ")" [klabel(ktoken)]
                     | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
                     | Pattern "requires" Pattern [klabel(requiresClause)]
