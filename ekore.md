@@ -19,7 +19,25 @@ endmodule
 module K-DEFINITION
   imports EKORE1-DECLARATIONS
 
-  syntax KDefinition   ::= KRequireList KModuleList [klabel(kDefinition), format(%1%n%n%2)]
+  syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%1%n%n%2)]
+  syntax Definition    ::= KDefinition
+
+  syntax KRequire      ::= kRequire(KString) [klabel(kRequire)]
+  syntax KRequireList  ::= List{KRequire, ""}  [klabel(KRequireList), format(%1%2%n%3)]
+
+  syntax KModule       ::= kModule( KModuleName
+                                  , OptionalAttributes
+                                  , KImportList
+                                  , Declarations
+                                  ) [klabel(kModule), format(%1 %2 %3%i%n%4%n%5%n%d%6)]
+  syntax Module        ::= KModule
+endmodule
+
+module K-DEFINITION-SYNTAX
+  imports EKORE1-DECLARATIONS
+
+  syntax KDefinition   ::= KRequireList Modules [klabel(kDefinition), format(%1%n%n%2)]
+  syntax Definition    ::= KDefinition
 
   syntax KRequire      ::= "require" KString [klabel(kRequire)]
   syntax KRequireList  ::= List{KRequire, ""}  [klabel(KRequireList), format(%1%2%n%3)]
