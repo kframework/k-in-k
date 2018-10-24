@@ -35,11 +35,12 @@ def kore_exec(kore, ext = 'kore-exec'):
 # ------------------
 
 ekore = proj.source('ekore.md') \
-
+            .then(proj.tangle().output(proj.tangleddir('ekore.k')))
+kore = proj.source('kore.k')
 kink = proj.source('kink.md') \
            .then(proj.tangle().output(proj.tangleddir('kink.k'))) \
            .then(proj.kompile()
-                        .implicit([proj.source('kore.k'), ekore])
+                        .implicit([kore, ekore])
                         .variables( backend = 'java'
                                   , directory = proj.builddir('kink')
                                   , flags = '-I . --syntax-module EKORE-SYNTAX'
