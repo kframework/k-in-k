@@ -203,8 +203,11 @@ module EKORE0-DECLARATIONS-SYNTAX
                     > Pattern "~>" Pattern [left, klabel(ksequence)]
                     > Pattern "=>" Pattern [non-assoc, klabel(krewrite)]
   syntax KLabel2 ::= LowerName [token]
+                   | r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
+
   syntax Symbol  ::= KLabel2
   syntax VarName ::= UpperName [token]
+                   | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
 endmodule
 
 
@@ -212,10 +215,6 @@ module EKORE-SYNTAX
   imports K-DEFINITION-SYNTAX
   imports TOKENS-SYNTAX
   imports EKORE0-DECLARATIONS-SYNTAX
-
-  syntax KLabel2 ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
-  syntax VarName ::= r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
-
 endmodule
 
 module EKORE
