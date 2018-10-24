@@ -92,6 +92,7 @@ module EKORE1-DECLARATIONS
   syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
                           | "right:"     [klabel(rightAttribute)]
                           | "non-assoc:" [klabel(nonAssocAttribute)]
+                          | "noAssoc"    [klabel(noAttribute)]
   syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock)]
                      | KProductionWAttr
   syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
@@ -101,6 +102,7 @@ module EKORE1-DECLARATIONS
                      | KSort
 
   syntax OptionalAttributes ::= KAttributesDeclaration
+                              | "noAtt" [klabel(noKAttributesDeclaration)]
 
   syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
   syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
@@ -147,6 +149,7 @@ module EKORE1-DECLARATIONS-SYNTAX
   syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
                           | "right:"     [klabel(rightAttribute)]
                           | "non-assoc:" [klabel(nonAssocAttribute)]
+                          | ""           [klabel(noAttribute)]
   syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock)]
                      | KProductionWAttr
   syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
@@ -156,6 +159,7 @@ module EKORE1-DECLARATIONS-SYNTAX
                      | KSort
 
   syntax OptionalAttributes ::= KAttributesDeclaration
+                              | "" [klabel(noKAttributesDeclaration)]
 
   syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
   syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
@@ -212,14 +216,10 @@ module EKORE-SYNTAX
   syntax KLabel2 ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
   syntax VarName ::= r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
 
-  syntax AssocAttribute     ::= "" [klabel(noAttribute)]
-  syntax OptionalAttributes ::= "" [klabel(noKAttributesDeclaration)]
 endmodule
 
 module EKORE
   imports K-DEFINITION
   imports EKORE0-DECLARATIONS
-  syntax AssocAttribute     ::= "noAssoc" [klabel(noAttribute)]
-  syntax OptionalAttributes ::= "noAtt"   [klabel(noKAttributesDeclaration)]
 endmodule
 ```
