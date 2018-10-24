@@ -125,8 +125,6 @@ module K-PRODUCTION-SYNTAX
                            | "NeList" "{" KSort "," KString "}" [klabel(neListProd)]
                            |   "List" "{" KSort "," KString "}" [klabel(listProd)]
 
-  syntax Contents ::= Pattern                        [klabel(noAttrs)]
-                    | Pattern KAttributesDeclaration [klabel(attrs), prefer]
 endmodule
 
 module K-PRODUCTION
@@ -136,7 +134,8 @@ module K-PRODUCTION
                            | terminal(KString)          [klabel(terminal)]
                            | regexTerminal(KString)     [klabel(regexTerminal)]
                            | neListProd(KSort, KString) [klabel(neListProd)]
-                           | listProd(KSort,KString)    [klabel(listProd)]endmodule
+                           | listProd(KSort,KString)    [klabel(listProd)]
+endmodule
 ````
 
 Configuration, Rules and Contexts
