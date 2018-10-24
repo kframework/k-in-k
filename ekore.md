@@ -15,28 +15,78 @@ parsing (suffixed with `-SYNTAX`), and a second time with abstract syntax for
 writing rules over (unsuffixed). We may also define a third module (suffixed
 `-COMMON`) with code that these two modules can share.
 
+EKORE
+-----
+
+In addition to the `EKORE0` syntax, `EKORE` also allows K Frontend modules and
+definitions.
+
+```k
+module EKORE-SYNTAX
+  imports K-DEFINITION-SYNTAX
+  imports EKORE0-SYNTAX
+endmodule
+
+module EKORE
+  imports K-DEFINITION
+  imports EKORE0
+endmodule
+```
+
+EKore 0
+-------
+
+`EKORE0` extends `EKORE1` allowing the use of "backtick" kast syntax, `#token`,
+rewrite and sequencing arrows.
+
+```k
+module EKORE0
+  imports EKORE1
+  imports EXTEND-PATTERNS-WITH-KAST
+endmodule
+
+module EKORE0-SYNTAX
+  imports EKORE1-SYNTAX
+  imports EXTEND-PATTERNS-WITH-KAST-SYNTAX
+endmodule
+```
+
 EKore 1
-=======
+-------
 
 EKORE1 extends KORE with frontend syntax for `syntax`, `rule`s,
 `configuration` and `context`s. Rules do not allow for concrete language syntax
 or even kast syntax, but only for the Kore notation for referencing symbols.
 
 ```k
-module EKORE1-DECLARATIONS-COMMON
+module EKORE1
+  imports K-PRODUCTION
+  imports CONFIG-RULE-CONTEXT
+endmodule
+
+module EKORE1-SYNTAX
+  imports K-PRODUCTION-SYNTAX
+  imports CONFIG-RULE-CONTEXT-SYNTAX
+endmodule
+```
+
+Extensions
+==========
+
+K Productions
+-------------
+
+```k
+module K-PRODUCTION-COMMON
   imports KORE-COMMON
   imports ATTRIBUTES-COMMON
 
   syntax Tag ::= UpperName | LowerName
   syntax KNeTagSet    ::= NeList{Tag, ""} [klabel(kTagSet)]
 
-  syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
-  syntax OptionalAttributes ::= KAttributesDeclaration
-
   syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
                           | "right:"     [klabel(rightAttribute)]
                           | "non-assoc:" [klabel(nonAssocAttribute)]
-  syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
 
   syntax KSortList ::= KSortList "," KSort [klabel(kSortList)]
                      | KSort
@@ -50,13 +100,9 @@ module EKORE1-DECLARATIONS-COMMON
   syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4)]
                             | ProdBlock
 
-
   syntax KProductionItem
   syntax KProduction ::= KProductionItem
                        | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
-
-  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
-  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 
   syntax Declaration ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
                        | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
@@ -66,59 +112,75 @@ module EKORE1-DECLARATIONS-COMMON
                        | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
                        | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
 
-  syntax Contents
-  syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
-                       | "rule"    Contents [klabel(kRule)]
-                       | "context" Contents [klabel(kContext)]
 endmodule
 
-module EKORE1-DECLARATIONS-SYNTAX
-  imports EKORE1-DECLARATIONS-COMMON
+module K-PRODUCTION-SYNTAX
+  imports K-PRODUCTION-COMMON
   imports ATTRIBUTES-SYNTAX
 
+  syntax AssocAttribute  ::= "" [klabel(noAttribute)]
   syntax KProductionItem ::= KSort       [klabel(nonTerminal)]
                            | KString     [klabel(terminal)]
                            | "r" KString [klabel(regexTerminal)]
                            | "NeList" "{" KSort "," KString "}" [klabel(neListProd)]
                            |   "List" "{" KSort "," KString "}" [klabel(listProd)]
 
-  syntax AssocAttribute  ::= "" [klabel(noAttribute)]
-
-  syntax OptionalAttributes ::= KAttributesDeclaration
-                              | "" [klabel(noKAttributesDeclaration)]
-
-  syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
-                       | "rule"    Contents [klabel(kRule)]
-                       | "context" Contents [klabel(kContext)]
-
-  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
-  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
-
   syntax Contents ::= Pattern                        [klabel(noAttrs)]
                     | Pattern KAttributesDeclaration [klabel(attrs), prefer]
 endmodule
 
-module EKORE1-DECLARATIONS
-  imports EKORE1-DECLARATIONS-COMMON
-  imports ATTRIBUTES
-
+module K-PRODUCTION
+  imports K-PRODUCTION-COMMON
+  syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
   syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal)]
                            | terminal(KString)          [klabel(terminal)]
                            | regexTerminal(KString)     [klabel(regexTerminal)]
                            | neListProd(KSort, KString) [klabel(neListProd)]
-                           | listProd(KSort,KString)    [klabel(listProd)]
-  syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
-  syntax OptionalAttributes ::= KAttributesDeclaration
-                              | "noAtt" [klabel(noKAttributesDeclaration)]
+                           | listProd(KSort,KString)    [klabel(listProd)]endmodule
+````
+
+Configuration, Rules and Contexts
+---------------------------------
+
+```k
+module CONFIG-RULE-CONTEXT-COMMON
+  imports KORE-COMMON
+  imports ATTRIBUTES-COMMON
+  syntax Contents
+  syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
+                       | "rule"    Contents [klabel(kRule)]
+                       | "context" Contents [klabel(kContext)]
+endmodule
+
+module CONFIG-RULE-CONTEXT
+  imports CONFIG-RULE-CONTEXT-COMMON
   syntax Contents ::= noAttrs(Pattern)                       [klabel(noAttrs)]
                     | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
 endmodule
 
+module CONFIG-RULE-CONTEXT-SYNTAX
+  imports KORE-SYNTAX
+  imports CONFIG-RULE-CONTEXT-COMMON
+  syntax Contents ::= Pattern                        [klabel(noAttrs)]
+                    | Pattern KAttributesDeclaration [klabel(attrs), prefer]
+endmodule
+```
+
+Attributes
+----------
+
+Attributes are use both by KModules/Definitions and Productions
+
+```k
 module ATTRIBUTES-COMMON
   imports KSTRING
   imports TOKENS
 
   syntax Attr
+  syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
+  syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
+  syntax OptionalAttributes ::= KAttributesDeclaration
+
   syntax TagContent ::= UpperName | LowerName | Numbers
   syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents)]
   syntax KEY ::= LowerName
@@ -129,28 +191,26 @@ module ATTRIBUTES
   syntax Attr ::= tagSimple(LowerName)    [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
+  syntax OptionalAttributes ::= "noAtt" [klabel(noKAttributesDeclaration)]
 endmodule
 
 module ATTRIBUTES-SYNTAX
   imports ATTRIBUTES-COMMON
   imports TOKENS-SYNTAX
-
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
+  syntax OptionalAttributes ::= "" [klabel(noKAttributesDeclaration)]
 endmodule
 ```
 
-EKore 0
-=======
-
-`EKORE0` extends `EKORE1` allowing the use of "backtick" kast syntax, `#token`,
-rewrite and sequencing arrows.
+Extend patterns with KAST syntax
+--------------------------------
 
 ```k
-module EKORE0-DECLARATIONS
+module EXTEND-PATTERNS-WITH-KAST
   imports TOKENS
-  imports EKORE1-DECLARATIONS
+  imports EKORE1
   syntax Variable ::= cast(VarName, KSort) [klabel(cast)]
                     | VarName
   syntax Pattern  ::= ktoken(KString, KString)         [klabel(ktoken)]
@@ -163,9 +223,9 @@ module EKORE0-DECLARATIONS
   syntax VarName ::= UpperName
 endmodule
 
-module EKORE0-DECLARATIONS-SYNTAX
+module EXTEND-PATTERNS-WITH-KAST-SYNTAX
   imports TOKENS
-  imports EKORE1-DECLARATIONS-SYNTAX
+  imports EKORE1-SYNTAX
   syntax Variable ::= VarName ":" KSort [klabel(cast)]
                     | VarName
   syntax Pattern  ::= "#token" "(" KString "," KString ")" [klabel(ktoken)]
@@ -184,15 +244,24 @@ endmodule
 ```
 
 K Frontend modules
-==================
+------------------
 
 Since K and Kore have Modules and Definitions that differ slightly, we must
 define a separate K (frontend) module syntax. Note that this module allows both
 K and Kore declarations.
 
 ```k
+module K-DEFINITION-COMMON
+  imports TOKENS
+
+  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
+  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
+endmodule
+
 module K-DEFINITION
-  imports EKORE1-DECLARATIONS
+  imports K-DEFINITION-COMMON
+  imports KORE
+  imports ATTRIBUTES
 
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%1%n%n%2)]
   syntax Definition    ::= KDefinition
@@ -209,7 +278,9 @@ module K-DEFINITION
 endmodule
 
 module K-DEFINITION-SYNTAX
-  imports EKORE1-DECLARATIONS-SYNTAX
+  imports K-DEFINITION-COMMON
+  imports KORE-SYNTAX
+  imports ATTRIBUTES-SYNTAX
 
   syntax KDefinition   ::= KRequireList Modules [klabel(kDefinition), format(%1%n%n%2)]
   syntax Definition    ::= KDefinition
@@ -226,21 +297,3 @@ module K-DEFINITION-SYNTAX
 endmodule
 ```
 
-"main" modules
-==============
-
-For convenience, we also export combined modules:
-
-
-```k
-module EKORE-SYNTAX
-  imports K-DEFINITION-SYNTAX
-  imports TOKENS-SYNTAX
-  imports EKORE0-DECLARATIONS-SYNTAX
-endmodule
-
-module EKORE
-  imports K-DEFINITION
-  imports EKORE0-DECLARATIONS
-endmodule
-```
