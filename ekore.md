@@ -8,9 +8,9 @@ module ATTRIBUTES
   imports KSTRING
   imports TOKENS
 
-  syntax TagContent ::= UpperName [token] | LowerName [token] | Numbers [token]
-  syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents), token]
-  syntax KEY ::= LowerName [token]
+  syntax TagContent ::= UpperName | LowerName | Numbers
+  syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents)]
+  syntax KEY ::= LowerName
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
@@ -50,7 +50,7 @@ module EKORE1-DECLARATIONS
                         | KNeTagSet
   syntax KNeTagSet    ::= NeList{Tag, ""} [klabel(kTagSet)]
 
-  syntax Tag ::= UpperName [token] | LowerName [token]
+  syntax Tag ::= UpperName | LowerName
 
   syntax KProduction ::= KProductionItem
                        | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
