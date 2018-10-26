@@ -25,13 +25,6 @@ fail() { log "$@"; exit 1   ; }
 
 init_env() {
     type -t ninja > /dev/null || fail "ninja-build not available. Giving up."
-
-    # Since K needs a modified ocaml compiler, use a opam root directory private to
-    # this project so as not to intefere with other opam packages such as coq.
-    #
-    export OPAMROOT="$build_dir/opam"
-    eval $(opam config env)
-
     export PYTHONPATH="$base/ext/"
 }
 
