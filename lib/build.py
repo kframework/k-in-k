@@ -45,13 +45,16 @@ kink = proj.source('kink.md') \
                                   , flags = '-I . --syntax-module EKORE-SYNTAX'
                                   ))
 
+def foobar_test(file):
+    proj.source(file) \
+        .then(kink.krun()) \
+        .then(kore_from_config.variables(cell = 'k')) \
+        .then(proj.check(proj.source('t/foobar.ekore.expected'))) \
+        .default()
+# foobar_test('t/foobar-backtick-synax.ekore')
+foobar_test('t/foobar-frontend-modules.ekore')
+
+# These tests are to make sure we can still parse IMP
 proj.source('imp/imp.ekore0').then(kink.krun()).default()
 proj.source('imp/imp.ekore1').then(kink.krun()).default()
-
-proj.source('foobar/foobar.ekore0').then(kink.krun()).default()
-proj.source('foobar/foobar.ekore1') \
-    .then(kink.krun()) \
-    .then(kore_from_config.variables(cell = 'k')) \
-    .then(proj.check(proj.source('foobar/foobar.ekore2'))) \
-    .default()
 

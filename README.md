@@ -49,18 +49,24 @@ TODO: Choose better names for `EKore-0`, ...
     -   ...
 
 
-## Interesting files
+Interesting files
+-----------------
 
 In the `imp/imp.ekore0` we sketch out what we expect the `ekore0` syntax to look like.
 
 * We Assume dotMap{}() and mapLookup{}(...)  are the symbols defined in `DOMAINS`
 
 * We use `_/_` etc as sugar for Lbl'Unds'Div'Unds'{}()
- 
-TODO:
 
--   Using `Sets` etc makes output non-deterministic (e.g. the order of
-    statements may be permuted). This makes testing hard.
+
+Testing
+=======
+
+In each of the test files `t/foobar-<FEATURE>.ekore` uses a single additional
+feature over the expected `kore0` syntax (for example: frontend modules, syntax
+declarations, rules, contexts...). We expect all these to reduce down to [the
+same expected output](t/foobar.ekore.expected). Eventually we want this expected
+file to be `kore0`.
 
 Issues?
 =======
