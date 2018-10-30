@@ -53,6 +53,7 @@ def foobar_test(file):
         .default()
 # foobar_test('t/foobar-backtick-synax.ekore')
 foobar_test('t/foobar-frontend-modules.ekore')
+foobar_test('t/foobar-declare-sorts.ekore')
 
 # These tests are to make sure we can still parse IMP
 proj.source('imp/imp.ekore0').then(kink.krun()).default()
