@@ -4,7 +4,7 @@ requires "ekore.k"
 
 ```k
 module KINK-CONFIGURATION
-  imports EKORE
+  imports EKORE-ABSTRACT
 
   configuration <k> $PGM:Definition </k>
 endmodule

@@ -12,8 +12,8 @@ disambiguate between the outer syntax and the inner syntax which are for the
 most part identical. To work around this issue, we define contstructs that are
 likely to give rise to ambiguities twice: once with the concrete syntax for
 parsing (suffixed with `-SYNTAX`), and a second time with abstract syntax for
-writing rules over (unsuffixed). We may also define a third module (suffixed
-`-COMMON`) with code that these two modules can share.
+writing rules over (suffixed with `-ABSTRACT`). We may also define a third
+module (suffixed `-COMMON`) with code that these two modules can share.
 
 EKORE
 -----
@@ -27,9 +27,9 @@ module EKORE-SYNTAX
   imports EKORE0-SYNTAX
 endmodule
 
-module EKORE
-  imports K-DEFINITION
-  imports EKORE0
+module EKORE-ABSTRACT
+  imports K-DEFINITION-ABSTRACT
+  imports EKORE0-ABSTRACT
 endmodule
 ```
 
@@ -40,14 +40,14 @@ EKore 0
 rewrite and sequencing arrows.
 
 ```k
-module EKORE0
-  imports EKORE1
-  imports EXTEND-PATTERNS-WITH-KAST
-endmodule
-
 module EKORE0-SYNTAX
   imports EKORE1-SYNTAX
   imports EXTEND-PATTERNS-WITH-KAST-SYNTAX
+endmodule
+
+module EKORE0-ABSTRACT
+  imports EKORE1-ABSTRACT
+  imports EXTEND-PATTERNS-WITH-KAST-ABSTRACT
 endmodule
 ```
 
@@ -59,9 +59,9 @@ EKORE1 extends KORE with frontend syntax for `syntax`, `rule`s,
 or even kast syntax, but only for the Kore notation for referencing symbols.
 
 ```k
-module EKORE1
-  imports K-PRODUCTION
-  imports CONFIG-RULE-CONTEXT
+module EKORE1-ABSTRACT
+  imports K-PRODUCTION-ABSTRACT
+  imports CONFIG-RULE-CONTEXT-ABSTRACT
 endmodule
 
 module EKORE1-SYNTAX
@@ -127,7 +127,7 @@ module K-PRODUCTION-SYNTAX
 
 endmodule
 
-module K-PRODUCTION
+module K-PRODUCTION-ABSTRACT
   imports K-PRODUCTION-COMMON
   syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
   syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal)]
@@ -151,7 +151,7 @@ module CONFIG-RULE-CONTEXT-COMMON
                        | "context" Contents [klabel(kContext)]
 endmodule
 
-module CONFIG-RULE-CONTEXT
+module CONFIG-RULE-CONTEXT-ABSTRACT
   imports CONFIG-RULE-CONTEXT-COMMON
   syntax Contents ::= noAttrs(Pattern)                       [klabel(noAttrs), format(%3)]
                     | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
@@ -185,7 +185,7 @@ module ATTRIBUTES-COMMON
   syntax KEY ::= LowerName
 endmodule
 
-module ATTRIBUTES
+module ATTRIBUTES-ABSTRACT
   imports ATTRIBUTES-COMMON
   syntax Attr ::= tagSimple(LowerName)    [klabel(tagSimple), format(%3)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
@@ -207,9 +207,9 @@ Extend patterns with KAST syntax
 --------------------------------
 
 ```k
-module EXTEND-PATTERNS-WITH-KAST
+module EXTEND-PATTERNS-WITH-KAST-ABSTRACT
   imports TOKENS
-  imports EKORE1
+  imports EKORE1-ABSTRACT
   syntax Variable ::= cast(VarName, KSort) [klabel(cast)]
                     | VarName
   syntax Pattern  ::= ktoken(KString, KString)         [klabel(ktoken)]
@@ -257,10 +257,10 @@ module K-DEFINITION-COMMON
   syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
 endmodule
 
-module K-DEFINITION
+module K-DEFINITION-ABSTRACT
   imports K-DEFINITION-COMMON
   imports KORE
-  imports ATTRIBUTES
+  imports ATTRIBUTES-ABSTRACT
 
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%1%n%n%2)]
   syntax Definition    ::= KDefinition
