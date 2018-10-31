@@ -6,7 +6,9 @@ requires "ekore.k"
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
 
-  configuration <k> $PGM:Definition </k>
+  syntax K ::= "#initPipeline"
+  configuration <pipeline> #initPipeline  </pipeline>
+                <k> $PGM:Definition </k>
 endmodule
 ```
 

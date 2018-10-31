@@ -49,7 +49,8 @@ def foobar_test(file):
     proj.source(file) \
         .then(kink.krun()) \
         .then(kore_from_config.variables(cell = 'k')) \
-        .then(proj.check(proj.source('t/foobar.ekore.expected'))) \
+        .then(proj.check(proj.source('t/foobar.ekore.expected'))
+                     .variables(flags = '--ignore-all-space')) \
         .default()
 # foobar_test('t/foobar-backtick-synax.ekore')
 foobar_test('t/foobar-frontend-modules.ekore')
