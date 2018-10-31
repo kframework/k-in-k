@@ -1,10 +1,10 @@
 module FOOBAR
   sort Buzz {  } [  ]
 
-  sort Foo  {  } [  ]
   symbol bar {  } (  ) : Foo {  } [  ]
   symbol buzz2 {  } (  ) : Foo {  } [  ]
 
+  sort Foo  {  } [  ]
   syntax Foo ::=
     "bar" [ klabel ( bar   ) , function ]
     | "buzz" [ klabel ( buzz2   ) ]

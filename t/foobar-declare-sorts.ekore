@@ -1,6 +1,8 @@
 [  ]
 
 module FOOBAR
+  sort Buzz {  } [  ]
+
   symbol bar {  } (  ) : Foo {  } [  ]
   symbol buzz2 {  } (  ) : Foo {  } [  ]
   syntax Foo ::=

@@ -84,7 +84,11 @@ module KORE-HELPERS
 
   syntax Declarations ::= Declarations "++Declarations" Declarations [function]
   rule (D1 DS1) ++Declarations DS2 => D1 (DS1 ++Declarations DS2)
-  rule .Declarations ++Declarations DS2 => DS2 
+  rule .Declarations ++Declarations DS2 => DS2
+
+  syntax Modules ::= Modules "++Modules" Modules [function]
+  rule (M1 MS1) ++Modules MS2 => M1 (MS1 ++Modules MS2)
+  rule .Modules ++Modules MS2 => MS2
 
   syntax Bool ::= Pattern "inPatterns" Patterns                      [function]
   rule (P inPatterns           .Patterns) => false

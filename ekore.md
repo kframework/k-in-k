@@ -104,14 +104,15 @@ module K-PRODUCTION-COMMON
   syntax KProduction ::= KProductionItem
                        | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
 
-  syntax Declaration ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
-                       | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
-                       | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
-                       | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
-                       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
-                       | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
-                       | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
-
+  syntax KProductionDeclaration
+    ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
+      | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
+      | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
+      | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
+      | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
+      | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
+      | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
+  syntax Declaration ::= KProductionDeclaration
 endmodule
 
 module K-PRODUCTION-SYNTAX
