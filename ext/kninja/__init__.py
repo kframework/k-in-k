@@ -235,7 +235,7 @@ class KProject(ninja.ninja_syntax.Writer):
     def check(self, expected):
         return self.rule( 'check-test-result'
                         , description = 'Checking $in'
-                        , command = 'git diff --no-index $in $expected'
+                        , command = 'git diff --no-index $flags $in $expected'
                         , ext = 'test') \
                    .variables(expected = expected) \
                    .implicit([expected])
