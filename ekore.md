@@ -259,7 +259,7 @@ endmodule
 
 module K-DEFINITION-ABSTRACT
   imports K-DEFINITION-COMMON
-  imports KORE
+  imports KORE-COMMON
   imports ATTRIBUTES-ABSTRACT
 
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%1%n%n%2)]

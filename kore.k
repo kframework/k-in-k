@@ -94,21 +94,3 @@ module KORE-HELPERS
     requires notBool P ==K P1
 endmodule
 
-module KORE
-
-  imports KORE-COMMON  // don't import KORE-SYNTAX
-
-  //configuration <T> <k> $PGM:Definition </k> </T>
-
-  // unit element for \or
-  rule \or{_}(X, \bottom{_}()) => X [anywhere]
-  rule \or{_}(\bottom{_}(), X) => X [anywhere]
-  // \or(X, X) => X
-  rule \or{_}(X, X) => X [anywhere]
-
-  syntax KoreName ::= "inj" [token, prec(2)]
-
-  // inj composition - performs a similar step to TreeCleanerVisitor.java
-  rule inj{Y,Z}(inj{X,Y}(W)) => inj{X,Z}(W) [anywhere]
-
-endmodule
