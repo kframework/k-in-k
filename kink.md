@@ -15,45 +15,66 @@ endmodule
 Visitor Infrastructure
 ----------------------
 
+This section defines visitors which are used in tranformations.
+
 ```k
 module KINK-VISITORS
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
+```
 
-  syntax Visitor
+A Visitor Action consists of an "action" to be performed on
+every sentence. To use the visitors, extend the Action sort.
 
-  syntax K ::= #forEachSentence(Visitor)
-  syntax K ::= #visitNext(Visitor, Declarations)    // Visitor, Declarations returned by Visitor
-             | #visitModules(Modules, Declarations)
-             | #visitSentence(Visitor, Declarations)
+```k
+  syntax Action
 
-  rule <pipeline> #forEachSentence(V)
-               => #visitNext(V, .Declarations) ~> #visitModules(MODULES, .Declarations)
-       </pipeline>
-       <k> koreDefinition(ATTR:Attribute, MODULES)
-        => koreDefinition(ATTR:Attribute, .Modules)
-       </k>
+  syntax Visitor ::= #visitDefintion(Action)
+                   | #visitModules(Action, Modules)
+                   | #visitSentences(Action, Declarations)
 
-  rule <pipeline> #visitNext(V, DECLS_NEW) ~> #visitModules(MODULES, DECLS_OLD)
-               => #visitNext(V, .Declarations) ~>
-                  #visitModules(MODULES, DECLS_OLD ++Declarations DECLS_NEW)
-       </pipeline>
+  syntax Visitor ::= #visitModule(Action, Module)
 
-  rule <pipeline> #visitNext(V, .Declarations) ~>
-                  #visitModules(koreModule(MNAME, DECL:Declaration DECLS, ATTRS) MODULES, TRANSFORMED_DECLS)
-               => #visitSentence(V, DECL) ~>
-                  #visitModules(koreModule(MNAME, DECLS, ATTRS) MODULES, TRANSFORMED_DECLS)
-       </pipeline>
+  rule <pipeline> #visitDefintion(VA) => #visitModules(VA, MODULES) </pipeline>
+       <k> koreDefinition(ATTR, MODULES) => koreDefinition(ATTR, .Modules) </k>
 
-  rule <pipeline> #visitNext(V, .Declarations) ~>
-                  #visitModules(koreModule(MNAME, .Declarations, ATTRS:Attribute) REM_MODULES, TRANSFORMED_DECLS)
-               => #visitSentence(V, .Declarations) ~>
-                  #visitModules(REM_MODULES, .Declarations)
-       </pipeline>
-       <k> ATTRS (   TRANSFORMED_MODULES
-                  => TRANSFORMED_MODULES ++Modules (koreModule(MNAME, TRANSFORMED_DECLS, ATTRS) .Modules)
-                 )
-       </k>
+  rule <pipeline> #visitModules(VA, M MS) => #visitModule(VA, M) ~> #visitModules(VA, MS) ... </pipeline>
+  rule <pipeline> #visitModules(VA, .Modules) => .K ... </pipeline>
+
+  syntax KItem ::= #sentencesIntoModule(KoreName, Attribute)
+
+  rule <pipeline> #visitModule(VA, koreModule(MNAME, DECLS, ATTRS))
+              =>  #visitSentences(VA, DECLS) ~> #sentencesIntoModule(MNAME, ATTRS) ... </pipeline>
+
+
+  syntax KItem ::= #applyActionToSentence(Action, Declaration)
+                 | #visitSentencesAux(Declarations)
+
+  rule <pipeline> #visitSentences(VA, DECL DECLS)
+               => #applyActionToSentence(VA, DECL) ~> #visitSentencesAux(DECLS) ... </pipeline>
+
+```
+The following construct a transformed module and place
+it back into the `<k>` cell. A `#applicationResult`
+is the result of applying an `Action` on a `Sentence`.
+
+```k
+  syntax KItem ::= #applicationResult(Declarations, Action)
+                 | #processedSentences(Declarations)
+
+  rule <pipeline> #applicationResult(PROCESSED_DECLS, VA) ~> #visitSentencesAux(DECLS)
+               => #visitSentences(VA, DECLS) ~> #processedSentences(PROCESSED_DECLS) ... </pipeline>
+
+  rule <pipeline> #applicationResult(PROCESSED_DECLS, VA) ~> #visitSentencesAux(.Declarations)
+               => #processedSentences(PROCESSED_DECLS) ... </pipeline>
+
+  rule <pipeline> #processedSentences(DECLS1) ~> #processedSentences(DECLS2)
+               => #processedSentences(DECLS2 ++Declarations DECLS1) ... </pipeline>
+
+  rule <pipeline> #processedSentences(DECLS) ~> #sentencesIntoModule(MNAME,MATTR)
+               => .K  ... </pipeline>
+        <k> koreDefinition(ATTR, MS)
+         => koreDefinition(ATTR,  MS ++Modules koreModule(MNAME, DECLS, MATTR) .Modules) </k>
 
 endmodule
 ```
@@ -90,6 +111,8 @@ This transformation adds `sort` declarations for each production.
 module EXTRACT-SORTS-FROM-PRODUCTIONS
   imports KINK-VISITORS
   imports SET
+
+  syntax KItem ::= "#extractKoreSortsFromProductions"
 ```
 
 `sortNameFromProdDecl` extracts the name of the sort from the `KProductionDeclaration`
@@ -99,60 +122,71 @@ module EXTRACT-SORTS-FROM-PRODUCTIONS
   rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
 ```
 
-Create a sort declaration:
+We use our visitor infrastructure here to implement the
+`#extractKoreSortsFromProductions` pipeline step.
+We extend the `Action` sort, and use the `#applicationResult` construct
+to indicate the result of applying the action.
+Notice that we return a modified `Action` as the second argument of
+our result. The modified action allows threading state through
+the visitors.
 
 ```k
-  syntax Visitor ::= #extractSortsFromProductions(Set)
+  syntax Action ::= #extractSortsFromProductions(Set)
 
-  rule <pipeline> #visitSentence( #extractSortsFromProductions(DECLARED_SORTS)
-                                , DECL:KProductionDeclaration
-                                )
-               => #visitNext( #extractSortsFromProductions(DECLARED_SORTS SetItem(sortNameFromProdDecl(DECL)))
-                            , sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ]
-                              DECL
-                              .Declarations
-                            )
-                  ...
+  rule <pipeline> #extractKoreSortsFromProductions
+               => #visitDefintion(#extractSortsFromProductions(.Set)) ... </pipeline>
+
+  rule <pipeline>
+           #applyActionToSentence( #extractSortsFromProductions(DECLARED_SORTS)
+                                 , DECL:KProductionDeclaration
+                                 )
+        => #applicationResult( sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ] DECL .Declarations
+                             , #extractSortsFromProductions(DECLARED_SORTS SetItem(sortNameFromProdDecl(DECL)))
+                             ) ...
        </pipeline>
-    requires notBool(sortNameFromProdDecl(DECL) in DECLARED_SORTS)
+       requires notBool(sortNameFromProdDecl(DECL) in DECLARED_SORTS)
 ```
 
 A sort declaration already exists, ignore:
 
 ```k
-  rule <pipeline> #visitSentence( #extractSortsFromProductions(DECLARED_SORTS)
-                                , DECL:KProductionDeclaration
-                                )
-               => #visitNext( #extractSortsFromProductions(DECLARED_SORTS SetItem(sortNameFromProdDecl(DECL)))
-                            , DECL
-                              .Declarations
-                            )
-                  ...
+  rule <pipeline>
+           #applyActionToSentence( #extractSortsFromProductions(DECLARED_SORTS)
+                                 , DECL:KProductionDeclaration
+                                 )
+        => #applicationResult( DECL .Declarations
+                             , #extractSortsFromProductions(DECLARED_SORTS SetItem(sortNameFromProdDecl(DECL)))
+                             ) ...
        </pipeline>
-    requires sortNameFromProdDecl(DECL) in DECLARED_SORTS
+       requires sortNameFromProdDecl(DECL) in DECLARED_SORTS
 
-  rule <pipeline> #visitSentence( #extractSortsFromProductions(DECLARED_SORTS)
-                                , sort KORE_NAME:KoreName { KORE_NAMES } ATTRS
-                                )
-               => #visitNext( #extractSortsFromProductions(DECLARED_SORTS SetItem(KORE_NAME))
-                            , sort KORE_NAME:KoreName { KORE_NAMES } ATTRS
-                              .Declarations
-                            )
-                  ...
+  rule <pipeline>
+           #applyActionToSentence( #extractSortsFromProductions(DECLARED_SORTS)
+                                 , sort KORE_NAME:KoreName { KORE_NAMES } ATTRS
+                                 )
+        => #applicationResult(  sort KORE_NAME:KoreName { KORE_NAMES } ATTRS .Declarations
+                             , #extractSortsFromProductions(DECLARED_SORTS SetItem(KORE_NAME))
+                             ) ...
        </pipeline>
 ```
 
 Ignore other `Declaration`s:
 
 ```k
+
   // TODO: This is a hack
-  rule isKProductionDeclaration(sort KORE_NAME:KoreName { KORE_NAMES } ATTRS)
-    => true
-  rule <pipeline> #visitSentence(#extractSortsFromProductions(DECLARED_SORTS), DECL)
-               => #visitNext(#extractSortsFromProductions(DECLARED_SORTS), DECL .Declarations)
-                  ...
-       </pipeline>
-    requires notBool(isKProductionDeclaration(DECL))
+   rule isKProductionDeclaration(sort KORE_NAME:KoreName { KORE_NAMES } ATTRS)
+     => true
+   rule <pipeline>
+            #applyActionToSentence( #extractSortsFromProductions(DECLARED_SORTS)
+                                  , DECL
+                                  )
+         => #applicationResult( DECL .Declarations
+                              , #extractSortsFromProductions(DECLARED_SORTS)
+                              ) ...
+        </pipeline>
+     requires notBool(isKProductionDeclaration(DECL))
+
 endmodule
 ```
 
@@ -162,7 +196,7 @@ module KINK
   imports EXTRACT-SORTS-FROM-PRODUCTIONS
 
   rule <pipeline> #initPipeline
-               => #forEachSentence(#extractSortsFromProductions(.Set))
+               => #extractKoreSortsFromProductions
                   ...
        </pipeline>
 endmodule
