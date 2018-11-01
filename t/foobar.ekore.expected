@@ -4,10 +4,14 @@ module FOOBAR
   sort Buzz {  } [  ]
   symbol bar {  } (  ) : Foo {  } [  ]
   symbol buzz2 {  } (  ) : Foo {  } [  ]
-  sort Foo {  } [  ]
   syntax Foo ::=
     "bar" [ klabel ( bar   ) , function ]
     | "buzz" [ klabel ( buzz2   ) ]
+  sort Foo {  } [  ]
+  sort Fizz {  } [  ]
+  syntax Fizz ::=
+    "foobar" [ klabel ( foobar  ) ]
+  symbol foobar {  } (  ) : Fizz {  } [  ]
   rule bar {  } (  ) => buzz2 {  } (  )
 
 endmodule [  ]

@@ -5,9 +5,17 @@ module FOOBAR
 
   symbol bar {  } (  ) : Foo {  } [  ]
   symbol buzz2 {  } (  ) : Foo {  } [  ]
+
   syntax Foo ::=
     "bar" [ klabel ( bar   ) , function ]
     | "buzz" [ klabel ( buzz2   ) ]
+  sort Foo {  } [  ]
+
+  syntax Fizz ::=
+    "foobar" [ klabel ( foobar  ) ]
+
+  symbol foobar {  } (  ) : Fizz {  } [  ]
+
   rule bar {  } (  ) => buzz2 {  } (  )
 
 endmodule [  ]
