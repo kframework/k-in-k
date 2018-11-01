@@ -54,13 +54,14 @@ module KORE-COMMON
 
   syntax Attribute ::= "[" Patterns "]"
 
+  syntax SortDeclaration ::= "sort" KoreName "{" KoreNames "}" Attribute
   syntax Declaration ::=
       "import"      KoreName                                          Attribute
-    | "sort"        KoreName "{" KoreNames "}"                        Attribute
     | "hook-sort"   KoreName "{" KoreNames "}"                        Attribute
     | "symbol"      KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
     | "hook-symbol" KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
     | "axiom"                "{" KoreNames "}" Pattern                Attribute
+    | SortDeclaration
   syntax Declarations ::= List{Declaration, ""} [klabel(declList), format(%1%2%n%3)]
 
   syntax KoreNames ::= List{KoreName, ","} [klabel(nameList)]
