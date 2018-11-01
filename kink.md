@@ -31,15 +31,17 @@ every sentence. To use the visitors, extend the Action sort.
 
   syntax Visitor ::= #visitDefintion(Action)
                    | #visitModules(Action, Modules)
+                   | #visitModulesAux(Modules)
                    | #visitSentences(Action, Declarations)
 
   syntax Visitor ::= #visitModule(Action, Module)
 
-  rule <pipeline> #visitDefintion(VA) => #visitModules(VA, MODULES) </pipeline>
+  rule <pipeline> #visitDefintion(VA) => #visitModules(VA, MODULES) ... </pipeline>
        <k> koreDefinition(ATTR, MODULES) => koreDefinition(ATTR, .Modules) </k>
 
-  rule <pipeline> #visitModules(VA, M MS) => #visitModule(VA, M) ~> #visitModules(VA, MS) ... </pipeline>
-  rule <pipeline> #visitModules(VA, .Modules) => .K ... </pipeline>
+  rule <pipeline> #visitModules(VA, M MS) => #visitModule(VA, M) ~> #visitModulesAux(MS) ... </pipeline>
+  rule <pipeline> VA ~> #visitModulesAux(MS) => #visitModules(VA, MS) ... </pipeline>
+  rule <pipeline> #visitModules(VA, .Modules) => VA ... </pipeline>
 
   syntax KItem ::= #sentencesIntoModule(KoreName, Attribute)
 
@@ -60,19 +62,19 @@ is the result of applying an `Action` on a `Sentence`.
 
 ```k
   syntax KItem ::= #applicationResult(Declarations, Action)
-                 | #processedSentences(Declarations)
+                 | #processedSentences(Declarations, Action)
 
   rule <pipeline> #applicationResult(PROCESSED_DECLS, VA) ~> #visitSentencesAux(DECLS)
-               => #visitSentences(VA, DECLS) ~> #processedSentences(PROCESSED_DECLS) ... </pipeline>
+               => #visitSentences(VA, DECLS) ~> #processedSentences(PROCESSED_DECLS, VA) ... </pipeline>
 
   rule <pipeline> #applicationResult(PROCESSED_DECLS, VA) ~> #visitSentencesAux(.Declarations)
-               => #processedSentences(PROCESSED_DECLS) ... </pipeline>
+               => #processedSentences(PROCESSED_DECLS, VA) ... </pipeline>
 
-  rule <pipeline> #processedSentences(DECLS1) ~> #processedSentences(DECLS2)
-               => #processedSentences(DECLS2 ++Declarations DECLS1) ... </pipeline>
+  rule <pipeline> #processedSentences(DECLS1, VA2) ~> #processedSentences(DECLS2, VA1)
+               => #processedSentences(DECLS2 ++Declarations DECLS1, VA2) ... </pipeline>
 
-  rule <pipeline> #processedSentences(DECLS) ~> #sentencesIntoModule(MNAME,MATTR)
-               => .K  ... </pipeline>
+  rule <pipeline> #processedSentences(DECLS, VA) ~> #sentencesIntoModule(MNAME,MATTR)
+               => VA  ... </pipeline>
         <k> koreDefinition(ATTR, MS)
          => koreDefinition(ATTR,  MS ++Modules koreModule(MNAME, DECLS, MATTR) .Modules) </k>
 
@@ -102,6 +104,7 @@ module K-MODULE-TO-KORE-MODULE
 endmodule
 ```
 
+
 Extract sorts from productions
 ------------------------------
 
@@ -113,6 +116,27 @@ module EXTRACT-SORTS-FROM-PRODUCTIONS
   imports SET
 
   syntax KItem ::= "#extractKoreSortsFromProductions"
+```
+We first collect all sorts that have already been declared in the definition.
+
+```k
+  syntax Action ::= #collectDeclaredSorts(Set)
+
+  rule <pipeline> #applyActionToSentence( #collectDeclaredSorts(DECLARED_SORTS)
+                                        , sort KORE_NAME { KORE_NAMES } ATTRS
+                                        )
+              =>  #applicationResult( sort KORE_NAME { KORE_NAMES } ATTRS .Declarations
+                                    , #collectDeclaredSorts(DECLARED_SORTS SetItem(KORE_NAME))
+                                    ) ...
+       </pipeline> [prefer]
+
+  rule <pipeline> #applyActionToSentence( #collectDeclaredSorts(DECLARED_SORTS)
+                                        , DECL
+                                        )
+              =>  #applicationResult( DECL .Declarations
+                                    , #collectDeclaredSorts(DECLARED_SORTS)
+                                    ) ...
+       </pipeline>
 ```
 
 `sortNameFromProdDecl` extracts the name of the sort from the `KProductionDeclaration`
@@ -134,7 +158,21 @@ the visitors.
   syntax Action ::= #extractSortsFromProductions(Set)
 
   rule <pipeline> #extractKoreSortsFromProductions
-               => #visitDefintion(#extractSortsFromProductions(.Set)) ... </pipeline>
+               => #visitDefintion(#collectDeclaredSorts(.Set))
+                  ~> #visitDefintion(#extractSortsFromProductions(.Set)) ... </pipeline>
+
+  rule <pipeline> #collectDeclaredSorts(DECLARED_SORTS)
+                  ~> #visitDefintion(#extractSortsFromProductions(_))
+               => #visitDefintion(#extractSortsFromProductions(DECLARED_SORTS)) ... </pipeline>
+```
+Once we're done with our visitors, we clean up the `<k>` cell, by removing our
+state containing action.
+
+```k
+  rule <pipeline> #extractSortsFromProductions(_) => .K  </pipeline>
+```
+
+```k
 
   rule <pipeline>
            #applyActionToSentence( #extractSortsFromProductions(DECLARED_SORTS)
@@ -167,14 +205,13 @@ A sort declaration already exists, ignore:
         => #applicationResult(  sort KORE_NAME:KoreName { KORE_NAMES } ATTRS .Declarations
                              , #extractSortsFromProductions(DECLARED_SORTS SetItem(KORE_NAME))
                              ) ...
-       </pipeline>
+       </pipeline> [prefer]
 ```
 
 Ignore other `Declaration`s:
 
 ```k
-
-  // TODO: This is a hack
+   // TODO: This is a hack
    rule isKProductionDeclaration(sort KORE_NAME:KoreName { KORE_NAMES } ATTRS)
      => true
    rule <pipeline>
@@ -186,7 +223,6 @@ Ignore other `Declaration`s:
                               ) ...
         </pipeline>
      requires notBool(isKProductionDeclaration(DECL))
-
 endmodule
 ```
 
