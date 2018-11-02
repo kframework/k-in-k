@@ -234,81 +234,60 @@ our result. The modified action allows threading state through
 the visitors.
 
 ```k
-  syntax Visitor ::= #extractSortsFromProductions(Set)
-
-  rule <pipeline> #extractKoreSortsFromProductions
-               => #visitDefintion(#collectDeclaredSorts(.Set))
-                  ~> #visitDefintion(#extractSortsFromProductions(.Set))
-                  ...
-       </pipeline>
-
-  rule <pipeline> #collectDeclaredSorts(DECLARED_SORTS)
-                  ~> #visitDefintion(#extractSortsFromProductions(_))
-               => #visitDefintion(#extractSortsFromProductions(DECLARED_SORTS))
-               ...
-      </pipeline>
-```
-Once we're done with our visitors, we clean up the `<k>` cell, by removing our
-state containing action.
-
-```k
-  rule <pipeline> #extractSortsFromProductions(_) => .K  </pipeline>
-```
-
-```k
+  syntax Visitor ::= "#extractSortsFromProductions"
 
   rule <pipeline>
-           #visit( #extractSortsFromProductions(DECLARED_SORTS)
+           #visit( #extractSortsFromProductions
+                 , MNAME
                  , DECL:KProductionDeclaration
                  )
-        => #visitResult( sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ] DECL .Declarations
-                       , #extractSortsFromProductions(DECLARED_SORTS SetItem(sortNameFromProdDecl(DECL)))
-                       )
+        => (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ] DECL .Declarations)
            ...
        </pipeline>
-       requires notBool(sortNameFromProdDecl(DECL) in DECLARED_SORTS)
+       <koreModules>
+         <koreModule>
+           <name> MNAME </name>
+           <sorts> SORTS_SET
+                => (SORTS_SET SetItem(sortNameFromProdDecl(DECL)))
+           </sorts>
+          </koreModule>
+       </koreModules>
+       requires notBool(sortNameFromProdDecl(DECL) in SORTS_SET)
 ```
 
 A sort declaration already exists, ignore:
 
 ```k
   rule <pipeline>
-           #visit( #extractSortsFromProductions(DECLARED_SORTS)
+           #visit( #extractSortsFromProductions
+                 , MNAME
                  , DECL:KProductionDeclaration
                  )
-        => #visitResult( DECL .Declarations
-                       , #extractSortsFromProductions(DECLARED_SORTS SetItem(sortNameFromProdDecl(DECL)))
-                       )
+        => (DECL .Declarations)
            ...
        </pipeline>
-       requires sortNameFromProdDecl(DECL) in DECLARED_SORTS
+       <koreModules>
+         <koreModule>
+           <name> MNAME </name>
+           <sorts> SORTS_SET </sorts>
+          </koreModule>
+       </koreModules>
+       requires sortNameFromProdDecl(DECL) in SORTS_SET
 
-  rule <pipeline>
-           #visit( #extractSortsFromProductions(DECLARED_SORTS)
-                 , sort KORE_NAME:KoreName { KORE_NAMES } ATTRS
-                 )
-        => #visitResult( sort KORE_NAME:KoreName { KORE_NAMES } ATTRS .Declarations
-                       , #extractSortsFromProductions(DECLARED_SORTS SetItem(KORE_NAME))
-                       )
-           ...
-       </pipeline>
 ```
 
 Ignore other `Declaration`s:
 
 ```k
    rule <pipeline>
-            #visit( #extractSortsFromProductions(DECLARED_SORTS)
+            #visit( #extractSortsFromProductions
+                  , MNAME
                   , DECL
                   )
-         => #visitResult( DECL .Declarations
-                        , #extractSortsFromProductions(DECLARED_SORTS)
-                        )
+         => (DECL .Declarations)
             ...
         </pipeline>
      requires notBool(isKProductionDeclaration(DECL))
-```
-```k
 endmodule
 ```
 
@@ -320,6 +299,7 @@ module KINK
   rule <pipeline> #initPipeline
                => #frontendModulesToKoreModules
                   ~> #visitDefintion(#collectDeclaredSorts)
+                  ~> #visitDefintion(#extractSortsFromProductions)
                   ...
        </pipeline>
 endmodule
