@@ -5,10 +5,23 @@ requires "ekore.k"
 ```k
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
+  imports SET
 
   syntax K ::= "#initPipeline"
+```
+
+The `<koreModule>` cell has to be named as such, instead
+of the more natural `<module>` as K isn't able to parse the
+cell name as such, instead parsing the token as the `module` keyword.
+```k
   configuration <pipeline> #initPipeline  </pipeline>
                 <k> $PGM:Definition </k>
+                <koreModules>
+                  <koreModule multiplicity="*" type="Map">
+                    <name> .K </name>
+                    <sorts> .Set </sorts>
+                  </koreModule>
+                </koreModules>
 endmodule
 ```
 
