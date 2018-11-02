@@ -43,11 +43,11 @@ it's recursing.
 ```k
   syntax Visitor
 
-  syntax VisitorHelper ::= #visitDefintion(Visitor)
-                         | #visitModules(Visitor, Modules)
-                         | #visitSentences(Visitor, KoreName, Declarations)
+  syntax K ::= #visitDefintion(Visitor)
+             | #visitModules(Visitor, Modules)
+             | #visitSentences(Visitor, KoreName, Declarations)
 
-  syntax VisitorHelper ::= #visitModule(Visitor, Module)
+  syntax K ::= #visitModule(Visitor, Module)
 
   rule <pipeline> #visitDefintion(VISITOR) => #visitModules(VISITOR, MODULES) ... </pipeline>
        <k> koreDefinition(ATTR, MODULES) => koreDefinition(ATTR, .Modules) </k>
@@ -61,8 +61,7 @@ it's recursing.
                   ...
        </pipeline>
 
-
-  syntax VisitorHelper ::= #visit(Visitor, KoreName, Declaration)
+  syntax K ::= #visit(Visitor, KoreName, Declaration)
 
   rule <pipeline> #visitSentences(VISITOR, KoreName, DECL DECLS)
                => #visit(VISITOR, KoreName, DECL)
