@@ -10,18 +10,18 @@ module KINK-CONFIGURATION
   syntax K ::= "#initPipeline"
 ```
 
-The `<koreModule>` cell has to be named as such, instead
+The `<Module>` cell has to be named as such, instead
 of the more natural `<module>` as K isn't able to parse the
 cell name as such, instead parsing the token as the `module` keyword.
 ```k
-  configuration <pipeline> #initPipeline  </pipeline>
+  configuration <pipeline> #initPipeline </pipeline>
                 <k> $PGM:Definition </k>
-                <koreModules>
-                  <koreModule multiplicity="*" type="Map">
+                <Modules>
+                  <Module multiplicity="*" type="Map">
                     <name> .K </name>
                     <sorts> .Set </sorts>
-                  </koreModule>
-                </koreModules>
+                  </Module>
+                </Modules>
 endmodule
 ```
 
@@ -134,11 +134,11 @@ module K-MODULE-TO-KORE-MODULE
                             )
            ...
        </k>
-       <koreModules> ( .Bag
-                => <koreModule>
+       <Modules> ( .Bag
+                => <Module>
                     <name> MNAME </name>
                     <sorts> .Set </sorts>
-                   </koreModule>
+                   </Module>
                  )
         ...
        </Modules>
@@ -200,13 +200,13 @@ We first collect all sorts that have already been declared in the definition.
               =>  (sort KORE_NAME { KORE_NAMES } ATTRS .Declarations)
                   ...
        </pipeline>
-       <koreModules>
-         <koreModule>
+       <Modules>
+         <Module>
            <name> MNAME </name>
            <sorts> ... (.Set => SetItem(KORE_NAME)) ... </sorts>
            ...
-         </koreModule>
-       </koreModules>
+         </Module>
+       </Modules>
 
   rule <pipeline> #visit( #collectDeclaredSorts
                         , MNAME
@@ -244,14 +244,14 @@ the visitors.
         => (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ] DECL .Declarations)
            ...
        </pipeline>
-       <koreModules>
-         <koreModule>
+       <Modules>
+         <Module>
            <name> MNAME </name>
            <sorts> SORTS_SET
                 => (SORTS_SET SetItem(sortNameFromProdDecl(DECL)))
            </sorts>
-          </koreModule>
-       </koreModules>
+          </Module>
+       </Modules>
        requires notBool(sortNameFromProdDecl(DECL) in SORTS_SET)
 ```
 
@@ -266,12 +266,12 @@ A sort declaration already exists, ignore:
         => (DECL .Declarations)
            ...
        </pipeline>
-       <koreModules>
-         <koreModule>
+       <Modules>
+         <Module>
            <name> MNAME </name>
            <sorts> SORTS_SET </sorts>
-          </koreModule>
-       </koreModules>
+          </Module>
+       </Modules>
        requires sortNameFromProdDecl(DECL) in SORTS_SET
 
 ```
