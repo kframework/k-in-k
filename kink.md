@@ -187,28 +187,32 @@ module EXTRACT-SORTS-FROM-PRODUCTIONS
   imports KINK-VISITORS
   imports SET
 
-  syntax KItem ::= "#extractKoreSortsFromProductions"
 ```
 We first collect all sorts that have already been declared in the definition.
 
 ```k
-  syntax Visitor ::= #collectDeclaredSorts(Set)
+  syntax Visitor ::= "#collectDeclaredSorts"
 
-  rule <pipeline> #visit( #collectDeclaredSorts(DECLARED_SORTS)
+  rule <pipeline> #visit( #collectDeclaredSorts
+                        , MNAME
                         , sort KORE_NAME { KORE_NAMES } ATTRS
                         )
-              =>  #visitResult( sort KORE_NAME { KORE_NAMES } ATTRS .Declarations
-                              , #collectDeclaredSorts(DECLARED_SORTS SetItem(KORE_NAME))
-                              )
+              =>  (sort KORE_NAME { KORE_NAMES } ATTRS .Declarations)
                   ...
        </pipeline>
+       <koreModules>
+         <koreModule>
+           <name> MNAME </name>
+           <sorts> ... (.Set => SetItem(KORE_NAME)) ... </sorts>
+           ...
+         </koreModule>
+       </koreModules>
 
-  rule <pipeline> #visit( #collectDeclaredSorts(DECLARED_SORTS)
+  rule <pipeline> #visit( #collectDeclaredSorts
+                        , MNAME
                         , DECL
                         )
-              =>  #visitResult( DECL .Declarations
-                              , #collectDeclaredSorts(DECLARED_SORTS)
-                              )
+              =>  (DECL .Declarations)
                   ...
        </pipeline>
        requires notBool isSortDeclaration(DECL)
@@ -303,6 +307,8 @@ Ignore other `Declaration`s:
             ...
         </pipeline>
      requires notBool(isKProductionDeclaration(DECL))
+```
+```k
 endmodule
 ```
 
@@ -314,7 +320,6 @@ module KINK
   rule <pipeline> #initPipeline
                => #frontendModulesToKoreModules
                   ~> #visitDefintion(#collectDeclaredSorts)
-                  ~> #visitDefintion(#extractSortsFromProductions)
                   ...
        </pipeline>
 endmodule
