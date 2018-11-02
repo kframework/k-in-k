@@ -13,6 +13,7 @@ module KINK-CONFIGURATION
 The `<Module>` cell has to be named as such, instead
 of the more natural `<module>` as K isn't able to parse the
 cell name as such, instead parsing the token as the `module` keyword.
+
 ```k
   configuration <pipeline> #initPipeline </pipeline>
                 <k> $PGM:Definition </k>
@@ -35,6 +36,7 @@ module KINK-VISITORS
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
 ```
+
 `#visitSentences` and `#visit` carries the visitor, and the name of the module
 it's recursing.
 
@@ -74,6 +76,7 @@ it's recursing.
        </pipeline>
 
 ```
+
 The following construct a transformed module and place
 it back into the `<pipeline>` cell.
 
@@ -143,6 +146,7 @@ module K-MODULE-TO-KORE-MODULE
         ...
        </Modules>
 ```
+
 TODO: Generalize this to remove following rule
 
 If ekore defintion is already a kore definition,
@@ -176,7 +180,6 @@ then ignore the conversion, but populate the configuration.
 endmodule
 ```
 
-
 Extract sorts from productions
 ------------------------------
 
@@ -188,6 +191,7 @@ module EXTRACT-SORTS-FROM-PRODUCTIONS
   imports SET
 
 ```
+
 We first collect all sorts that have already been declared in the definition.
 
 ```k
