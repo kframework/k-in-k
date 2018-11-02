@@ -35,72 +35,58 @@ module KINK-VISITORS
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
 ```
-
-A Visitor Action consists of an "action" to be performed on
-every sentence. To use the visitors, extend the Action sort.
+`#visitSentences` and `#visit` carries the visitor, and the name of the module
+it's recursing.
 
 ```k
   syntax Visitor
 
   syntax VisitorHelper ::= #visitDefintion(Visitor)
                          | #visitModules(Visitor, Modules)
-                         | #visitModulesAux(Modules)
-                         | #visitSentences(Visitor, Declarations)
+                         | #visitSentences(Visitor, KoreName, Declarations)
 
   syntax VisitorHelper ::= #visitModule(Visitor, Module)
 
-  rule <pipeline> #visitDefintion(VA) => #visitModules(VA, MODULES) ... </pipeline>
+  rule <pipeline> #visitDefintion(VISITOR) => #visitModules(VISITOR, MODULES) ... </pipeline>
        <k> koreDefinition(ATTR, MODULES) => koreDefinition(ATTR, .Modules) </k>
 
-  rule <pipeline> #visitModules(VA, M MS) => #visitModule(VA, M) ~> #visitModulesAux(MS) ... </pipeline>
-  rule <pipeline> VA ~> #visitModulesAux(MS) => #visitModules(VA, MS) ... </pipeline>
-  rule <pipeline> #visitModules(VA, .Modules) => VA ... </pipeline>
+  rule <pipeline> #visitModules(VISITOR, M MS) => #visitModule(VISITOR, M) ~> #visitModules(VISITOR, MS) ... </pipeline>
+  rule <pipeline> #visitModules(VISITOR, .Modules) => .K ... </pipeline>
 
-  syntax VisitorHelper ::= #sentencesIntoModule(KoreName, Attribute)
-
-  rule <pipeline> #visitModule(VA, koreModule(MNAME, DECLS, ATTRS))
-              =>  #visitSentences(VA, DECLS) ~> #sentencesIntoModule(MNAME, ATTRS)
+  rule <pipeline> #visitModule(VISITOR, koreModule(MNAME, DECLS, ATTRS))
+              =>  #visitSentences(VISITOR, MNAME, DECLS) ~> .Declarations
+                  ~> koreModule(MNAME, .Declarations, ATTRS)
                   ...
        </pipeline>
 
 
-  syntax VisitorHelper ::= #visit(Visitor, Declaration)
-                         | #visitSentencesAux(Declarations)
+  syntax VisitorHelper ::= #visit(Visitor, KoreName, Declaration)
 
-  rule <pipeline> #visitSentences(VA, DECL DECLS)
-               => #visit(VA, DECL) ~> #visitSentencesAux(DECLS)
+  rule <pipeline> #visitSentences(VISITOR, KoreName, DECL DECLS)
+               => #visit(VISITOR, KoreName, DECL)
+                  ~> #visitSentences(VISITOR, KoreName, DECLS)
                   ...
        </pipeline>
 
-  rule <pipeline> #visitSentences(VA, .Declarations)
-               => .K ... </pipeline>
+  rule <pipeline> #visitSentences(VISITOR, _, .Declarations)
+               => .K
+                  ...
+       </pipeline>
 
 ```
 The following construct a transformed module and place
-it back into the `<k>` cell. A `#visitResult`
-is the result of applying an `Action` on a `Sentence`.
+it back into the `<pipeline>` cell.
 
 ```k
-  syntax KItem ::= #visitResult(Declarations, Visitor)
-                 | #processedSentences(Declarations, Visitor)
 
-  rule <pipeline> #visitResult(PROCESSED_DECLS, VA) ~> #visitSentencesAux(DECLS)
-               => #visitSentences(VA, DECLS) ~> #processedSentences(PROCESSED_DECLS, VA)
+  rule <pipeline> DECLS1 ~> #visitSentences(VA, MNAME, DECLS) ~> DECLS2
+               => #visitSentences(VA, MNAME, DECLS) ~> DECLS2 ++Declarations DECLS1
                   ...
        </pipeline>
 
-  rule <pipeline> #visitResult(PROCESSED_DECLS, VA) ~> #visitSentencesAux(.Declarations)
-               => #processedSentences(PROCESSED_DECLS, VA)
-                  ...
-       </pipeline>
 
-  rule <pipeline> #processedSentences(DECLS1, VA2) ~> #processedSentences(DECLS2, VA1)
-               => #processedSentences(DECLS2 ++Declarations DECLS1, VA2)
-                   ...
-       </pipeline>
-
-  rule <pipeline> #processedSentences(DECLS, VA) ~> #sentencesIntoModule(MNAME,MATTR)
-               => VA
+  rule <pipeline> DECLS:Declarations ~> koreModule(MNAME, .Declarations, MATTR)
+               => .K
                   ...
         </pipeline>
         <k> koreDefinition(ATTR, MS)
