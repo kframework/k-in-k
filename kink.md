@@ -52,11 +52,16 @@ it's recursing.
   rule <pipeline> #visitDefintion(VISITOR) => #visitModules(VISITOR, MODULES) ... </pipeline>
        <k> koreDefinition(ATTR, MODULES) => koreDefinition(ATTR, .Modules) </k>
 
-  rule <pipeline> #visitModules(VISITOR, M MS) => #visitModule(VISITOR, M) ~> #visitModules(VISITOR, MS) ... </pipeline>
+  rule <pipeline> #visitModules(VISITOR, M MS)
+               =>    #visitModule(VISITOR, M)
+                  ~> #visitModules(VISITOR, MS)
+                  ...
+       </pipeline>
   rule <pipeline> #visitModules(VISITOR, .Modules) => .K ... </pipeline>
 
   rule <pipeline> #visitModule(VISITOR, koreModule(MNAME, DECLS, ATTRS))
-              =>  #visitSentences(VISITOR, MNAME, DECLS) ~> .Declarations
+               =>    #visitSentences(VISITOR, MNAME, DECLS)
+                  ~> .Declarations
                   ~> koreModule(MNAME, .Declarations, ATTRS)
                   ...
        </pipeline>
@@ -73,19 +78,16 @@ it's recursing.
                => .K
                   ...
        </pipeline>
-
 ```
 
 The following construct a transformed module and place
 it back into the `<pipeline>` cell.
 
 ```k
-
   rule <pipeline> DECLS1 ~> #visitSentences(VA, MNAME, DECLS) ~> DECLS2
                => #visitSentences(VA, MNAME, DECLS) ~> DECLS2 ++Declarations DECLS1
                   ...
        </pipeline>
-
 
   rule <pipeline> DECLS:Declarations ~> koreModule(MNAME, .Declarations, MATTR)
                => .K
@@ -159,10 +161,10 @@ then ignore the conversion, but populate the configuration.
         => #toKoreModules(MODS) ~> koreDefinition(ATTRS, .Modules)
        </k>
 
-  rule <k> koreModule(MNAME, DECLS:Declarations, ATTRS)
+  rule <k>    koreModule(MNAME, DECLS:Declarations, ATTRS)
            ~> #toKoreModules(MODULES)
            ~> koreDefinition([ .Patterns ], PROCESSED_MODULES:Modules)
-        => #toKoreModules(MODULES)
+        =>    #toKoreModules(MODULES)
            ~> koreDefinition( [ .Patterns ]
                             ,  PROCESSED_MODULES ++Modules (koreModule(MNAME, DECLS, ATTRS) .Modules)
                             )
@@ -188,7 +190,6 @@ This transformation adds `sort` declarations for each production.
 module EXTRACT-SORTS-FROM-PRODUCTIONS
   imports KINK-VISITORS
   imports SET
-
 ```
 
 We first collect all sorts that have already been declared in the definition.
@@ -276,7 +277,6 @@ A sort declaration already exists, ignore:
           </Module>
        </Modules>
        requires sortNameFromProdDecl(DECL) in SORTS_SET
-
 ```
 
 Ignore other `Declaration`s:
@@ -300,7 +300,7 @@ module KINK
   imports EXTRACT-SORTS-FROM-PRODUCTIONS
 
   rule <pipeline> #initPipeline
-               => #frontendModulesToKoreModules
+               =>    #frontendModulesToKoreModules
                   ~> #visitDefintion(#collectDeclaredSorts)
                   ~> #visitDefintion(#extractSortsFromProductions)
                   ...
