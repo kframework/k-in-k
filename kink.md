@@ -124,12 +124,69 @@ TODO: This needs to convert the modules into a topological order and check for c
 ```k
 module K-MODULE-TO-KORE-MODULE
   imports KINK-CONFIGURATION
+  imports KORE-HELPERS
 
-  rule kDefinition(_:KRequireList, MODS:Modules)
-    => koreDefinition([ .Patterns ], MODS:Modules)
-  rule kModule(MNAME:KModuleName, ATTRS:OptionalAttributes, KIMPORTS:KImportList, DECLS:Declarations)
-    => koreModule(MNAME:KModuleName, DECLS:Declarations, [ .Patterns ])
-       [anywhere]
+  syntax K ::= "#frontendModulesToKoreModules"
+             | #toKoreModules(Modules)
+
+  rule <pipeline> #frontendModulesToKoreModules => .K
+                  ...
+       </pipeline>
+       <k> kDefinition(_:KRequireList, MODS)
+        => #toKoreModules(MODS) ~> koreDefinition([ .Patterns ], .Modules)
+       </k>
+
+  rule #toKoreModules(M MS)     => M ~> #toKoreModules(MS)
+  rule #toKoreModules(.Modules) => .K
+
+  rule <k> kModule(MNAME, ATTRS, KIMPORTS, DECLS)
+           ~> #toKoreModules(MODULES)
+           ~> koreDefinition([ .Patterns ], PROCESSED_MODULES:Modules)
+        => #toKoreModules(MODULES)
+           ~> koreDefinition( [ .Patterns ]
+                            ,  PROCESSED_MODULES ++Modules (koreModule(MNAME, DECLS, [ .Patterns]) .Modules)
+                            )
+           ...
+       </k>
+       <koreModules> ( .Bag
+                => <koreModule>
+                    <name> MNAME </name>
+                    <sorts> .Set </sorts>
+                   </koreModule>
+                 )
+        ...
+       </Modules>
+```
+TODO: Generalize this to remove following rule
+
+If ekore defintion is already a kore definition,
+then ignore the conversion, but populate the configuration.
+
+```k
+  rule <pipeline> #frontendModulesToKoreModules => .K
+                  ...
+       </pipeline>
+       <k> koreDefinition(ATTRS, MODS)
+        => #toKoreModules(MODS) ~> koreDefinition(ATTRS, .Modules)
+       </k>
+
+  rule <k> koreModule(MNAME, DECLS:Declarations, ATTRS)
+           ~> #toKoreModules(MODULES)
+           ~> koreDefinition([ .Patterns ], PROCESSED_MODULES:Modules)
+        => #toKoreModules(MODULES)
+           ~> koreDefinition( [ .Patterns ]
+                            ,  PROCESSED_MODULES ++Modules (koreModule(MNAME, DECLS, ATTRS) .Modules)
+                            )
+           ...
+       </k>
+       <Modules> ( .Bag
+                => <Module>
+                    <name> MNAME </name>
+                    <sorts> .Set </sorts>
+                   </Module>
+                 )
+        ...
+       </Modules>
 endmodule
 ```
 
@@ -269,7 +326,9 @@ module KINK
   imports EXTRACT-SORTS-FROM-PRODUCTIONS
 
   rule <pipeline> #initPipeline
-               => #extractKoreSortsFromProductions
+               => #frontendModulesToKoreModules
+                  ~> #visitDefintion(#collectDeclaredSorts)
+                  ~> #visitDefintion(#extractSortsFromProductions)
                   ...
        </pipeline>
 endmodule
