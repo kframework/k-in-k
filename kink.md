@@ -6,13 +6,13 @@ requires "ekore.k"
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
   imports SET
+```
 
+```k
   syntax K ::= "#initPipeline"
 ```
 
-The `<Module>` cell has to be named as such, instead
-of the more natural `<module>` as K isn't able to parse the
-cell name as such, instead parsing the token as the `module` keyword.
+Note the capital "M" in `<Modules>` and `<Module>` to work around parsing issues.
 
 ```k
   configuration <pipeline> #initPipeline </pipeline>
@@ -29,58 +29,63 @@ endmodule
 Visitor Infrastructure
 ----------------------
 
-This section defines visitors which are used in tranformations.
-
 ```k
 module KINK-VISITORS
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
+
+  syntax Visitor
+  syntax K ::= #visitDefintion(Visitor)
+             | #visit(Visitor, KoreName, Declaration)
 ```
 
-`#visitSentences` and `#visit` carries the visitor, and the name of the module
-it's recursing.
+Many transformations may be implemented via the visitor pattern. We expect each
+of these transformations to be implemented via the `#visitDefinition` construct.
+`#visitDefinition` takes a `Visitor`, and iterates through every sentence in
+every module. As it iterates, it places
+`#visit(VISITOR, MODULE_NAME, DECLARATION)` at the top of the `<pipeline>` cell.
+Each `Visitor` is expected to implement a set of rules that processes
+`DECLARATION` and optionally places a `Declarations` list at the top of the
+pipeline cell. The infrastucture replaces this list back into the module at the
+same position. Typically, while implmenting a transformation
+`#visitDefinition(#myVisitor)` would be added to the `#initPipeline` construct
+defined in the `KINK` module. If a visitor needs to keep track of state, this
+would be done by updating the configuration while processing
+`#visit(#myVisitor, ...)`. **For a concrete example, see the "Collect declared
+sorts" section.**
+
+Below is the implementation of this infrastructure.
 
 ```k
-  syntax Visitor
-
-  syntax K ::= #visitDefintion(Visitor)
-             | #visitModules(Visitor, Modules)
+  syntax K ::= #visitModules(Visitor, Modules)
+             | #visitModule(Visitor, Module)
              | #visitSentences(Visitor, KoreName, Declarations)
-
-  syntax K ::= #visitModule(Visitor, Module)
-
   rule <pipeline> #visitDefintion(VISITOR) => #visitModules(VISITOR, MODULES) ... </pipeline>
        <k> koreDefinition(ATTR, MODULES) => koreDefinition(ATTR, .Modules) </k>
-
   rule <pipeline> #visitModules(VISITOR, M MS)
                =>    #visitModule(VISITOR, M)
                   ~> #visitModules(VISITOR, MS)
                   ...
        </pipeline>
   rule <pipeline> #visitModules(VISITOR, .Modules) => .K ... </pipeline>
-
   rule <pipeline> #visitModule(VISITOR, koreModule(MNAME, DECLS, ATTRS))
                =>    #visitSentences(VISITOR, MNAME, DECLS)
                   ~> .Declarations
                   ~> koreModule(MNAME, .Declarations, ATTRS)
                   ...
        </pipeline>
-
-  syntax K ::= #visit(Visitor, KoreName, Declaration)
-
   rule <pipeline> #visitSentences(VISITOR, KoreName, DECL DECLS)
-               => #visit(VISITOR, KoreName, DECL)
+               =>    #visit(VISITOR, KoreName, DECL)
                   ~> #visitSentences(VISITOR, KoreName, DECLS)
                   ...
        </pipeline>
-
   rule <pipeline> #visitSentences(VISITOR, _, .Declarations)
                => .K
                   ...
        </pipeline>
 ```
 
-The following construct a transformed module and place
+The following constructs a transformed module and places
 it back into the `<pipeline>` cell.
 
 ```k
@@ -148,10 +153,8 @@ module K-MODULE-TO-KORE-MODULE
        </Modules>
 ```
 
-TODO: Generalize this to remove following rule
-
-If ekore defintion is already a kore definition,
-then ignore the conversion, but populate the configuration.
+If ekore defintion is already a kore definition, then ignore the conversion, but
+populate the configuration.
 
 ```k
   rule <pipeline> #frontendModulesToKoreModules => .K
@@ -181,37 +184,54 @@ then ignore the conversion, but populate the configuration.
 endmodule
 ```
 
-Extract sorts from productions
-------------------------------
+Collect declared sorts
+----------------------
 
-This transformation adds `sort` declarations for each production.
+This transformation collects a set of sorts declared in each module via the kore
+sort declaration. For each transformation we define a module with the same name:
 
 ```k
-module EXTRACT-SORTS-FROM-PRODUCTIONS
-  imports KINK-VISITORS
-  imports SET
+module COLLECT-DECLARED-SORTS
 ```
 
-We first collect all sorts that have already been declared in the definition.
+and import the visitor infrastructure:
+
+```k
+  imports KINK-VISITORS
+```
+
+We then define a visitor and specify its behaviour:
 
 ```k
   syntax Visitor ::= "#collectDeclaredSorts"
+```
 
+When `#visit`ing a Kore sort declaration, we add that sort to the list of
+declared sorts for that module. Since we want to replace the declaration
+unchanged into the original module, `#visit` "returns" the same sort
+declaration.
+
+```k
   rule <pipeline> #visit( #collectDeclaredSorts
                         , MNAME
-                        , sort KORE_NAME { KORE_NAMES } ATTRS
+                        , sort SORT_NAME { SORT_PARAMS } ATTRS
                         )
-              =>  (sort KORE_NAME { KORE_NAMES } ATTRS .Declarations)
+              =>  (sort SORT_NAME { SORT_PARAMS } ATTRS .Declarations)
                   ...
        </pipeline>
        <Modules>
          <Module>
            <name> MNAME </name>
-           <sorts> ... (.Set => SetItem(KORE_NAME)) ... </sorts>
+           <sorts> ... (.Set => SetItem(SORT_NAME)) ... </sorts>
            ...
          </Module>
        </Modules>
+```
 
+When `#visit`ing any other declaration (see side condition), we do nothing
+except return the original declaration:
+
+```k
   rule <pipeline> #visit( #collectDeclaredSorts
                         , MNAME
                         , DECL
@@ -220,6 +240,20 @@ We first collect all sorts that have already been declared in the definition.
                   ...
        </pipeline>
        requires notBool isSortDeclaration(DECL)
+endmodule
+```
+
+Below, in the "Main Module" section, we import this module and add this
+transform to the `#initPipeline` function.
+
+Extract sorts from productions
+------------------------------
+
+This transformation adds `sort` declarations for each production.
+
+```k
+module EXTRACT-SORTS-FROM-PRODUCTIONS
+  imports KINK-VISITORS
 ```
 
 `sortNameFromProdDecl` extracts the name of the sort from the `KProductionDeclaration`
@@ -229,13 +263,18 @@ We first collect all sorts that have already been declared in the definition.
   rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
 ```
 
-We use our visitor infrastructure here to implement the
-`#extractKoreSortsFromProductions` pipeline step.
-We extend the `Action` sort, and use the `#visitResult` construct
-to indicate the result of applying the action.
-Notice that we return a modified `Action` as the second argument of
-our result. The modified action allows threading state through
-the visitors.
+We use the visitor infrastructure to implement the following transformation
+step. In order to use the visitor infrastructure, the following steps have
+to be followed -
+  - The `Visitor` sort has to be extended with the pipeline step being
+    implemented. For instance, we extend it with the
+    `#extractSortsFromProductions` construct, corresponding the transformation
+    step being implemented.
+  - Implement the behavior of the `#visit` construct with the transformation
+    construct from above. The result of the step must be a set of `transformed`
+    sentences. The visitor infrastructure then takes care of putting the
+    transformed sentences into corresponding modules and subsequently the
+    transformed defintion.
 
 ```k
   syntax Visitor ::= "#extractSortsFromProductions"
@@ -294,9 +333,13 @@ Ignore other `Declaration`s:
 endmodule
 ```
 
+Main Module
+===========
+
 ```k
 module KINK
   imports K-MODULE-TO-KORE-MODULE
+  imports COLLECT-DECLARED-SORTS
   imports EXTRACT-SORTS-FROM-PRODUCTIONS
 
   rule <pipeline> #initPipeline
