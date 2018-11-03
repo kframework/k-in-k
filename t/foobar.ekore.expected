@@ -2,7 +2,7 @@
 
 module FOOBAR
   sort Buzz {  } [  ]
-  symbol bar {  } (  ) : Foo {  } [  ]
+  symbol bar {  } (  ) : Foo {  } [ function {  } (  )  ]
   symbol buzz2 {  } (  ) : Foo {  } [  ]
   syntax Foo ::=
     "bar" [ klabel ( bar   ) , function ]
