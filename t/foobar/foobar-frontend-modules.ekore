@@ -15,6 +15,7 @@ module FOOBAR
   symbol foobar {  } (  ) : Fizz {  } [  ]
 
   rule bar {  } (  ) => buzz2 {  } (  )
-
+  axiom{R} \equals{Foo{}, R} ( bar {  } (  )
+                             , buzz2 {  } (  )
+                             )  [ ]
 endmodule
-

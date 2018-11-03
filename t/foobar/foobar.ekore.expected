@@ -13,6 +13,7 @@ module FOOBAR
     "foobar" [ klabel ( foobar  ) ]
   symbol foobar {  } (  ) : Fizz {  } [  ]
   rule bar {  } (  ) => buzz2 {  } (  )
+  axiom{ R } \equals{ Foo { } , R } ( bar {  } (  )  , buzz2 {  } (  ) ) [ ]
 
 endmodule [  ]
 
