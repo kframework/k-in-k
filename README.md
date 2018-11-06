@@ -12,6 +12,20 @@ After installing python3, [ninja-build] and [pandoc] simply run `./build`.
 [pandoc]:      https://pandoc.org
 [ninja-build]: https://ninja-build.org
 
+Testing
+=======
+
+In each of the test files `t/foobar-<FEATURE>.ekore` uses a single additional
+feature over the expected `kore0` syntax (for example: frontend modules, syntax
+declarations, rules, contexts...). We expect all these to reduce down to [the
+same expected output](t/foobar.ekore.expected). Eventually we want this expected
+file to be `kore0`.
+
+To run a single test, (e.g. `t/foobar-SOME-FEATURE.ekore`), run
+`./build .build/t/foobar-SOME-FEATURE.ekore.krun.kore.test`. If you need to see
+the generated configuration, run
+`cat .build/t/foobar-SOME-FEATURE.ekore.krun`.
+
 Pipeline stages
 ===============
 
@@ -58,15 +72,6 @@ In the `imp/imp.ekore0` we sketch out what we expect the `ekore0` syntax to look
 
 * We use `_/_` etc as sugar for Lbl'Unds'Div'Unds'{}()
 
-
-Testing
-=======
-
-In each of the test files `t/foobar-<FEATURE>.ekore` uses a single additional
-feature over the expected `kore0` syntax (for example: frontend modules, syntax
-declarations, rules, contexts...). We expect all these to reduce down to [the
-same expected output](t/foobar.ekore.expected). Eventually we want this expected
-file to be `kore0`.
 
 Issues?
 =======
