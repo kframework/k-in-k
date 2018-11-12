@@ -21,10 +21,10 @@ declarations, rules, contexts...). We expect all these to reduce down to [the
 same expected output](t/foobar.ekore.expected). Eventually we want this expected
 file to be `kore0`.
 
-To run a single test, (e.g. `t/foobar-SOME-FEATURE.ekore`), run
-`./build .build/t/foobar-SOME-FEATURE.ekore.krun.kore.test`. If you need to see
+To run a single test, (e.g. `t/foobar-<FEATURE>.ekore`), run
+`./build .build/t/foobar-<FEATURE>.ekore.krun.kore.test`. If you need to see
 the generated configuration, run
-`cat .build/t/foobar-SOME-FEATURE.ekore.krun`.
+`cat .build/t/foobar-<FEATURE>.ekore.krun`.
 
 Pipeline stages
 ===============
