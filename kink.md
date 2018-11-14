@@ -35,7 +35,7 @@ module KINK-VISITORS
   imports KORE-HELPERS
 
   syntax Visitor
-  syntax K ::= #visitDefintion(Visitor)
+  syntax K ::= #visitDefinition(Visitor)
              | #visit(Visitor, KoreName, Declaration)
 ```
 
@@ -60,7 +60,7 @@ Below is the implementation of this infrastructure.
   syntax K ::= #visitModules(Visitor, Modules)
              | #visitModule(Visitor, Module)
              | #visitSentences(Visitor, KoreName, Declarations)
-  rule <pipeline> #visitDefintion(VISITOR) => #visitModules(VISITOR, MODULES) ... </pipeline>
+  rule <pipeline> #visitDefinition(VISITOR) => #visitModules(VISITOR, MODULES) ... </pipeline>
        <k> koreDefinition(ATTR, MODULES) => koreDefinition(ATTR, .Modules) </k>
   rule <pipeline> #visitModules(VISITOR, M MS)
                =>    #visitModule(VISITOR, M)
@@ -344,8 +344,8 @@ module KINK
 
   rule <pipeline> #initPipeline
                =>    #frontendModulesToKoreModules
-                  ~> #visitDefintion(#collectDeclaredSorts)
-                  ~> #visitDefintion(#extractSortsFromProductions)
+                  ~> #visitDefinition(#collectDeclaredSorts)
+                  ~> #visitDefinition(#extractSortsFromProductions)
                   ...
        </pipeline>
 endmodule
