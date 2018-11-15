@@ -323,7 +323,7 @@ given an E-Kore frontend production declaration.
 
   rule #symbolDeclsFromProdWAttr(SORT, kProductionWAttr(PROD, [ ATTRS ]))
     => symbol #symbolNameFromAttrList(ATTRS)
-              { .KoreNames } ( .Sorts ) : SORT { .Sorts }
+              { .KoreNames } (#sortsFromProd(PROD)) : SORT { .Sorts }
               [ #removeKlabelAttr(ATTRS) ]
        .Declarations
 
@@ -366,12 +366,38 @@ given an E-Kore frontend production declaration.
   rule #attrList2Patterns(.AttrList) => .Patterns
 ```
 
+`#sortsFromProd` extracts a list of kore sorts for an ekore production.
+
+```k
+  syntax Sorts ::= #sortsFromProd(KProduction) [function]
+
+  rule #sortsFromProd(PRODITEM:KProductionItem)
+    => #sortsFromProdItem(PRODITEM)
+
+  rule #sortsFromProd(kProduction(PROD, PRODITEM))
+    => #sortsFromProd(PROD) ++Sorts #sortsFromProdItem(PRODITEM)
+
+  syntax Sorts ::= #sortsFromProdItem(KProductionItem) [function]
+
+  rule #sortsFromProdItem(nonTerminal(KSORT:UpperName))
+    => KSORT { .Sorts } , .Sorts
+
+  rule #sortsFromProdItem(_) => .Sorts [owise]
+
+  syntax Sorts ::= #sortsFromKSortList(KSortList) [function]
+
+  rule #sortsFromKSortList(KSORTS, KSORT:UpperName)
+    => #sortsFromKSortList(KSORTS) ++Sorts (KSORT, .Sorts)
+  rule #sortsFromKSortList(KSORT:UpperName)
+    => KSORT
+
+  syntax Declarations ::= #filterDeclaredSymbols(Set, Declarations) [function]
+```
+
 `#filterDeclaredSymbols` - given a set of declared symbols as the first argument,
 filter symbol declarations to avoid duplicate symbol declarations.
 
 ```k
-  syntax Declarations ::= #filterDeclaredSymbols(Set, Declarations) [function]
-
   rule #filterDeclaredSymbols(SYMBOLS,
           (symbol NAME { .KoreNames } ( SORTS ) : SORT ATTRS) DECLS)
     => (symbol NAME { .KoreNames } ( SORTS ) : SORT ATTRS)
