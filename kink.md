@@ -21,6 +21,7 @@ Note the capital "M" in `<Modules>` and `<Module>` to work around parsing issues
                   <Module multiplicity="*" type="Map">
                     <name> .K </name>
                     <sorts> .Set </sorts>
+                    <symbols> .Set </symbols>
                   </Module>
                 </Modules>
 endmodule
@@ -147,6 +148,7 @@ module K-MODULE-TO-KORE-MODULE
                 => <Module>
                     <name> MNAME </name>
                     <sorts> .Set </sorts>
+                    <symbols> .Set </symbols>
                    </Module>
                  )
         ...
@@ -177,6 +179,7 @@ populate the configuration.
                 => <Module>
                     <name> MNAME </name>
                     <sorts> .Set </sorts>
+                    <symbols> .Set </symbols>
                    </Module>
                  )
         ...
@@ -335,6 +338,186 @@ Ignore other `Declaration`s:
 endmodule
 ```
 
+Collect declared symbols
+----------------------
+
+```k
+module COLLECT-DECLARED-SYMBOLS
+  imports KINK-VISITORS
+  syntax Visitor ::= "#collectDeclaredSymbols"
+
+  rule <pipeline> #visit( #collectDeclaredSymbols
+                        , MNAME
+                        , symbol SYMBOL_NAME { SORT_PARAM } ( SORT_ARGS ) : SORT ATTRS
+                        )
+               => symbol SYMBOL_NAME { SORT_PARAM } ( SORT_ARGS ) : SORT ATTRS
+                  .Declarations
+                  ...
+       </pipeline>
+       <Modules>
+         <Module>
+           <name> MNAME </name>
+           <symbols> ... (.Set => SetItem(SYMBOL_NAME)) ... </symbols>
+           ...
+         </Module>
+       </Modules>
+
+  rule <pipeline> #visit( #collectDeclaredSymbols
+                        , MNAME
+                        , DECL
+                        )
+              =>  (DECL .Declarations)
+                  ...
+       </pipeline>
+       requires notBool isSymbolDeclaration(DECL)
+endmodule
+```
+
+Extract symbols from productions
+--------------------------------
+
+This transformation creates Kore symbol declarations from the K productions.
+Each production should provide a `klabel`, which can be used unaltered as the
+symbol name. Attributes such as `function` must also be copied into the new
+Kore syntax. This transformation is idempotent.
+
+```k
+module EXTRACT-SYMBOLS-FROM-PRODUCTIONS
+  imports KINK-VISITORS
+```
+
+`#symbolDeclsFromProdDecls` extracts a Kore symbol declaration,
+given an E-Kore frontend production declaration.
+
+```k
+
+  syntax Declarations ::= #symbolDeclsFromProdDecl(KProductionDeclaration) [function]
+
+  rule #symbolDeclsFromProdDecl(kSyntaxProduction(KSORT:UpperName, PSEQBLOCK))
+    => #symbolDeclsFromPSeqBlock(KSORT, PSEQBLOCK)
+
+  syntax Declarations ::= #symbolDeclsFromPSeqBlock(KoreName, PrioritySeqBlock) [function]
+
+  rule #symbolDeclsFromPSeqBlock(SORT, prioritySeqBlock(PSEQBLOCK, _, PRODBLOCK))
+    => #symbolDeclsFromPSeqBlock(SORT, PSEQBLOCK)
+       ++Declarations #symbolDeclsFromProdBlock(SORT, PRODBLOCK)
+
+  rule #symbolDeclsFromPSeqBlock(SORT, PRODBLOCK:ProdBlock)
+    => #symbolDeclsFromProdBlock(SORT, PRODBLOCK)
+
+  syntax Declarations ::= #symbolDeclsFromProdBlock(KoreName, ProdBlock) [function]
+
+  rule #symbolDeclsFromProdBlock(SORT, prodBlock(PRODBLOCK, PRODWATTR))
+    => #symbolDeclsFromProdBlock(SORT, PRODBLOCK)
+       ++Declarations #symbolDeclsFromProdWAttr(SORT, PRODWATTR)
+
+  rule #symbolDeclsFromProdBlock(SORT, PRODWATTR:KProductionWAttr)
+    => #symbolDeclsFromProdWAttr(SORT, PRODWATTR)
+
+  syntax Declarations ::= #symbolDeclsFromProdWAttr(KoreName, KProductionWAttr) [function]
+
+  rule #symbolDeclsFromProdWAttr(SORT, kProductionWAttr(PROD, [ ATTRS ]))
+    => symbol #symbolNameFromAttrList(ATTRS)
+              { .KoreNames } ( .Sorts ) : SORT { .Sorts }
+              [ #removeKlabelAttr(ATTRS) ]
+       .Declarations
+
+  syntax LowerName ::= "klabel" [token]
+```
+
+`#symbolNameFromAttrList` extracts the Name to be used for a symbol from the
+
+```k
+  syntax KoreName ::= #symbolNameFromAttrList(AttrList) [function]
+
+  rule #symbolNameFromAttrList(kAttributesList(tagContent(klabel, tagContents(SNAME, _)), ATTRS))
+    => SNAME
+
+  rule #symbolNameFromAttrList(kAttributesList(_, ATTRS))
+    => #symbolNameFromAttrList(ATTRS) [owise]
+
+  syntax Patterns ::= #removeKlabelAttr(AttrList) [function]
+
+  rule #removeKlabelAttr(kAttributesList(tagContent(klabel, _), ATTRS))
+    => #attrList2Patterns(ATTRS)
+
+  rule #removeKlabelAttr(kAttributesList(ATTR, ATTRS))
+    => #attr2Pattern(ATTR), #removeKlabelAttr(ATTRS) [owise]
+
+  rule #removeKlabelAttr(.AttrList) => .Patterns
+```
+
+`#attr2Pattern` takes an E Kore attribute, and encodes it as a kore pattern.
+
+```k
+  syntax Pattern ::= #attr2Pattern(Attr) [function]
+
+  rule #attr2Pattern(tagSimple(KEY:LowerName))
+    => KEY { .Sorts } ( .Patterns )
+
+  syntax Patterns ::= #attrList2Patterns(AttrList) [function]
+
+  rule #attrList2Patterns(ATTR, ATTRS) => #attr2Pattern(ATTR), #attrList2Patterns(ATTRS)
+  rule #attrList2Patterns(.AttrList) => .Patterns
+```
+
+`#filterDeclaredSymbols` - given a set of declared symbols as the first argument,
+filter symbol declarations to avoid duplicate symbol declarations.
+
+```k
+  syntax Declarations ::= #filterDeclaredSymbols(Set, Declarations) [function]
+
+  rule #filterDeclaredSymbols(SYMBOLS,
+          (symbol NAME { .KoreNames } ( SORTS ) : SORT ATTRS) DECLS)
+    => (symbol NAME { .KoreNames } ( SORTS ) : SORT ATTRS)
+       #filterDeclaredSymbols(SYMBOLS, DECLS)
+    requires notBool(NAME in SYMBOLS)
+
+  rule #filterDeclaredSymbols(SYMBOLS, (symbol NAME { _ } ( _ ) : _  _ ) DECLS)
+    => #filterDeclaredSymbols(SYMBOLS, DECLS)
+    requires NAME in SYMBOLS
+
+  rule #filterDeclaredSymbols(SYMBOLS, .Declarations) => .Declarations
+
+  syntax Set ::= #symbolsFromSymbolDecls(Declarations) [function]
+
+  rule #symbolsFromSymbolDecls((symbol NAME { _ } ( _ ) : _ _) DECLS)
+    => SetItem(NAME) #symbolsFromSymbolDecls(DECLS)
+
+  rule #symbolsFromSymbolDecls(.Declarations) => .Set
+
+  syntax Visitor ::= "#extractSymbolsFromProductions"
+
+  rule <pipeline>
+           #visit( #extractSymbolsFromProductions
+                 , MNAME
+                 , DECL:KProductionDeclaration
+                 )
+        => #filterDeclaredSymbols(SYMBOLS, #symbolDeclsFromProdDecl(DECL))
+           ++Declarations DECL
+           ...
+       </pipeline>
+       <Module>
+         <name> MNAME </name>
+         <symbols> SYMBOLS
+                => SYMBOLS #symbolsFromSymbolDecls(#symbolDeclsFromProdDecl(DECL))
+         </symbols>
+         ...
+       </Module>
+
+  rule <pipeline>
+           #visit( #extractSymbolsFromProductions
+                 , MNAME
+                 , DECL
+                 )
+        => DECL .Declarations
+           ...
+       </pipeline>
+     requires notBool(isKProductionDeclaration(DECL))
+
+endmodule
+```
+
 Main Module
 ===========
 
@@ -342,12 +525,16 @@ Main Module
 module KINK
   imports K-MODULE-TO-KORE-MODULE
   imports COLLECT-DECLARED-SORTS
+  imports COLLECT-DECLARED-SYMBOLS
   imports EXTRACT-SORTS-FROM-PRODUCTIONS
+  imports EXTRACT-SYMBOLS-FROM-PRODUCTIONS
 
   rule <pipeline> #initPipeline
                =>    #frontendModulesToKoreModules
                   ~> #visitDefinition(#collectDeclaredSorts)
+                  ~> #visitDefinition(#collectDeclaredSymbols)
                   ~> #visitDefinition(#extractSortsFromProductions)
+                  ~> #visitDefinition(#extractSymbolsFromProductions)
                   ...
        </pipeline>
 endmodule

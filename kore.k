@@ -55,13 +55,14 @@ module KORE-COMMON
   syntax Attribute ::= "[" Patterns "]"
 
   syntax SortDeclaration ::= "sort" KoreName "{" KoreNames "}" Attribute
+  syntax SymbolDeclaration ::= "symbol" KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
   syntax Declaration ::=
       "import"      KoreName                                          Attribute
     | "hook-sort"   KoreName "{" KoreNames "}"                        Attribute
-    | "symbol"      KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
     | "hook-symbol" KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
     | "axiom"                "{" KoreNames "}" Pattern                Attribute
     | SortDeclaration
+    | SymbolDeclaration
   syntax Declarations ::= List{Declaration, ""} [klabel(declList), format(%1%2%n%3)]
 
   syntax KoreNames ::= List{KoreName, ","} [klabel(nameList)]
@@ -90,6 +91,10 @@ module KORE-HELPERS
   syntax Modules ::= Modules "++Modules" Modules [function]
   rule (M1 MS1) ++Modules MS2 => M1 (MS1 ++Modules MS2)
   rule .Modules ++Modules MS2 => MS2
+
+  syntax Sorts ::= Sorts "++Sorts" Sorts [function]
+  rule (S1, SS1) ++Sorts SS2 => S1, (SS1 ++Sorts SS2)
+  rule .Sorts ++Sorts SS2 => SS2
 
   syntax Bool ::= Pattern "inPatterns" Patterns                      [function]
   rule (P inPatterns           .Patterns) => false
