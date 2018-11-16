@@ -196,6 +196,8 @@ Each `MapTransform` adds a symbol to the `MapTransform` sort.
 
 ```k
   syntax MapTransform ::= "#productionsToSortDeclarations"
+  syntax KoreName ::= sortNameFromProdDecl(KProductionDeclaration) [function]
+  rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
 ```
 
 Often transforms need additional information on a per-module basis, before they
@@ -248,6 +250,15 @@ the `KProductionDeclaration`:
 ```k
   syntax KoreName ::= sortNameFromProdDecl(KProductionDeclaration) [function]
   rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
+```
+
+An alternate definition of `sortNameFromProdDecl` below, is needed for programs
+who's kore is generated via the java frontend:
+
+```commented
+  rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _))
+    => {#parseToken("UpperName", "Sort" +String UpperName2String(KSORT))}:>UpperName
+  syntax String ::= UpperName2String(UpperName) [function, hook(STRING.token2string)]
 ```
 
 ```k
