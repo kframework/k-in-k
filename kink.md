@@ -293,6 +293,7 @@ to be followed -
            <sorts> SORTS_SET
                 => (SORTS_SET SetItem(sortNameFromProdDecl(DECL)))
            </sorts>
+           ...
           </Module>
        </Modules>
        requires notBool(sortNameFromProdDecl(DECL) in SORTS_SET)
@@ -313,6 +314,7 @@ A sort declaration already exists, ignore:
          <Module>
            <name> MNAME </name>
            <sorts> SORTS_SET </sorts>
+           ...
           </Module>
        </Modules>
        requires sortNameFromProdDecl(DECL) in SORTS_SET
