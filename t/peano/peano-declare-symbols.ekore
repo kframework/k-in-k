@@ -2,9 +2,6 @@
 
 module PEANO
   sort Nat { } [ ]
-  symbol zero { } (  ) : Nat { } [ ]
-  symbol succ { } ( Nat { } ) : Nat { } [ ]
-  symbol plus { } ( Nat { } , Nat { } ) : Nat { } [ function { } ( ) ]
   syntax Nat ::=
     "zero" [ klabel ( zero ) ]
     | "succ" "(" Nat ")" [ klabel ( succ ) ]

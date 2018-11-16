@@ -72,6 +72,9 @@ def transformations_tests(definition):
 # Foobar Tests
 transformations_tests('foobar')
 
+# Peano Tests
+transformations_tests('peano')
+
 # These tests are to make sure we can still parse IMP
 proj.source('imp/imp.ekore0').then(kink.krun()).default()
 proj.source('imp/imp.ekore1').then(kink.krun()).default()

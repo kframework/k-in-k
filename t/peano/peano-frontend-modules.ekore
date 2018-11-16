@@ -1,5 +1,3 @@
-[  ]
-
 module PEANO
   sort Nat { } [ ]
   symbol zero { } (  ) : Nat { } [ ]
@@ -12,5 +10,4 @@ module PEANO
   rule plus(zero(), Y:Nat) => Y
   rule plus(succ(X:Nat), Y:Nat) => succ(plus(X, Y))
 
-endmodule [  ]
-
+endmodule
