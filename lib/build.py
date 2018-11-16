@@ -45,18 +45,32 @@ kink = proj.source('kink.md') \
                                   , flags = '-I . --syntax-module EKORE-SYNTAX'
                                   ))
 
-def foobar_test(file):
-    proj.source(file) \
+def testdir(*paths):
+    return os.path.join('t', *paths)
+
+def definition_test(definition, file):
+    proj.source(testdir(definition, file)) \
         .then(kink.krun()) \
         .then(kore_from_config.variables(cell = 'k')) \
-        .then(proj.check(proj.source('t/foobar/foobar.ekore.expected'))
+        .then(proj.check(proj.source(testdir(definition, definition + '.ekore.expected')))
                      .variables(flags = '--ignore-all-space')) \
         .default()
-# foobar_test('t/foobar-backtick-synax.ekore')
-foobar_test('t/foobar/foobar-frontend-modules.ekore')
-foobar_test('t/foobar/foobar-declare-sorts.ekore')
-foobar_test('t/foobar/foobar-declare-symbols.ekore')
-foobar_test('t/foobar/foobar.ekore.expected')
+
+# EKore Transformations
+ekore_transformations = [ 'frontend-modules.ekore' \
+                        , 'declare-sorts.ekore' \
+                        , 'declare-symbols.ekore' \
+                        ]
+
+# Test each tranformation for given definition, and identity on expected definition
+def transformations_tests(definition):
+    for transformation in ekore_transformations:
+        definition_test(definition, definition + '-' + transformation)
+
+    definition_test(definition, definition + '.ekore.expected')
+
+# Foobar Tests
+transformations_tests('foobar')
 
 # These tests are to make sure we can still parse IMP
 proj.source('imp/imp.ekore0').then(kink.krun()).default()
