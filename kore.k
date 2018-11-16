@@ -67,7 +67,7 @@ module KORE-COMMON
 
   syntax KoreNames ::= List{KoreName, ","} [klabel(nameList)]
 
-  syntax KoreModule ::= "module" KoreName Declarations "endmodule" Attribute [klabel(koreModule), format(%1 %2%i%n%3%n%d%4 %5)]
+  syntax KoreModule ::= "module" KoreName Declarations "endmodule" Attribute [klabel(koreModule), format(%1 %2%i%n%3%n%d%4 %5%n)]
   syntax Module ::= KoreModule
   syntax Modules ::= List{Module, ""} [klabel(koreModules), format(%1%2%n%3)]
 
