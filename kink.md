@@ -12,8 +12,8 @@ containing operations that map over the definition in the K cell.
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
   imports SET
-  syntax K ::= "#initPipeline"
-  configuration <pipeline> #initPipeline </pipeline>
+  syntax K ::= "#ekorePipeline"
+  configuration <pipeline> #ekorePipeline </pipeline>
                 <k> $PGM:Definition </k>
 endmodule
 ```
@@ -28,7 +28,7 @@ module KINK
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 
-  rule <pipeline> #initPipeline
+  rule <pipeline> #ekorePipeline
                =>    #frontendModulesToKoreModules
                   ~> #productionsToSortDeclarations
                   ~> #productionsToSymbolDeclarations
@@ -174,7 +174,7 @@ endmodule
 ```
 
 Below, in the "Main Module" section, we import this module and add this
-transform to the `#initPipeline` function.
+transform to the `#ekorePipeline` function.
 
 Extract sorts from productions
 ------------------------------
