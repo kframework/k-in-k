@@ -227,7 +227,7 @@ class KProject(ninja.ninja_syntax.Writer):
                  , command     = '$k_bindir/kompile --backend $backend --debug $flags '
                                + '--directory $$(dirname $$(dirname $out)) $in'
                  )
-        return KompileRule().implicit(['ocaml-deps'])
+        return KompileRule()
 
     def kdefinition_no_build(self, name, kompiled_dirname, alias):
         return KDefinition(self, name, self.builddir(name), kompiled_dirname, alias)
