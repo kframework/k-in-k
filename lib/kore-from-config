@@ -23,8 +23,8 @@ end   = re.search(close_tag, input)
 kore = input[begin.end():end.start()]
 
 # Remove unwanted units from Lists etc.
-commaSeparated = ['Sorts', 'Names', 'Patterns', 'AttrList']
-others = ['Modules', 'Declarations', 'KImportList', 'KoreNames', 'TagContents']
+commaSeparated = ['AttrList', 'KoreNames', 'Names',  'Patterns', 'Sorts']
+others = ['Modules', 'Declarations', 'KImportList', 'TagContents']
 for listSort in commaSeparated:
     kore = kore.replace(' , .' + listSort, '')
 for listSort in commaSeparated + others:
