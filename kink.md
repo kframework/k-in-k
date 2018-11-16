@@ -12,8 +12,7 @@ containing operations that map over the definition in the K cell.
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
   imports SET
-  syntax K ::= "#ekorePipeline"
-  configuration <pipeline> #ekorePipeline </pipeline>
+  configuration <pipeline> $PIPELINE:K </pipeline>
                 <k> $PGM:Definition </k>
 endmodule
 ```
@@ -28,6 +27,7 @@ module KINK
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 
+  syntax K ::= "#ekorePipeline"
   rule <pipeline> #ekorePipeline
                =>    #frontendModulesToKoreModules
                   ~> #productionsToSortDeclarations

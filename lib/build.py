@@ -48,9 +48,12 @@ kink = proj.source('kink.md') \
 def testdir(*paths):
     return os.path.join('t', *paths)
 
+def ekore_krun():
+    return kink.krun().variables(flags = '"-cPIPELINE=#ekorePipeline"')
+
 def definition_test(definition, file):
     proj.source(testdir(definition, file)) \
-        .then(kink.krun()) \
+        .then(ekore_krun()) \
         .then(kore_from_config.variables(cell = 'k')) \
         .then(proj.check(proj.source(testdir(definition, definition + '.ekore.expected')))
                      .variables(flags = '--ignore-all-space')) \
@@ -76,6 +79,6 @@ transformations_tests('foobar')
 transformations_tests('peano')
 
 # These tests are to make sure we can still parse IMP
-proj.source('imp/imp.ekore0').then(kink.krun()).default()
-proj.source('imp/imp.ekore1').then(kink.krun()).default()
+proj.source('imp/imp.ekore0').then(ekore_krun()).default()
+proj.source('imp/imp.ekore1').then(ekore_krun()).default()
 
