@@ -1,0 +1,1 @@
+plus(succ(zero), succ(zero))
