@@ -26,6 +26,26 @@ To run a single test, (e.g. `t/foobar-<FEATURE>.ekore`), run
 the generated configuration, run
 `cat .build/t/foobar-<FEATURE>.ekore.krun`.
 
+Getting started writing transformations
+=======================================
+
+Most transformations will use the infrastructure for iterating over declarations
+in modules, documented [here](./kink.md#visitor-infrastructure).
+[A concrete  example](./kink.md#collect-declared-sorts)
+is documented in detail here to help new developers get started.
+
+Style guidelines:
+
+-   Align text to 80 characters.
+-   Align code to 100 characters.
+-   There must be exactly one newline before and after code blocks; and no
+    consecutive empty lines (this causes line numbers in tangle output to differ
+    from the actual line numbers and costs developer time).
+-   Implement each transformation in a module of its own (e.g.
+    `CONCRETIZE-CONFIGURATION`). If the transformation adds a symbol to the
+    pipeline this should be the same as the module name, but in camel case (e.g.
+    `#concretizeConfiguration`).
+
 Pipeline stages
 ===============
 
