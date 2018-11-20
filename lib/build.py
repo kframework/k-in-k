@@ -96,3 +96,11 @@ proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
 # Imp : make sure we can parse IMP
 proj.source('imp/imp.ekore0').then(run_kink(pipeline = '#nullPipeline')).default()
 proj.source('imp/imp.ekore1').then(run_kink(pipeline = '#nullPipeline')).default()
+
+# Unit tests
+# ==========
+
+proj.source('unit-tests.md') \
+    .then(proj.tangle().output(proj.tangleddir('unit-tests-spec.k'))) \
+    .then(kink.kprove()) \
+    .alias('unit-tests')

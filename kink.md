@@ -180,7 +180,6 @@ module META-ACCESSORS
     => #getDeclaredKoreSortsFromDecls(DECLS)
        [owise]
 
-
   // TODO: Recurse into imported modules
   syntax Set ::= #getDeclaredKoreSymbolsFromDecls(Declarations)         [function]
   rule #getDeclaredKoreSymbolsFromDecls
@@ -220,6 +219,7 @@ module FRONTEND-MODULES-TO-KORE-MODULES
        </pipeline>
        <k> kDefinition(_:KRequireList, MODS)
         => koreDefinition([ .Patterns ], #toKoreModules(MODS))
+           ...
        </k>
   rule <pipeline> #frontendModulesToKoreModules
                => .K
@@ -562,11 +562,11 @@ module REMOVE-FRONTEND-DECLARATIONS
            ( #removeFrontendDeclarations
            , DEFN, DECL DECLS, STATE:K
            )
-    =>  DECL
-        #mapDeclarations
-            ( #removeFrontendDeclarations
-            , DEFN, DECLS, STATE:K
-            )
+    => DECL
+       #mapDeclarations
+           ( #removeFrontendDeclarations
+           , DEFN, DECLS, STATE:K
+           )
         [owise]
 endmodule
 ```
