@@ -24,9 +24,9 @@ declaration as needed.
 ```k
 module KINK
   imports META-ACCESSORS
-  imports K-MODULE-TO-KORE-MODULE
-  imports EXTRACT-SORTS-FROM-PRODUCTIONS
-  imports EXTRACT-SYMBOLS-FROM-PRODUCTIONS
+  imports FRONTEND-MODULES-TO-KORE-MODULES
+  imports PRODUCTIONS-TO-SORT-DECLARATIONS
+  imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 
   rule <pipeline> #initPipeline
                =>    #frontendModulesToKoreModules
@@ -38,7 +38,7 @@ endmodule
 ```
 
 Visitor Infrastructure
-----------------------
+======================
 
 ```k
 module KINK-VISITORS
@@ -132,7 +132,7 @@ frontend modules must be converted to kore modules first.
 TODO: This needs to convert the modules into a topological order and check for cycles.
 
 ```k
-module K-MODULE-TO-KORE-MODULE
+module FRONTEND-MODULES-TO-KORE-MODULES
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
 
@@ -183,7 +183,7 @@ This transformation is a typical `MapTransform`. It adds `sort` declarations for
 each production.
 
 ```k
-module EXTRACT-SORTS-FROM-PRODUCTIONS
+module PRODUCTIONS-TO-SORT-DECLARATIONS
   imports KINK-VISITORS
   imports META-ACCESSORS
 ```
@@ -262,7 +262,7 @@ symbol name. Attributes such as `function` must also be copied into the new
 Kore syntax. This transformation is idempotent.
 
 ```k
-module EXTRACT-SYMBOLS-FROM-PRODUCTIONS
+module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports KINK-VISITORS
   imports META-ACCESSORS
 ```
