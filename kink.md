@@ -145,39 +145,35 @@ module FRONTEND-MODULES-TO-KORE-MODULES
   imports KORE-HELPERS
 
   syntax K ::= "#frontendModulesToKoreModules"
-             | #toKoreModules(Modules)
+  syntax Modules ::= #toKoreModules(Modules) [function]
 
   rule <pipeline> #frontendModulesToKoreModules => .K
                   ...
        </pipeline>
        <k> kDefinition(_:KRequireList, MODS)
-        => #toKoreModules(MODS) ~> koreDefinition([ .Patterns ], .Modules)
+        => koreDefinition([ .Patterns ], #toKoreModules(MODS))
        </k>
-
-  rule #toKoreModules(M MS)     => M ~> #toKoreModules(MS)
-  rule #toKoreModules(.Modules) => .K
-
-  rule <k> kModule(MNAME, ATTRS, KIMPORTS, DECLS)
-           ~> #toKoreModules(MODULES)
-           ~> koreDefinition([ .Patterns ], PROCESSED_MODULES:Modules)
-        => #toKoreModules(MODULES)
-           ~> koreDefinition( [ .Patterns ]
-                            ,  PROCESSED_MODULES ++Modules (koreModule(MNAME, DECLS, [ .Patterns]) .Modules)
-                            )
-           ...
-       </k>
-```
-
-If already a kore definition, ignore transformation.
-
-```k
-
   rule <pipeline> #frontendModulesToKoreModules
                => .K
                   ...
        </pipeline>
-       <k> koreDefinition(_, _) </k>
+       <k> koreDefinition(_, MODS:Modules => #toKoreModules(MODS)) </k>
 
+  rule #toKoreModules(MOD:KoreModule MODS)
+    => koreModules(MOD, #toKoreModules(MODS))
+  rule #toKoreModules( kModule( MNAME
+                              , OPT_ATTRS   // TODO: These need to be converted
+                              , IMPORTS // TODO: These need to be converted
+                              , DECLS
+                              )
+                       MS)
+       => ( koreModule(MNAME, DECLS, [.Patterns])
+            #toKoreModules(MS)
+          ):Modules
+  rule #toKoreModules(.Modules) => .Modules
+```
+
+```k
 endmodule
 ```
 
