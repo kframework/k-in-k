@@ -26,12 +26,20 @@ module KINK
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
+  imports REMOVE-FRONTEND-DECLARATIONS
 
   syntax K ::= "#ekorePipeline"
   rule <pipeline> #ekorePipeline
                =>    #frontendModulesToKoreModules
                   ~> #productionsToSortDeclarations
                   ~> #productionsToSymbolDeclarations
+                  ...
+       </pipeline>
+
+  syntax K ::= "#runWithHaskellBackendPipeline"
+  rule <pipeline> #runWithHaskellBackendPipeline
+               =>    #ekorePipeline
+                  ~> #removeFrontendDeclarations
                   ...
        </pipeline>
 endmodule
@@ -419,3 +427,24 @@ filter symbol declarations to avoid duplicate symbol declarations.
 endmodule
 ```
 
+Remove Frontend Declarations
+----------------------------
+
+Since the Haskell backend does not allow KFrontend declarations in kore, we
+create a transformation that removes these. This is not loaded into the default
+pipeline, just when needed for running against the Haskell backend.
+
+```k
+module REMOVE-FRONTEND-DECLARATIONS
+  imports KINK-CONFIGURATION
+  imports KINK-VISITORS
+
+  syntax MapTransform ::= "#removeFrontendDeclarations"
+  rule #removeFrontendDeclarations(DEFN, DECL:KFrontendDeclaration DECLS, STATE:K)
+    => #removeFrontendDeclarations(DEFN, DECLS, STATE:K)
+  rule #removeFrontendDeclarations(DEFN, DECL DECLS, STATE:K)
+    =>  DECL
+        #removeFrontendDeclarations(DEFN, DECLS, STATE:K)
+        [owise]
+endmodule
+```

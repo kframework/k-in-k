@@ -59,12 +59,19 @@ EKORE1 extends KORE with frontend syntax for `syntax`, `rule`s,
 or even kast syntax, but only for the Kore notation for referencing symbols.
 
 ```k
+module EKORE1-COMMON
+  syntax KFrontendDeclaration
+  syntax Declaration ::= KFrontendDeclaration
+endmodule
+
 module EKORE1-ABSTRACT
+  imports EKORE1-COMMON
   imports K-PRODUCTION-ABSTRACT
   imports CONFIG-RULE-CONTEXT-ABSTRACT
 endmodule
 
 module EKORE1-SYNTAX
+  imports EKORE1-COMMON
   imports K-PRODUCTION-SYNTAX
   imports CONFIG-RULE-CONTEXT-SYNTAX
 endmodule
@@ -112,7 +119,7 @@ module K-PRODUCTION-COMMON
       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
       | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
       | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
-  syntax Declaration ::= KProductionDeclaration
+  syntax KFrontendDeclaration ::= KProductionDeclaration
 endmodule
 
 module K-PRODUCTION-SYNTAX
@@ -147,9 +154,9 @@ module CONFIG-RULE-CONTEXT-COMMON
   imports KORE-COMMON
   imports ATTRIBUTES-COMMON
   syntax Contents
-  syntax Declaration ::= "configuration" Contents [klabel(kConfiguration)]
-                       | "rule"    Contents [klabel(kRule)]
-                       | "context" Contents [klabel(kContext)]
+  syntax KFrontendDeclaration ::= "configuration" Contents [klabel(kConfiguration)]
+                                | "rule"    Contents [klabel(kRule)]
+                                | "context" Contents [klabel(kContext)]
 endmodule
 
 module CONFIG-RULE-CONTEXT-ABSTRACT
