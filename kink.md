@@ -36,6 +36,10 @@ module KINK
                   ...
        </pipeline>
 
+  // TODO: Why can't we just specify `-cPIPELINE=.K` from the commandline?
+  syntax K ::= "#nullPipeline"
+  rule <pipeline> #nullPipeline => .K </pipeline>
+
   syntax K ::= "#runWithHaskellBackendPipeline"
   rule <pipeline> #runWithHaskellBackendPipeline
                =>    #ekorePipeline

@@ -79,8 +79,8 @@ transformations_tests('foobar')
 transformations_tests('peano')
 
 # These tests are to make sure we can still parse IMP
-proj.source('imp/imp.ekore0').then(run_kink()).default()
-proj.source('imp/imp.ekore1').then(run_kink()).default()
+proj.source('imp/imp.ekore0').then(run_kink(pipeline = '#nullPipeline')).default()
+proj.source('imp/imp.ekore1').then(run_kink(pipeline = '#nullPipeline')).default()
 
 # Run programs against generated kore definitions
 # -----------------------------------------------
