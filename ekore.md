@@ -270,7 +270,7 @@ module K-DEFINITION-ABSTRACT
   imports KORE-COMMON
   imports ATTRIBUTES-ABSTRACT
 
-  syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%1%n%n%2)]
+  syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%3%n%n%5)]
   syntax Definition    ::= KDefinition
 
   syntax KRequire      ::= kRequire(KString) [klabel(kRequire)]
@@ -280,7 +280,7 @@ module K-DEFINITION-ABSTRACT
                                   , OptionalAttributes
                                   , KImportList
                                   , Declarations
-                                  ) [klabel(kModule), format(%1 %2 %3%i%n%4%n%5%n%d%6)]
+                                  ) [klabel(kModule)]
   syntax Module        ::= KModule
 endmodule
 
