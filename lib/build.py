@@ -88,6 +88,9 @@ proj.source('imp/imp.ekore1').then(run_kink()).default()
 foobar_kore =  proj.source('t/foobar/foobar.ekore.expected') \
                    .then(run_kink(pipeline = '#runWithHaskellBackendPipeline') \
                            .ext('noFrontend')) \
-                   .then(kore_from_config) \
-                   .default()
+                   .then(kore_from_config)
+bar_kast = proj.source('t/foobar-programs/bar.foobar.kast')
+bar_kast.then(kore_exec(foobar_kore).ext('kink.kore-exec')) \
+        .then(proj.check('t/foobar-programs/bar.foobar.expected')) \
+        .default()
 
