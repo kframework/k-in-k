@@ -25,7 +25,7 @@ kore_parser = proj.rule( 'kore-parser'
 def kore_exec(kore, ext = 'kore-exec'):
     return proj.rule( 'kore-exec'
                     , description = 'kore-exec'
-                    , command     = 'stack build kore:exe:kore-exec && stack exec -- kore-exec $kore --module FOOBAR --pattern $in > $out'
+                    , command     = 'stack build kore:exe:kore-exec && stack exec -- kore-exec $kore --module "$module" --pattern $in > $out'
                     ) \
                     .variables(kore = kore) \
                     .implicit([kore])
@@ -50,46 +50,45 @@ def testdir(*paths):
 def run_kink(pipeline = '#ekorePipeline'):
     return kink.krun().variables(flags = '"-cPIPELINE=%s"' %(pipeline))
 
-def definition_test(definition, file):
-    proj.source(testdir(definition, file)) \
+def kink_test(base_dir, test_file):
+    input = os.path.join(base_dir, test_file)
+    expected = os.path.join(base_dir, 'expected.ekore')
+    proj.source(input) \
         .then(run_kink()) \
         .then(kore_from_config.variables(cell = 'k')) \
-        .then(proj.check(proj.source(testdir(definition, definition + '.ekore.expected')))
+        .then(proj.check(proj.source(expected))
                      .variables(flags = '--ignore-all-space')) \
         .default()
 
-# EKore Transformations
-ekore_transformations = [ 'frontend-modules.ekore' \
-                        , 'declare-sorts.ekore' \
-                        , 'declare-symbols.ekore' \
-                        ]
+def lang_test(base_dir, module, program):
+    language_kore    = os.path.join(base_dir, 'expected.ekore')
+    program_pattern  = os.path.join(base_dir, 'programs', program + '.kast')
+    expected_pattern = os.path.join(base_dir, 'programs', program + '.expected')
 
-# Test each tranformation for given definition, and identity on expected definition
-def transformations_tests(definition):
-    for transformation in ekore_transformations:
-        definition_test(definition, definition + '-' + transformation)
+    lang_no_frontend_kore =  proj.source(language_kore) \
+                                 .then(run_kink(pipeline = '#runWithHaskellBackendPipeline') \
+                                          .ext('noFrontend')) \
+                                 .then(kore_from_config.variables(cell = 'k'))
+    proj.source(program_pattern).then(kore_exec(lang_no_frontend_kore)
+                                          .ext('kore-exec')
+                                          .variables(module = module)
+                                     ) \
+                                .then(proj.check(expected_pattern)) \
+                                .default()
 
-    definition_test(definition, definition + '.ekore.expected')
+# Foobar
+kink_test('t/foobar', 'expected.ekore')
+kink_test('t/foobar', 'frontend-modules.ekore')
+kink_test('t/foobar', 'declare-sorts.ekore')
+kink_test('t/foobar', 'declare-symbols.ekore')
+lang_test('t/foobar', 'FOOBAR', 'bar.foobar')
 
-# Foobar Tests
-transformations_tests('foobar')
+# Peano
+kink_test('t/peano', 'expected.ekore')
+kink_test('t/peano', 'frontend-modules.ekore')
+kink_test('t/peano', 'declare-sorts.ekore')
+kink_test('t/peano', 'declare-symbols.ekore')
 
-# Peano Tests
-transformations_tests('peano')
-
-# These tests are to make sure we can still parse IMP
+# Imp : make sure we can parse IMP
 proj.source('imp/imp.ekore0').then(run_kink(pipeline = '#nullPipeline')).default()
 proj.source('imp/imp.ekore1').then(run_kink(pipeline = '#nullPipeline')).default()
-
-# Run programs against generated kore definitions
-# -----------------------------------------------
-
-foobar_kore =  proj.source('t/foobar/foobar.ekore.expected') \
-                   .then(run_kink(pipeline = '#runWithHaskellBackendPipeline') \
-                           .ext('noFrontend')) \
-                   .then(kore_from_config.variables(cell = 'k'))
-bar_kast = proj.source('t/foobar-programs/bar.foobar.kast')
-bar_kast.then(kore_exec(foobar_kore).ext('kink.kore-exec')) \
-        .then(proj.check('t/foobar-programs/bar.foobar.expected')) \
-        .default()
-
