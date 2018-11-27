@@ -59,40 +59,91 @@ module KINK-VISITORS
   syntax MapTransform
   rule <pipeline> T:MapTransform => .K ... </pipeline>
        <k> DEFN => #mapDeclarations(T, DEFN) </k>
+```
 
-  syntax Definition   ::= #mapDeclarations(MapTransform, Definition)                  [function]
-  syntax Definition   ::= #mapDeclarations(MapTransform, Definition, Modules)         [function]
+`#mapDeclarations` allows mapping a function over the declarations in a (kore)
+definition:
+
+```k
+  syntax Definition ::= #mapDeclarations(MapTransform, Definition) [function]
+```
+
+While processing a module, a transform may require some additional information
+on a per-module basis. If a `MapTransform` implements `transformBeforeModule`
+the result will be passed to the transformation. Otherwise, it is passed `.K`
+The second argument is the definition processed so far. Since in Kore's semantics
+no module can import a module that declared after it, this should be enough
+to define transformations. The second parameter is the module to be processed.
+
+```k
+  syntax K ::= transformBeforeModule(MapTransform, Definition, Module) [function]
+  rule transformBeforeModule(T, DEFN, MOD) => .K                       [owise]
+```
+
+Each `MapTransform` must implement the following overload. The second argument
+is the `Definition` processed so far. The third is the `Declarations` to
+be processed. The fourth is the return value of `transformBeforeModule`.
+
+```k
   syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Declarations, K) [function]
-  syntax K ::= transformBeforeModule(MapTransform, Definition, Module)                [function]
-  rule transformBeforeModule(T, DEFN, MOD) => .K                                      [owise]
+```
 
+Here ends the documentation for the user interface of `#mapDeclarations`
+
+----------------------------------------------------------------------------
+
+`#mapDeclarations` calls a helper function that accumulates a "transformed
+definition" starting with an empty definition, and processes each module in
+order:
+
+```k
+  syntax Definition ::= #mapDeclarations(MapTransform, Definition, Modules)         [function]
   rule #mapDeclarations(T, koreDefinition(ATTRS, MODULES:Modules))
     => #mapDeclarations(T, koreDefinition(ATTRS, .Modules), MODULES)
   rule #mapDeclarations(T, koreDefinition(ATTRS, MODULES), .Modules)
     => koreDefinition(ATTRS, MODULES)
+```
 
+When processing a single module, we pass the user-defined
+`#mapDeclarations(T,Definition,Declarations,K)` the `Definition` processed so
+far, the declarations to be processed and the return value of
+`transformBeforeModule`:
+
+```k
+  syntax Module ::= #mapDeclarationsProcessModule(MapTransform, Definition, Module) [function]
+  rule #mapDeclarationsProcessModule(T, PROCESSED_DEFINITION, koreModule(MNAME, DECLS, MOD_ATTRS))
+    => koreModule( MNAME
+                 , #mapDeclarations( T
+                                   , PROCESSED_DEFINITION
+                                   , DECLS
+                                   , transformBeforeModule( T
+                                                          , PROCESSED_DEFINITION
+                                                          , koreModule(MNAME, DECLS, MOD_ATTRS)
+                                                          )
+                                   )
+                 , MOD_ATTRS
+                 )
+```
+
+We then add this processed module into the processed definition:
+
+```k
   rule #mapDeclarations( T:MapTransform
                        , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                       , koreModule(MNAME, DECLS, MOD_ATTRS)
+                       , MODULE:Module
                          MODULES:Modules
                        )
     => #mapDeclarations( T
                        , koreDefinition( DEFN_ATTRS
                                        , PROCESSED_MODULES ++Modules
-                                         koreModule( MNAME
-                                                   , #mapDeclarations( T
-                                                                     , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                                                                     , DECLS
-                                                                     , transformBeforeModule( T
-                                                                                            , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES)
-                                                                                            , koreModule(MNAME, DECLS, MOD_ATTRS)
-                                                                                            )
-                                                                     )
-                                                   , MOD_ATTRS
-                                                   )
+                                         #mapDeclarationsProcessModule( T
+                                                                      , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
+                                                                      , MODULE
+                                                                      )
+                                         .Modules
                                        )
-         , MODULES
-         )
+                       , MODULES
+                       )
 
   rule #mapDeclarations(T:MapTransform, DEFN, .Declarations, TSTATE)
     => .Declarations
