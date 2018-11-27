@@ -111,39 +111,49 @@ far, the declarations to be processed and the return value of
 
 ```k
   syntax Module ::= #mapDeclarationsProcessModule(MapTransform, Definition, Module) [function]
-  rule #mapDeclarationsProcessModule(T, PROCESSED_DEFINITION, koreModule(MNAME, DECLS, MOD_ATTRS))
-    => koreModule( MNAME
-                 , #mapDeclarations( T
-                                   , PROCESSED_DEFINITION
-                                   , DECLS
-                                   , transformBeforeModule( T
-                                                          , PROCESSED_DEFINITION
-                                                          , koreModule(MNAME, DECLS, MOD_ATTRS)
-                                                          )
-                                   )
-                 , MOD_ATTRS
+  rule #mapDeclarationsProcessModule
+           ( T
+           , PROCESSED_DEFINITION
+           , koreModule(MNAME, DECLS, MOD_ATTRS)
+           )
+    => koreModule
+           ( MNAME
+           , #mapDeclarations
+                 ( T
+                 , PROCESSED_DEFINITION
+                 , DECLS
+                 , transformBeforeModule
+                       ( T
+                       , PROCESSED_DEFINITION
+                       , koreModule(MNAME, DECLS, MOD_ATTRS)
+                       )
                  )
+           , MOD_ATTRS
+           )
 ```
 
 We then add this processed module into the processed definition:
 
 ```k
-  rule #mapDeclarations( T:MapTransform
+  rule #mapDeclarations
+           ( T:MapTransform
+           , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
+           , MODULE:Module MODULES:Modules
+           )
+    => #mapDeclarations
+           ( T
+           , koreDefinition
+                 ( DEFN_ATTRS
+                 , PROCESSED_MODULES ++Modules
+                   #mapDeclarationsProcessModule
+                       ( T
                        , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                       , MODULE:Module
-                         MODULES:Modules
+                       , MODULE
                        )
-    => #mapDeclarations( T
-                       , koreDefinition( DEFN_ATTRS
-                                       , PROCESSED_MODULES ++Modules
-                                         #mapDeclarationsProcessModule( T
-                                                                      , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                                                                      , MODULE
-                                                                      )
-                                         .Modules
-                                       )
-                       , MODULES
-                       )
+                   .Modules
+                 )
+           , MODULES
+           )
 
   rule #mapDeclarations(T:MapTransform, DEFN, .Declarations, TSTATE)
     => .Declarations
@@ -160,10 +170,10 @@ module META-ACCESSORS
   imports SET
 
   syntax Set ::= #getDeclaredKoreSortsFromDecls(Declarations)         [function]
-  rule #getDeclaredKoreSortsFromDecls(
-           (sort SORT_NAME { SORT_PARAM } ATTRS):Declaration
-           DECLS
-       )
+  rule #getDeclaredKoreSortsFromDecls
+           ( (sort SORT_NAME { SORT_PARAM } ATTRS):Declaration
+             DECLS
+           )
     => SetItem(SORT_NAME) #getDeclaredKoreSortsFromDecls(DECLS)
   rule #getDeclaredKoreSortsFromDecls(.Declarations) => .Set
   rule #getDeclaredKoreSortsFromDecls(DECL DECLS)
@@ -173,10 +183,10 @@ module META-ACCESSORS
 
   // TODO: Recurse into imported modules
   syntax Set ::= #getDeclaredKoreSymbolsFromDecls(Declarations)         [function]
-  rule #getDeclaredKoreSymbolsFromDecls(
-           (symbol SYMBOL_NAME { SORT_PARAM } ( SORT_ARGS ) : SORT ATTRS):Declaration
-           DECLS
-       )
+  rule #getDeclaredKoreSymbolsFromDecls
+           ( (symbol SYMBOL_NAME { SORT_PARAM } ( SORT_ARGS ) : SORT ATTRS):Declaration
+             DECLS
+           )
     => SetItem(SYMBOL_NAME) #getDeclaredKoreSymbolsFromDecls(DECLS)
   rule #getDeclaredKoreSymbolsFromDecls(.Declarations)
     => .Set
@@ -219,12 +229,15 @@ module FRONTEND-MODULES-TO-KORE-MODULES
 
   rule #toKoreModules(MOD:KoreModule MODS)
     => koreModules(MOD, #toKoreModules(MODS))
-  rule #toKoreModules( kModule( MNAME
-                              , OPT_ATTRS   // TODO: These need to be converted
-                              , IMPORTS // TODO: These need to be converted
-                              , DECLS
-                              )
-                       MS)
+  rule #toKoreModules
+           ( kModule
+                 ( MNAME
+                 , OPT_ATTRS // TODO: These need to be converted
+                 , IMPORTS   // TODO: These need to be converted
+                 , DECLS
+                 )
+             MS
+           )
        => ( koreModule(MNAME, DECLS, [.Patterns])
             #toKoreModules(MS)
           ):Modules
@@ -267,10 +280,11 @@ construct for that `MapTransform`. Note that since in Kore, a module can only
 modules in `DEFN`.
 
 ```k
-  rule transformBeforeModule( #productionsToSortDeclarations
-                            , DEFN
-                            , koreModule(MNAME, DECLS, MOD_ATTRS)
-                            )
+  rule transformBeforeModule
+           ( #productionsToSortDeclarations
+           , DEFN
+           , koreModule(MNAME, DECLS, MOD_ATTRS)
+           )
     => #getDeclaredKoreSortsFromDecls(DECLS)
 ```
 
@@ -280,33 +294,37 @@ Finally, we define what the transformation does over each declaration:
   we map to a new kore `sort` declaration. We also keep the old declaration `DECL` around:
 
 ```k
-  rule #mapDeclarations( #productionsToSortDeclarations
-                       , DEFN
-                       , DECL:KProductionDeclaration DECLS
-                       , DECLARED_SORTS
-                       )
+  rule #mapDeclarations
+           ( #productionsToSortDeclarations
+           , DEFN
+           , DECL:KProductionDeclaration DECLS
+           , DECLARED_SORTS
+           )
     => ( (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ])
          DECL
         .Declarations
        ) ++Declarations
-       #mapDeclarations( #productionsToSortDeclarations
-                       , DEFN
-                       , DECLS
-                       , DECLARED_SORTS #getDeclaredKoreSortsFromDecls(DECL)
-                       )
+       #mapDeclarations
+           ( #productionsToSortDeclarations
+           , DEFN
+           , DECLS
+           , DECLARED_SORTS #getDeclaredKoreSortsFromDecls(DECL)
+           )
     requires notBool(sortNameFromProdDecl(DECL) in DECLARED_SORTS)
 ```
 
 * In all other cases, this transform simply returns the original declaration unchanged:
 
 ```k
-  rule #mapDeclarations( #productionsToSortDeclarations
-                       , DEFN, DECL DECLS, DECLARED_SORTS
-                       )
+  rule #mapDeclarations
+           ( #productionsToSortDeclarations
+           , DEFN, DECL DECLS, DECLARED_SORTS
+           )
     => DECL
-       #mapDeclarations( #productionsToSortDeclarations
-                       , DEFN, DECLS, DECLARED_SORTS
-                       )
+       #mapDeclarations
+           ( #productionsToSortDeclarations
+           , DEFN, DECLS, DECLARED_SORTS
+           )
        [owise]
 ```
 
@@ -352,31 +370,36 @@ Generic recursion that we'd like to factor out:
 
 ```k
   syntax MapTransform ::= "#productionsToSymbolDeclarations"
-  rule transformBeforeModule( #productionsToSymbolDeclarations
-                            , DEFN
-                            , koreModule(MNAME, DECLS, MOD_ATTRS)
-                            )
+  rule transformBeforeModule
+           ( #productionsToSymbolDeclarations
+           , DEFN
+           , koreModule(MNAME, DECLS, MOD_ATTRS)
+           )
     => #getDeclaredKoreSymbolsFromDecls(DECLS)
 
-  rule #mapDeclarations( #productionsToSymbolDeclarations
-                       , DEFN, DECL DECLS, DECLARED_SYMBOLS
-                       )
+  rule #mapDeclarations
+           ( #productionsToSymbolDeclarations
+           , DEFN, DECL DECLS, DECLARED_SYMBOLS
+           )
     => DECL
-       #mapDeclarations( #productionsToSymbolDeclarations
-                       , DEFN, DECLS, DECLARED_SYMBOLS
-                       )
+       #mapDeclarations
+           ( #productionsToSymbolDeclarations
+           , DEFN, DECLS, DECLARED_SYMBOLS
+           )
        [owise]
-  rule #mapDeclarations( #productionsToSymbolDeclarations
-                       , DEFN, DECL:KProductionDeclaration DECLS, DECLARED_SYMBOLS
-                       )
+  rule #mapDeclarations
+           ( #productionsToSymbolDeclarations
+           , DEFN, DECL:KProductionDeclaration DECLS, DECLARED_SYMBOLS
+           )
     => #filterDeclaredSymbols(DECLARED_SYMBOLS, #symbolDeclsFromProdDecl(DECL))
        ++Declarations
        DECL
-       #mapDeclarations( #productionsToSymbolDeclarations
-                       , DEFN, DECLS
-                       , DECLARED_SYMBOLS
-                         #getDeclaredKoreSymbolsFromDecls(#symbolDeclsFromProdDecl(DECL))
-                       )
+       #mapDeclarations
+           ( #productionsToSymbolDeclarations
+           , DEFN, DECLS
+           , DECLARED_SYMBOLS
+             #getDeclaredKoreSymbolsFromDecls(#symbolDeclsFromProdDecl(DECL))
+           )
 ```
 
 `#symbolDeclsFromProdDecls` extracts a Kore symbol declaration,
@@ -422,7 +445,12 @@ given an E-Kore frontend production declaration.
 ```k
   syntax KoreName ::= #symbolNameFromAttrList(AttrList) [function]
 
-  rule #symbolNameFromAttrList(kAttributesList(tagContent(klabel, tagContents(SNAME, _)), ATTRS))
+  rule #symbolNameFromAttrList
+           ( kAttributesList
+                 ( tagContent(klabel, tagContents(SNAME, _))
+                 , ATTRS
+                 )
+           )
     => SNAME
 
   rule #symbolNameFromAttrList(kAttributesList(_, ATTRS))
@@ -485,8 +513,11 @@ given an E-Kore frontend production declaration.
 filter symbol declarations to avoid duplicate symbol declarations.
 
 ```k
-  rule #filterDeclaredSymbols(SYMBOLS,
-          (symbol NAME { .KoreNames } ( SORTS ) : SORT ATTRS) DECLS)
+  rule #filterDeclaredSymbols
+           ( SYMBOLS
+           , (symbol NAME { .KoreNames } ( SORTS ) : SORT ATTRS)
+             DECLS
+           )
     => (symbol NAME { .KoreNames } ( SORTS ) : SORT ATTRS)
        #filterDeclaredSymbols(SYMBOLS, DECLS)
     requires notBool(NAME in SYMBOLS)
@@ -519,19 +550,23 @@ module REMOVE-FRONTEND-DECLARATIONS
   imports KINK-VISITORS
 
   syntax MapTransform ::= "#removeFrontendDeclarations"
-  rule #mapDeclarations( #removeFrontendDeclarations
-                       , DEFN, DECL:KFrontendDeclaration DECLS, STATE:K
-                       )
-    => #mapDeclarations( #removeFrontendDeclarations
-                       , DEFN, DECLS, STATE:K
-                       )
-  rule #mapDeclarations( #removeFrontendDeclarations
-                       , DEFN, DECL DECLS, STATE:K
-                       )
+  rule #mapDeclarations
+           ( #removeFrontendDeclarations
+           , DEFN, DECL:KFrontendDeclaration DECLS, STATE:K
+           )
+    => #mapDeclarations
+           ( #removeFrontendDeclarations
+           , DEFN, DECLS, STATE:K
+           )
+  rule #mapDeclarations
+           ( #removeFrontendDeclarations
+           , DEFN, DECL DECLS, STATE:K
+           )
     =>  DECL
-        #mapDeclarations( #removeFrontendDeclarations
-                        , DEFN, DECLS, STATE:K
-                        )
+        #mapDeclarations
+            ( #removeFrontendDeclarations
+            , DEFN, DECLS, STATE:K
+            )
         [owise]
 endmodule
 ```
