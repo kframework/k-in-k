@@ -58,40 +58,43 @@ module KINK-VISITORS
   imports KORE-HELPERS
   syntax MapTransform
   rule <pipeline> T:MapTransform => .K ... </pipeline>
-       <k> DEFN => T(DEFN) </k>
+       <k> DEFN => #mapDeclarations(T, DEFN) </k>
 
-  syntax Definition   ::= MapTransform "(" Definition ")"                        [function]
-  syntax Definition   ::= MapTransform "(" Definition "," Modules ")"            [function]
-  syntax Declarations ::= MapTransform "(" Definition "," Declarations "," K ")" [function]
-  syntax K ::= transformBeforeModule(MapTransform, Definition, Module)           [function]
-  rule transformBeforeModule(T, DEFN, MOD) => .K                                 [owise]
-  
-  rule T:MapTransform (koreDefinition(ATTRS, MODULES:Modules))
-    => T              (koreDefinition(ATTRS, .Modules), MODULES)
-  rule T:MapTransform (koreDefinition(ATTRS, MODULES), .Modules)
+  syntax Definition   ::= #mapDeclarations(MapTransform, Definition)                  [function]
+  syntax Definition   ::= #mapDeclarations(MapTransform, Definition, Modules)         [function]
+  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Declarations, K) [function]
+  syntax K ::= transformBeforeModule(MapTransform, Definition, Module)                [function]
+  rule transformBeforeModule(T, DEFN, MOD) => .K                                      [owise]
+
+  rule #mapDeclarations(T, koreDefinition(ATTRS, MODULES:Modules))
+    => #mapDeclarations(T, koreDefinition(ATTRS, .Modules), MODULES)
+  rule #mapDeclarations(T, koreDefinition(ATTRS, MODULES), .Modules)
     => koreDefinition(ATTRS, MODULES)
 
-  rule T:MapTransform ( koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                      , koreModule(MNAME, DECLS, MOD_ATTRS)
-                        MODULES:Modules
-                      )
-    => T ( koreDefinition( DEFN_ATTRS
-                         , PROCESSED_MODULES ++Modules
-                           koreModule( MNAME
-                                     , T ( koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                                         , DECLS
-                                         , transformBeforeModule( T
-                                                                , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES)
-                                                                , koreModule(MNAME, DECLS, MOD_ATTRS)
-                                                                )
-                                         )
-                                     , MOD_ATTRS
-                                     )
-                         )
+  rule #mapDeclarations( T:MapTransform
+                       , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
+                       , koreModule(MNAME, DECLS, MOD_ATTRS)
+                         MODULES:Modules
+                       )
+    => #mapDeclarations( T
+                       , koreDefinition( DEFN_ATTRS
+                                       , PROCESSED_MODULES ++Modules
+                                         koreModule( MNAME
+                                                   , #mapDeclarations( T
+                                                                     , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
+                                                                     , DECLS
+                                                                     , transformBeforeModule( T
+                                                                                            , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES)
+                                                                                            , koreModule(MNAME, DECLS, MOD_ATTRS)
+                                                                                            )
+                                                                     )
+                                                   , MOD_ATTRS
+                                                   )
+                                       )
          , MODULES
          )
 
-  rule T:MapTransform (DEFN, .Declarations, TSTATE)
+  rule #mapDeclarations(T:MapTransform, DEFN, .Declarations, TSTATE)
     => .Declarations
 endmodule
 ```
@@ -226,25 +229,33 @@ Finally, we define what the transformation does over each declaration:
   we map to a new kore `sort` declaration. We also keep the old declaration `DECL` around:
 
 ```k
-  rule #productionsToSortDeclarations(DEFN, DECL:KProductionDeclaration DECLS, DECLARED_SORTS)
+  rule #mapDeclarations( #productionsToSortDeclarations
+                       , DEFN
+                       , DECL:KProductionDeclaration DECLS
+                       , DECLARED_SORTS
+                       )
     => ( (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ])
          DECL
         .Declarations
        ) ++Declarations
-       #productionsToSortDeclarations( DEFN, DECLS
-                                     , DECLARED_SORTS
-                                       #getDeclaredKoreSortsFromDecls(DECL)
-                                     )
+       #mapDeclarations( #productionsToSortDeclarations
+                       , DEFN
+                       , DECLS
+                       , DECLARED_SORTS #getDeclaredKoreSortsFromDecls(DECL)
+                       )
     requires notBool(sortNameFromProdDecl(DECL) in DECLARED_SORTS)
 ```
 
 * In all other cases, this transform simply returns the original declaration unchanged:
 
 ```k
-  rule #productionsToSortDeclarations(DEFN, DECL DECLS, DECLARED_SORTS)
-    => DECL #productionsToSortDeclarations( DEFN, DECLS
-                                          , DECLARED_SORTS
-                                          )
+  rule #mapDeclarations( #productionsToSortDeclarations
+                       , DEFN, DECL DECLS, DECLARED_SORTS
+                       )
+    => DECL
+       #mapDeclarations( #productionsToSortDeclarations
+                       , DEFN, DECLS, DECLARED_SORTS
+                       )
        [owise]
 ```
 
@@ -296,19 +307,25 @@ Generic recursion that we'd like to factor out:
                             )
     => #getDeclaredKoreSymbolsFromDecls(DECLS)
 
-  rule #productionsToSymbolDeclarations(DEFN, DECL DECLS, DECLARED_SYMBOLS)
-    => DECL #productionsToSymbolDeclarations( DEFN, DECLS
-                                            , DECLARED_SYMBOLS
-                                            )
+  rule #mapDeclarations( #productionsToSymbolDeclarations
+                       , DEFN, DECL DECLS, DECLARED_SYMBOLS
+                       )
+    => DECL
+       #mapDeclarations( #productionsToSymbolDeclarations
+                       , DEFN, DECLS, DECLARED_SYMBOLS
+                       )
        [owise]
-
-  rule #productionsToSymbolDeclarations(DEFN, DECL:KProductionDeclaration DECLS, DECLARED_SYMBOLS)
+  rule #mapDeclarations( #productionsToSymbolDeclarations
+                       , DEFN, DECL:KProductionDeclaration DECLS, DECLARED_SYMBOLS
+                       )
     => #filterDeclaredSymbols(DECLARED_SYMBOLS, #symbolDeclsFromProdDecl(DECL))
        ++Declarations
-       DECL #productionsToSymbolDeclarations( DEFN, DECLS
-                                       , DECLARED_SYMBOLS
-                                         #getDeclaredKoreSymbolsFromDecls(#symbolDeclsFromProdDecl(DECL))
-                                       )
+       DECL
+       #mapDeclarations( #productionsToSymbolDeclarations
+                       , DEFN, DECLS
+                       , DECLARED_SYMBOLS
+                         #getDeclaredKoreSymbolsFromDecls(#symbolDeclsFromProdDecl(DECL))
+                       )
 ```
 
 `#symbolDeclsFromProdDecls` extracts a Kore symbol declaration,
@@ -451,11 +468,19 @@ module REMOVE-FRONTEND-DECLARATIONS
   imports KINK-VISITORS
 
   syntax MapTransform ::= "#removeFrontendDeclarations"
-  rule #removeFrontendDeclarations(DEFN, DECL:KFrontendDeclaration DECLS, STATE:K)
-    => #removeFrontendDeclarations(DEFN, DECLS, STATE:K)
-  rule #removeFrontendDeclarations(DEFN, DECL DECLS, STATE:K)
+  rule #mapDeclarations( #removeFrontendDeclarations
+                       , DEFN, DECL:KFrontendDeclaration DECLS, STATE:K
+                       )
+    => #mapDeclarations( #removeFrontendDeclarations
+                       , DEFN, DECLS, STATE:K
+                       )
+  rule #mapDeclarations( #removeFrontendDeclarations
+                       , DEFN, DECL DECLS, STATE:K
+                       )
     =>  DECL
-        #removeFrontendDeclarations(DEFN, DECLS, STATE:K)
+        #mapDeclarations( #removeFrontendDeclarations
+                        , DEFN, DECLS, STATE:K
+                        )
         [owise]
 endmodule
 ```
