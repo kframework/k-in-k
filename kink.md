@@ -85,10 +85,10 @@ is the `Definition` processed so far. The third is the `Declarations` to
 be processed. The fourth is the return value of `transformBeforeModule`.
 
 ```k
-  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Declarations, K) [function]
+  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Declaration, K) [function]
 ```
 
-Here ends the documentation for the user interface of `#mapDeclarations`
+*Here ends the documentation for the user interface of `#mapDeclarations`*
 
 ----------------------------------------------------------------------------
 
@@ -155,6 +155,10 @@ We then add this processed module into the processed definition:
            , MODULES
            )
 
+  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Declarations, K) [function]
+  rule #mapDeclarations(T:MapTransform, DEFN, DECL:Declaration DECLS, TSTATE)
+    => #mapDeclarations(T:MapTransform, DEFN, DECL, TSTATE)
+       ++Declarations #mapDeclarations(T:MapTransform, DEFN, DECLS, TSTATE)
   rule #mapDeclarations(T:MapTransform, DEFN, .Declarations, TSTATE)
     => .Declarations
 endmodule
@@ -297,19 +301,12 @@ Finally, we define what the transformation does over each declaration:
   rule #mapDeclarations
            ( #productionsToSortDeclarations
            , DEFN
-           , DECL:KProductionDeclaration DECLS
-           , DECLARED_SORTS
+           , DECL:KProductionDeclaration
+           , DECLARED_SORTS:Set
            )
-    => ( (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ])
-         DECL
-        .Declarations
-       ) ++Declarations
-       #mapDeclarations
-           ( #productionsToSortDeclarations
-           , DEFN
-           , DECLS
-           , DECLARED_SORTS #getDeclaredKoreSortsFromDecls(DECL)
-           )
+    => (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ])
+       DECL
+       .Declarations
     requires notBool(sortNameFromProdDecl(DECL) in DECLARED_SORTS)
 ```
 
@@ -318,14 +315,9 @@ Finally, we define what the transformation does over each declaration:
 ```k
   rule #mapDeclarations
            ( #productionsToSortDeclarations
-           , DEFN, DECL DECLS, DECLARED_SORTS
+           , DEFN, DECL, DECLARED_SORTS
            )
-    => DECL
-       #mapDeclarations
-           ( #productionsToSortDeclarations
-           , DEFN, DECLS, DECLARED_SORTS
-           )
-       [owise]
+    => DECL .Declarations [owise]
 ```
 
 The helper function `sortNameFromProdDecl` extracts the name of the sort from
@@ -379,27 +371,16 @@ Generic recursion that we'd like to factor out:
 
   rule #mapDeclarations
            ( #productionsToSymbolDeclarations
-           , DEFN, DECL DECLS, DECLARED_SYMBOLS
+           , DEFN, DECL, DECLARED_SYMBOLS
            )
-    => DECL
-       #mapDeclarations
-           ( #productionsToSymbolDeclarations
-           , DEFN, DECLS, DECLARED_SYMBOLS
-           )
-       [owise]
+    => DECL .Declarations [owise]
   rule #mapDeclarations
            ( #productionsToSymbolDeclarations
-           , DEFN, DECL:KProductionDeclaration DECLS, DECLARED_SYMBOLS
+           , DEFN, DECL:KProductionDeclaration, DECLARED_SYMBOLS
            )
     => #filterDeclaredSymbols(DECLARED_SYMBOLS, #symbolDeclsFromProdDecl(DECL))
        ++Declarations
-       DECL
-       #mapDeclarations
-           ( #productionsToSymbolDeclarations
-           , DEFN, DECLS
-           , DECLARED_SYMBOLS
-             #getDeclaredKoreSymbolsFromDecls(#symbolDeclsFromProdDecl(DECL))
-           )
+       DECL .Declarations
 ```
 
 `#symbolDeclsFromProdDecls` extracts a Kore symbol declaration,
@@ -552,21 +533,14 @@ module REMOVE-FRONTEND-DECLARATIONS
   syntax MapTransform ::= "#removeFrontendDeclarations"
   rule #mapDeclarations
            ( #removeFrontendDeclarations
-           , DEFN, DECL:KFrontendDeclaration DECLS, STATE:K
+           , DEFN, DECL:KFrontendDeclaration, STATE:K
            )
-    => #mapDeclarations
-           ( #removeFrontendDeclarations
-           , DEFN, DECLS, STATE:K
-           )
+    => .Declarations
   rule #mapDeclarations
            ( #removeFrontendDeclarations
-           , DEFN, DECL DECLS, STATE:K
+           , DEFN, DECL, STATE:K
            )
-    => DECL
-       #mapDeclarations
-           ( #removeFrontendDeclarations
-           , DEFN, DECLS, STATE:K
-           )
-        [owise]
+    => DECL .Declarations
+       [owise]
 endmodule
 ```
