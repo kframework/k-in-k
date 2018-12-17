@@ -9,8 +9,8 @@ import os.path
 
 proj = KProject()
 
-# Non-standard rules needed for K in K
-# ------------------------------------
+# Executing Kore using the Kore backend
+# -------------------------------------
 
 kore_from_config = proj.rule( 'kore-from-config'
                             , description = 'Extracting <kore> cell'
@@ -24,6 +24,17 @@ def kore_exec(kore, ext = 'kore-exec'):
                     ) \
                     .variables(kore = kore) \
                     .implicit([kore, proj.build_k('haskell')])
+
+# Parsing Outer K using k-light
+# -----------------------------
+
+def build_k_light():
+    return proj.rule( 'build-k-light'
+                    , description = 'Building K'
+                    , command = 'cd k_light_repo && mvn package -q -DskipTests'
+                    ) \
+                    .output('$k_light_repo/bin/kompile')
+proj.dotTarget().then(build_k_light()).default()
 
 # Kore to K Pipeline
 # ------------------
