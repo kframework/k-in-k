@@ -26,6 +26,8 @@ To run a single test, (e.g. `t/foobar-<FEATURE>.ekore`), run
 the generated configuration, run
 `cat .build/t/foobar-<FEATURE>.ekore.krun`.
 
+To run all `foobar` tests, run `./build t/foobar`
+
 Getting started writing transformations
 =======================================
 

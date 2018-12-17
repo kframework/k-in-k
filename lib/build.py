@@ -53,12 +53,12 @@ def run_kink(pipeline = '#ekorePipeline'):
 def kink_test(base_dir, test_file):
     input = os.path.join(base_dir, test_file)
     expected = os.path.join(base_dir, 'expected.ekore')
-    proj.source(input) \
-        .then(run_kink()) \
-        .then(kore_from_config.variables(cell = 'k')) \
-        .then(proj.check(proj.source(expected))
-                     .variables(flags = '--ignore-all-space')) \
-        .default()
+    return proj.source(input) \
+               .then(run_kink()) \
+               .then(kore_from_config.variables(cell = 'k')) \
+               .then(proj.check(proj.source(expected))
+                            .variables(flags = '--ignore-all-space')) \
+               .default()
 
 def lang_test(base_dir, module, program):
     language_kore    = os.path.join(base_dir, 'expected.ekore')
@@ -69,25 +69,29 @@ def lang_test(base_dir, module, program):
                                  .then(run_kink(pipeline = '#runWithHaskellBackendPipeline') \
                                           .ext('noFrontend')) \
                                  .then(kore_from_config.variables(cell = 'k'))
-    proj.source(program_pattern).then(kore_exec(lang_no_frontend_kore)
-                                          .ext('kore-exec')
-                                          .variables(module = module)
-                                     ) \
-                                .then(proj.check(expected_pattern)) \
-                                .default()
+    return proj.source(program_pattern).then(kore_exec(lang_no_frontend_kore)
+                                                 .ext('kore-exec')
+                                                 .variables(module = module)
+                                            ) \
+                                       .then(proj.check(expected_pattern)) \
+                                       .default()
 
 # Foobar
-kink_test('t/foobar', 'expected.ekore')
-kink_test('t/foobar', 'frontend-modules.ekore')
-kink_test('t/foobar', 'declare-sorts.ekore')
-kink_test('t/foobar', 'declare-symbols.ekore')
-lang_test('t/foobar', 'FOOBAR', 'bar.foobar')
+foobar_tests = []
+foobar_tests += [ kink_test('t/foobar', 'expected.ekore')                 ]
+foobar_tests += [ kink_test('t/foobar', 'frontend-modules.ekore')         ]
+foobar_tests += [ kink_test('t/foobar', 'declare-sorts.ekore')            ]
+foobar_tests += [ kink_test('t/foobar', 'declare-symbols.ekore')          ]
+foobar_tests += [ lang_test('t/foobar', 'FOOBAR', 'bar.foobar')           ]
+proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests)) 
 
 # Peano
-kink_test('t/peano', 'expected.ekore')
-kink_test('t/peano', 'frontend-modules.ekore')
-kink_test('t/peano', 'declare-sorts.ekore')
-kink_test('t/peano', 'declare-symbols.ekore')
+peano_tests = []
+peano_tests += [ kink_test('t/peano', 'expected.ekore')         ]
+peano_tests += [ kink_test('t/peano', 'frontend-modules.ekore') ]
+peano_tests += [ kink_test('t/peano', 'declare-sorts.ekore')    ]
+peano_tests += [ kink_test('t/peano', 'declare-symbols.ekore')  ]
+proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests)) 
 
 # Imp : make sure we can parse IMP
 proj.source('imp/imp.ekore0').then(run_kink(pipeline = '#nullPipeline')).default()
