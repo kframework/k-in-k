@@ -26,6 +26,7 @@ module KINK
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
+  imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
 
   syntax K ::= "#ekorePipeline"
@@ -33,6 +34,7 @@ module KINK
                =>    #frontendModulesToKoreModules
                   ~> #productionsToSortDeclarations
                   ~> #productionsToSymbolDeclarations
+                  ~> #translateFunctionRules
                   ...
        </pipeline>
 
@@ -78,6 +80,12 @@ The fourth is the `Declaration` that needs to be processed.
 ```
 
 *Here ends the documentation for the user interface of `#mapDeclarations`*
+
+----------------------------------------------------------------------------
+
+`#mapDeclarations` calls a helper function that accumulates a "transformed
+definition" starting with an empty definition, and processes each module in
+order:
 
 ```k
   syntax Definition ::= #mapDeclarations(MapTransform, Definition, Modules) [function]
@@ -142,6 +150,8 @@ endmodule
 Meta functions
 ==============
 
+TODO: Recurse into imported modules
+
 ```k
 module META-ACCESSORS
   imports KINK-CONFIGURATION
@@ -158,8 +168,9 @@ module META-ACCESSORS
   rule #isSortDeclared(SORT_NAME, DECL DECLS)
     => #isSortDeclared(SORT_NAME, DECLS)
        [owise]
+```
 
-  // TODO: Recurse into imported modules
+```k
   syntax Set ::= #getDeclaredKoreSymbolsFromDecls(Declarations)         [function]
   rule #getDeclaredKoreSymbolsFromDecls
            ( (symbol SYMBOL_NAME { SORT_PARAM } ( SORT_ARGS ) : SORT ATTRS):Declaration
@@ -171,6 +182,48 @@ module META-ACCESSORS
   rule #getDeclaredKoreSymbolsFromDecls(DECL DECLS)
     => #getDeclaredKoreSymbolsFromDecls(DECLS)
        [owise]
+```
+
+See Section 7.3 of Semantics of K.
+TODO: This should take Sort parameters of the symbol too
+
+```k
+  syntax Sort ::= #getReturnSort(Declarations, KoreName) [function]
+  rule #getReturnSort( (symbol SNAME { .KoreNames } ( .Sorts ) : SORT ATTRS) DECLS
+                     , SNAME
+                     )
+    => SORT
+  rule #getReturnSort(DECL DECLS, SNAME)
+    => #getReturnSort(DECLS, SNAME)
+       [owise]
+```
+
+TODO: I'd like something like this eventually:
+
+```commented
+  rule #getReturnSort(.Declarations, SNAME)
+    => #error("Symbol " +String SNAME +String " undeclared")
+       [owise]
+```
+
+```k
+  syntax Bool ::= #isFunctionSymbol(Declarations, KoreName) [function]
+  rule #isFunctionSymbol
+            ( ( symbol SNAME { .KoreNames } ( .Sorts ) : SORT:Sort
+                             [ function { .Sorts } ( .Patterns )
+                             , ATTRS:Patterns
+                             ]
+              ):Declaration
+              DECLS
+            , SNAME
+            )
+    => true
+  rule #isFunctionSymbol(DECL DECLS, SNAME)
+    => #isFunctionSymbol(DECLS, SNAME)
+       [owise]
+```
+
+```k
 endmodule
 ```
 
@@ -470,6 +523,39 @@ filter symbol declarations to avoid duplicate symbol declarations.
 ```
 
 ```k
+endmodule
+```
+
+Translate Function Rules
+------------------------
+
+`#translateFunctionRules` generates new kore axioms for rewrite rules over
+function symbols. Rules whose LHS is not a kore symbol with the function
+attribute should be ignored. Since the rewrite rule carries no additional
+information over the kore axiom, it can be discarded.
+
+```k
+module TRANSLATE-FUNCTION-RULES
+  imports KINK-CONFIGURATION
+  imports KINK-VISITORS
+  imports META-ACCESSORS
+
+  syntax MapTransform ::= "#translateFunctionRules"
+  rule #mapDeclarations( #translateFunctionRules
+                       , DEFN
+                       , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
+                       , kRule(noAttrs(krewrite( FUNC { .Sorts } ( .Patterns ) , RHS)))
+                       )
+    => ( axiom   {                          #token("R", "KoreName") , .KoreNames }
+         \equals { #getReturnSort(PROCESSED_DECLS, FUNC), #token("R", "KoreName") }
+         ( FUNC:KoreName { .Sorts } ( .Patterns ) , RHS )
+         [ .Patterns ]
+       ) .Declarations
+    requires #isFunctionSymbol(PROCESSED_DECLS, FUNC)
+
+  rule #mapDeclarations(#translateFunctionRules, DEFN, MOD, DECL)
+    => DECL .Declarations
+       [owise]
 endmodule
 ```
 

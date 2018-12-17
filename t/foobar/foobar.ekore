@@ -44,7 +44,6 @@ module FOOBAR
       "bar" [ klabel ( bar   ) , function ]
     | "buzz" [ klabel ( buzz2   ) ]
   rule bar {  } (  ) => buzz2 {  } (  )
-  axiom{ R } \equals{ Foo { } , R } ( bar {  } (  )  , buzz2 {  } (  ) ) [ ]
   syntax Fizz ::=
     "foobar" [ klabel ( foobar  ) ]
 endmodule

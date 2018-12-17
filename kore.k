@@ -6,6 +6,10 @@ module TOKENS
   syntax KoreName    ::= UpperName | LowerName
                        | KModuleName
   syntax KSort       ::= UpperName
+
+// commonly needed tokens:
+  syntax LowerName ::= "function" [token]
+
 endmodule
 
 // TODO: UpperName is used for K modules names and shouldn't allow primes or #s.
