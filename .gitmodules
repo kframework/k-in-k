@@ -7,3 +7,6 @@
 [submodule "ext/pandoc-tangle"]
 	path = ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle.git
+[submodule "kninja"]
+	path = ext/kninja
+	url = https://github.com/nishantjr/kninja

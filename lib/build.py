@@ -15,7 +15,7 @@ proj.build(proj.extdir('kore', '.git'), 'git-submodule-init')
 
 kore_from_config = proj.rule( 'kore-from-config'
                             , description = 'Extracting <kore> cell'
-                            , command = 'lib/kore-from-config $cell $in $out'
+                            , command = 'lib/kore-from-config "$cell" "$in" "$out"'
                             , ext = 'kore'
                             )
 kore_parser = proj.rule( 'kore-parser'
@@ -28,7 +28,7 @@ def kore_exec(kore, ext = 'kore-exec'):
                     , command     = 'stack build kore:exe:kore-exec && stack exec -- kore-exec $kore --module FOOBAR --pattern $in > $out'
                     ) \
                     .variables(kore = kore) \
-                    .implicit(kore)
+                    .implicit([kore])
 
 # Kore to K Pipeline
 # ------------------
@@ -38,10 +38,9 @@ ekore = proj.source('ekore.md') \
 kore = proj.source('kore.k')
 kink = proj.source('kink.md') \
            .then(proj.tangle().output(proj.tangleddir('kink.k'))) \
-           .then(proj.kompile()
+           .then(proj.kompile(backend = 'java')
                         .implicit([kore, ekore])
-                        .variables( backend = 'java'
-                                  , directory = proj.builddir('kink')
+                        .variables( directory = proj.builddir('kink')
                                   , flags = '-I . --syntax-module EKORE-SYNTAX'
                                   ))
 
@@ -88,7 +87,7 @@ proj.source('imp/imp.ekore1').then(run_kink(pipeline = '#nullPipeline')).default
 foobar_kore =  proj.source('t/foobar/foobar.ekore.expected') \
                    .then(run_kink(pipeline = '#runWithHaskellBackendPipeline') \
                            .ext('noFrontend')) \
-                   .then(kore_from_config)
+                   .then(kore_from_config.variables(cell = 'k'))
 bar_kast = proj.source('t/foobar-programs/bar.foobar.kast')
 bar_kast.then(kore_exec(foobar_kore).ext('kink.kore-exec')) \
         .then(proj.check('t/foobar-programs/bar.foobar.expected')) \
