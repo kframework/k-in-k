@@ -68,99 +68,74 @@ definition:
   syntax Definition ::= #mapDeclarations(MapTransform, Definition) [function]
 ```
 
-While processing a module, a transform may require some additional information
-on a per-module basis. If a `MapTransform` implements `transformBeforeModule`
-the result will be passed to the transformation. Otherwise, it is passed `.K`
-The second argument is the definition processed so far. Since in Kore's semantics
-no module can import a module that declared after it, this should be enough
-to define transformations. The second parameter is the module to be processed.
-
-```k
-  syntax K ::= transformBeforeModule(MapTransform, Definition, Module) [function]
-  rule transformBeforeModule(T, DEFN, MOD) => .K                       [owise]
-```
-
 Each `MapTransform` must implement the following overload. The second argument
-is the `Definition` processed so far. The third is the `Declarations` to
-be processed. The fourth is the return value of `transformBeforeModule`.
+is the `Definition` processed so far (excluding the current Module).
+The third is the current Module that has been processed so far.
+The fourth is the `Declaration` that needs to be processed.
 
 ```k
-  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Declaration, K) [function]
+  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Module, Declaration) [function]
 ```
 
 *Here ends the documentation for the user interface of `#mapDeclarations`*
 
-----------------------------------------------------------------------------
-
-`#mapDeclarations` calls a helper function that accumulates a "transformed
-definition" starting with an empty definition, and processes each module in
-order:
-
 ```k
-  syntax Definition ::= #mapDeclarations(MapTransform, Definition, Modules)         [function]
-  rule #mapDeclarations(T, koreDefinition(ATTRS, MODULES:Modules))
-    => #mapDeclarations(T, koreDefinition(ATTRS, .Modules), MODULES)
-  rule #mapDeclarations(T, koreDefinition(ATTRS, MODULES), .Modules)
-    => koreDefinition(ATTRS, MODULES)
-```
+  syntax Definition ::= #mapDeclarations(MapTransform, Definition, Modules) [function]
+  rule #mapDeclarations(T, koreDefinition(ATTRS, UNPROCESSED_MODULES:Modules))
+    => #mapDeclarations(T, koreDefinition(ATTRS, .Modules), UNPROCESSED_MODULES)
 
-When processing a single module, we pass the user-defined
-`#mapDeclarations(T,Definition,Declarations,K)` the `Definition` processed so
-far, the declarations to be processed and the return value of
-`transformBeforeModule`:
-
-```k
-  syntax Module ::= #mapDeclarationsProcessModule(MapTransform, Definition, Module) [function]
-  rule #mapDeclarationsProcessModule
-           ( T
-           , PROCESSED_DEFINITION
-           , koreModule(MNAME, DECLS, MOD_ATTRS)
-           )
-    => koreModule
-           ( MNAME
-           , #mapDeclarations
-                 ( T
-                 , PROCESSED_DEFINITION
-                 , DECLS
-                 , transformBeforeModule
-                       ( T
-                       , PROCESSED_DEFINITION
-                       , koreModule(MNAME, DECLS, MOD_ATTRS)
-                       )
-                 )
-           , MOD_ATTRS
-           )
-```
-
-We then add this processed module into the processed definition:
-
-```k
   rule #mapDeclarations
            ( T:MapTransform
            , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-           , MODULE:Module MODULES:Modules
+           , koreModule(MNAME, UNPROCESSED_DECLS, ATTRS) MODULES:Modules
            )
     => #mapDeclarations
            ( T
            , koreDefinition
                  ( DEFN_ATTRS
                  , PROCESSED_MODULES ++Modules
-                   #mapDeclarationsProcessModule
+                   #mapDeclarations
                        ( T
                        , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                       , MODULE
+                       , koreModule(MNAME, .Declarations, ATTRS)
+                       , UNPROCESSED_DECLS
                        )
                    .Modules
                  )
            , MODULES
            )
 
-  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Declarations, K) [function]
-  rule #mapDeclarations(T:MapTransform, DEFN, DECL:Declaration DECLS, TSTATE)
-    => #mapDeclarations(T:MapTransform, DEFN, DECL, TSTATE)
-       ++Declarations #mapDeclarations(T:MapTransform, DEFN, DECLS, TSTATE)
-  rule #mapDeclarations(T:MapTransform, DEFN, .Declarations, TSTATE)
-    => .Declarations
+  rule #mapDeclarations(T, koreDefinition(ATTRS, PROCESSED_MODULES), .Modules)
+    => koreDefinition(ATTRS, PROCESSED_MODULES)
+```
+
+```k
+  syntax Module ::= #mapDeclarations(MapTransform, Definition, Module, Declarations) [function]
+  rule #mapDeclarations
+          ( T:MapTransform
+          , DEFN
+          , koreModule( MNAME
+                      , PROCESSED_DECLS
+                      , ATTRS
+                      )
+          , DECL:Declaration UNPROCESSED_DECLS
+          )
+    => #mapDeclarations
+           ( T:MapTransform
+           , DEFN
+           , koreModule( MNAME
+                       , PROCESSED_DECLS ++Declarations
+                         #mapDeclarations( T:MapTransform
+                                         , DEFN
+                                         , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
+                                         , DECL
+                                         )
+                       , ATTRS
+                       )
+           , UNPROCESSED_DECLS
+           )
+  rule #mapDeclarations(T:MapTransform, DEFN, MOD, .Declarations)
+    => MOD
 endmodule
 ```
 
@@ -173,15 +148,15 @@ module META-ACCESSORS
   imports KINK-VISITORS
   imports SET
 
-  syntax Set ::= #getDeclaredKoreSortsFromDecls(Declarations)         [function]
-  rule #getDeclaredKoreSortsFromDecls
-           ( (sort SORT_NAME { SORT_PARAM } ATTRS):Declaration
-             DECLS
-           )
-    => SetItem(SORT_NAME) #getDeclaredKoreSortsFromDecls(DECLS)
-  rule #getDeclaredKoreSortsFromDecls(.Declarations) => .Set
-  rule #getDeclaredKoreSortsFromDecls(DECL DECLS)
-    => #getDeclaredKoreSortsFromDecls(DECLS)
+  syntax Bool ::= #isSortDeclared(KoreName, Declarations) [function]
+  rule #isSortDeclared(_, .Declarations) => false
+  rule #isSortDeclared( SORT_NAME
+                      , (sort SORT_NAME { SORT_PARAM } ATTRS)
+                        DECLS
+                      )
+    => true
+  rule #isSortDeclared(SORT_NAME, DECL DECLS)
+    => #isSortDeclared(SORT_NAME, DECLS)
        [owise]
 
   // TODO: Recurse into imported modules
@@ -275,23 +250,6 @@ Each `MapTransform` adds a symbol to the `MapTransform` sort.
   rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
 ```
 
-Often transforms need additional information on a per-module basis, before they
-start mapping the `Declarations`. For example, in this transformation we need to
-know which sorts have already been declared (so that we do not redeclare them).
-In these cases, we may *(optionally)* define the `transformBeforeModule`
-construct for that `MapTransform`. Note that since in Kore, a module can only
-`import` a previously declared one `MapTransform` only gives access to these
-modules in `DEFN`.
-
-```k
-  rule transformBeforeModule
-           ( #productionsToSortDeclarations
-           , DEFN
-           , koreModule(MNAME, DECLS, MOD_ATTRS)
-           )
-    => #getDeclaredKoreSortsFromDecls(DECLS)
-```
-
 Finally, we define what the transformation does over each declaration:
 
 * If the `Declaration` was not previously declared and is a `KProductionDeclaration`
@@ -301,13 +259,13 @@ Finally, we define what the transformation does over each declaration:
   rule #mapDeclarations
            ( #productionsToSortDeclarations
            , DEFN
+           , koreModule(MNAME, PROCESSED_DECLS:Declarations, ATTRS)
            , DECL:KProductionDeclaration
-           , DECLARED_SORTS:Set
            )
     => (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ])
        DECL
        .Declarations
-    requires notBool(sortNameFromProdDecl(DECL) in DECLARED_SORTS)
+    requires notBool(#isSortDeclared(sortNameFromProdDecl(DECL), PROCESSED_DECLS))
 ```
 
 * In all other cases, this transform simply returns the original declaration unchanged:
@@ -315,7 +273,7 @@ Finally, we define what the transformation does over each declaration:
 ```k
   rule #mapDeclarations
            ( #productionsToSortDeclarations
-           , DEFN, DECL, DECLARED_SORTS
+           , DEFN, MOD, DECL
            )
     => DECL .Declarations [owise]
 ```
@@ -362,23 +320,20 @@ Generic recursion that we'd like to factor out:
 
 ```k
   syntax MapTransform ::= "#productionsToSymbolDeclarations"
-  rule transformBeforeModule
-           ( #productionsToSymbolDeclarations
-           , DEFN
-           , koreModule(MNAME, DECLS, MOD_ATTRS)
-           )
-    => #getDeclaredKoreSymbolsFromDecls(DECLS)
-
   rule #mapDeclarations
            ( #productionsToSymbolDeclarations
-           , DEFN, DECL, DECLARED_SYMBOLS
+           , DEFN, MOD, DECL
            )
     => DECL .Declarations [owise]
   rule #mapDeclarations
            ( #productionsToSymbolDeclarations
-           , DEFN, DECL:KProductionDeclaration, DECLARED_SYMBOLS
+           , DEFN
+           , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
+           , DECL:KProductionDeclaration
            )
-    => #filterDeclaredSymbols(DECLARED_SYMBOLS, #symbolDeclsFromProdDecl(DECL))
+    => #filterDeclaredSymbols( #getDeclaredKoreSymbolsFromDecls(PROCESSED_DECLS)
+                             , #symbolDeclsFromProdDecl(DECL)
+                             )
        ++Declarations
        DECL .Declarations
 ```
@@ -533,12 +488,16 @@ module REMOVE-FRONTEND-DECLARATIONS
   syntax MapTransform ::= "#removeFrontendDeclarations"
   rule #mapDeclarations
            ( #removeFrontendDeclarations
-           , DEFN, DECL:KFrontendDeclaration, STATE:K
+           , DEFN
+           , MOD
+           , DECL:KFrontendDeclaration
            )
     => .Declarations
   rule #mapDeclarations
            ( #removeFrontendDeclarations
-           , DEFN, DECL, STATE:K
+           , DEFN
+           , MOD
+           , DECL
            )
     => DECL .Declarations
        [owise]
