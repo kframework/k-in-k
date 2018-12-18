@@ -30,19 +30,18 @@ endmodule [ ]
 
 module FOOBAR
   import K []
-  sort Buzz {  } [  ]
+  sort Foo {  } [  ]
   symbol bar {  } (  ) : Foo {  } [ function {  } (  )  ]
   symbol buzz2 {  } (  ) : Foo {  } [  ]
   syntax Foo ::=
-    "bar" [ klabel ( bar   ) , function ]
-    | "buzz" [ klabel ( buzz2   ) ]
-  sort Foo {  } [  ]
-  sort Fizz {  } [  ]
-  syntax Fizz ::=
-    "foobar" [ klabel ( foobar  ) ]
-  symbol foobar {  } (  ) : Fizz {  } [  ]
+    "bar" [ klabel ( bar ) , function ]
+    | "buzz" [ klabel ( buzz2 ) ]
   rule bar {  } (  ) => buzz2 {  } (  )
   axiom{ R } \equals{ Foo { } , R } ( bar {  } (  )  , buzz2 {  } (  ) ) [ ]
+  sort Fizz {  } [  ]
+  symbol foobar {  } (  ) : Fizz {  } [  ]
+  syntax Fizz ::=
+    "foobar" [ klabel ( foobar ) ]
 
 endmodule [  ]
 

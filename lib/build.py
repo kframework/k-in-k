@@ -78,19 +78,15 @@ def lang_test(base_dir, module, program):
 
 # Foobar
 foobar_tests = []
-foobar_tests += [ kink_test('t/foobar', 'expected.ekore')                 ]
-foobar_tests += [ kink_test('t/foobar', 'frontend-modules.ekore')         ]
-foobar_tests += [ kink_test('t/foobar', 'declare-sorts.ekore')            ]
-foobar_tests += [ kink_test('t/foobar', 'declare-symbols.ekore')          ]
-foobar_tests += [ lang_test('t/foobar', 'FOOBAR', 'bar.foobar')           ]
-proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests)) 
+foobar_tests += [ kink_test('t/foobar', 'foobar.ekore')         ]
+foobar_tests += [ kink_test('t/foobar', 'expected.ekore')       ]
+foobar_tests += [ lang_test('t/foobar', 'FOOBAR', 'bar.foobar') ]
+proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests))
 
 # Peano
 peano_tests = []
-peano_tests += [ kink_test('t/peano', 'expected.ekore')         ]
-peano_tests += [ kink_test('t/peano', 'frontend-modules.ekore') ]
-peano_tests += [ kink_test('t/peano', 'declare-sorts.ekore')    ]
-peano_tests += [ kink_test('t/peano', 'declare-symbols.ekore')  ]
+peano_tests += [ kink_test('t/peano', 'peano.ekore')    ]
+peano_tests += [ kink_test('t/peano', 'expected.ekore') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests)) 
 
 # Imp : make sure we can parse IMP

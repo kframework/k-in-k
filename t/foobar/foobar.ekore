@@ -1,5 +1,3 @@
-[]
-
 module BASIC-K
   sort K{} []
   sort KItem{} []
@@ -12,7 +10,7 @@ module KSEQ
   symbol append{}(K{}, K{}) : K{} [function{}()]
   symbol dotk{}() : K{} []
 
-  axiom{R}
+  axiom{ R }
     \equals{K{},R}(
       append{}(dotk{}(),K2:K{}),
       K2:K{})
@@ -33,33 +31,20 @@ module INJ
       inj{S2,S3}(inj{S1,S2}(T:S1)),
       inj{S1,S3}(T:S1))
   []
-endmodule []
+endmodule
 
 module K
   import KSEQ []
   import INJ []
-endmodule []
+endmodule
 
 module FOOBAR
   import K []
-
-  sort Buzz {  } [  ]
-
-  symbol bar {  } (  ) : Foo {  } [ function {  } (  )  ]
-  symbol buzz2 {  } (  ) : Foo {  } [  ]
-
   syntax Foo ::=
-    "bar" [ klabel ( bar   ) , function ]
+      "bar" [ klabel ( bar   ) , function ]
     | "buzz" [ klabel ( buzz2   ) ]
-  sort Foo {  } [  ]
-
+  rule bar {  } (  ) => buzz2 {  } (  )
+  axiom{ R } \equals{ Foo { } , R } ( bar {  } (  )  , buzz2 {  } (  ) ) [ ]
   syntax Fizz ::=
     "foobar" [ klabel ( foobar  ) ]
-
-  symbol foobar {  } (  ) : Fizz {  } [  ]
-
-  rule bar {  } (  ) => buzz2 {  } (  )
-  axiom{R} \equals{Foo{}, R} ( bar {  } (  )
-                             , buzz2 {  } (  )
-                             )  [ ]
-endmodule [  ]
+endmodule

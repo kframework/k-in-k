@@ -15,18 +15,31 @@ After installing python3, [ninja-build] and [pandoc] simply run `./build`.
 Testing
 =======
 
-In each of the test files `t/foobar-<FEATURE>.ekore` uses a single additional
-feature over the expected `kore0` syntax (for example: frontend modules, syntax
-declarations, rules, contexts...). We expect all these to reduce down to [the
-same expected output](t/foobar.ekore.expected). Eventually we want this expected
-file to be `kore0`.
+End-to-end tests
+----------------
 
-To run a single test, (e.g. `t/foobar-<FEATURE>.ekore`), run
-`./build .build/t/foobar-<FEATURE>.ekore.krun.kore.test`. If you need to see
+Each folder is the `t/` directory defines a language. For each language we have
+two tests for the EKORE pipeline:
+
+1. That we generate the expected final ekore from the ekore with kasted bubbles
+2. That the ekore pipeline is the identity over the expected ekore
+
+In addition, there are additional tests to check that we can execute programs
+in each of those languages.
+
+For each language we can run all these tests using `./build t/<lang>` (e.g.
+`./build t/foobar`)
+
+To run a single test, (e.g. `t/foobar/<TEST>.ekore`), run
+`./build .build/t/foobar/<TEST>.ekore.krun.kore.test`. If you need to see
 the generated configuration, run
-`cat .build/t/foobar-<FEATURE>.ekore.krun`.
+`cat .build/t/foobar-<TEST>.ekore.krun`.
 
-To run all `foobar` tests, run `./build t/foobar`
+Unit tests
+----------
+
+In addition, unit-tests are implemented using reachability logic in the
+`unit-tests.md` file, and can be run via `./build unit-tests`.
 
 Getting started writing transformations
 =======================================
