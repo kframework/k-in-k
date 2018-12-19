@@ -111,6 +111,18 @@ In the `imp/imp.ekore0` we sketch out what we expect the `ekore0` syntax to look
 Issues?
 =======
 
+Extending Kore's wellformedness to K's
+--------------------------------------
+
+K allows using `Sort`s before they are declared (so long as they are declared
+later in the module). However, kore more strict:
+
+> 3.  Every declared symbol or alias should have their argument sorts and return
+>     sorts declared;
+> 4.  All sorts, symbols, and aliases should be declared before being used;
+
+Is it OK to assume that this holds in K-Definitions too for now?
+
 `kore.k`
 --------
 
