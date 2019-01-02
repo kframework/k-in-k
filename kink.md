@@ -158,15 +158,15 @@ module META-ACCESSORS
   imports KINK-VISITORS
   imports SET
 
-  syntax Bool ::= #isSortDeclared(KoreName, Declarations) [function]
-  rule #isSortDeclared(_, .Declarations) => false
-  rule #isSortDeclared( SORT_NAME
-                      , (sort SORT_NAME { SORT_PARAM } ATTRS)
+  syntax Bool ::= #isSortDeclared(Declarations, KoreName) [function]
+  rule #isSortDeclared(.Declarations, _) => false
+  rule #isSortDeclared( (sort SORT_NAME { SORT_PARAM } ATTRS)
                         DECLS
+                      , SORT_NAME
                       )
     => true
-  rule #isSortDeclared(SORT_NAME, DECL DECLS)
-    => #isSortDeclared(SORT_NAME, DECLS)
+  rule #isSortDeclared(DECL DECLS, SORT_NAME)
+    => #isSortDeclared(DECLS     , SORT_NAME)
        [owise]
 ```
 
@@ -318,7 +318,7 @@ Finally, we define what the transformation does over each declaration:
     => (sort sortNameFromProdDecl(DECL) { .KoreNames } [ .Patterns ])
        DECL
        .Declarations
-    requires notBool(#isSortDeclared(sortNameFromProdDecl(DECL), PROCESSED_DECLS))
+    requires notBool(#isSortDeclared(PROCESSED_DECLS, sortNameFromProdDecl(DECL)))
 ```
 
 * In all other cases, this transform simply returns the original declaration unchanged:
