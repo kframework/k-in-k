@@ -90,23 +90,13 @@ TODO: Choose better names for `EKore-0`, ...
     *   ...
 
 3.  Pre-Kore : No more K frontend constructs
+
     -   Generate "No Junk" Axioms
     -   Generate Functional Axioms
     -   Generate Strictness Axioms
     -   Generate Configuration init functions
     -   Configuration concretization
     -   ...
-
-
-Interesting files
------------------
-
-In the `imp/imp.ekore0` we sketch out what we expect the `ekore0` syntax to look like.
-
-* We Assume dotMap{}() and mapLookup{}(...)  are the symbols defined in `DOMAINS`
-
-* We use `_/_` etc as sugar for Lbl'Unds'Div'Unds'{}()
-
 
 Issues?
 =======
