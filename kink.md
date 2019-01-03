@@ -150,7 +150,9 @@ endmodule
 Meta functions
 ==============
 
-TODO: Recurse into imported modules
+-   TODO: Functions defined here should be modelled after the functions in
+    section 7 of the semantics of K document.
+-   TODO: Recurse into imported modules
 
 ```k
 module META-ACCESSORS
