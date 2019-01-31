@@ -12,6 +12,53 @@ After installing python3, [ninja-build] and [pandoc] simply run `./build`.
 [pandoc]:      https://pandoc.org
 [ninja-build]: https://ninja-build.org
 
+Project Milestones
+==================
+
+Frontend to KORE
+----------------
+
+1.  Extend EKORE to allow bubbles (using k-light's parser)
+2.  `#parse`
+
+    1.  Generate grammar needed for `#parse` (Configuration grammar, Rule
+        grammar)
+    2.  `#parse` takes list of productions, string to parse, and start symbol
+
+3.  Disambiguation
+
+EKORE to KORE transformations
+-----------------------------
+
+1.  (Done) foobar: Get a module with only function symbols working.
+
+    1.  ~~Define sorts~~
+    2.  ~~Define symbols~~
+    3.  ~~Translate function axioms~~
+
+2.  Arithmetic Expressions:
+
+    1.  Identify exactly what axioms are needed for the haskell backend to
+        exectute definitions
+    2.  Generalize sorts declaration code
+    3.  Generalize symbols declaration code
+    4.  Generalize function axioms
+    5.  (Not sure if needed yet) Define functional and no-junk/mu axioms for
+        constructors
+
+3.  Imp:
+
+    1.  Get rewrites working when configuration is pre-concretized for every
+        rule.
+    2.  Concretize configuration / Use contexts
+
+Other important features
+------------------------
+
+1.  Error messages
+2.  A more K-style implementation: More configuration/cell/matching based rules,
+    fewer functions and iteration.
+
 Testing
 =======
 
