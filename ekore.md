@@ -214,6 +214,11 @@ endmodule
 Extend patterns with KAST syntax
 --------------------------------
 
+TODO: The current syntax is too generic allowing parsing ekore patterns of the form
+KLabel(Arg1,..Arg2,..). The patterns allowed should be either proper kore, or
+kast in "backtick" notation. The "Symbol" production in the following module has
+to be changed accordingly.
+
 ```k
 module EXTEND-PATTERNS-WITH-KAST-ABSTRACT
   imports TOKENS
