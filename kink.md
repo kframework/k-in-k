@@ -211,7 +211,7 @@ TODO: I'd like something like this eventually:
 ```k
   syntax Bool ::= #isFunctionSymbol(Declarations, KoreName) [function]
   rule #isFunctionSymbol
-            ( ( symbol SNAME { .KoreNames } ( .Sorts ) : SORT:Sort
+            ( ( symbol SNAME { .KoreNames } ( _ ) : SORT:Sort
                              [ function { .Sorts } ( .Patterns )
                              , ATTRS:Patterns
                              ]
