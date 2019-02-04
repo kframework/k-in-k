@@ -546,11 +546,11 @@ module TRANSLATE-FUNCTION-RULES
   rule #mapDeclarations( #translateFunctionRules
                        , DEFN
                        , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
-                       , kRule(noAttrs(krewrite( FUNC { .Sorts } ( .Patterns ) , RHS)))
+                       , kRule(noAttrs(krewrite( FUNC { .Sorts } ( ARG_PATTERNS ) , RHS)))
                        )
     => ( axiom   {                          #token("R", "KoreName") , .KoreNames }
          \equals { #getReturnSort(PROCESSED_DECLS, FUNC), #token("R", "KoreName") }
-         ( FUNC:KoreName { .Sorts } ( .Patterns ) , RHS )
+         ( FUNC:KoreName { .Sorts } ( ARG_PATTERNS ) , RHS )
          [ .Patterns ]
        ) .Declarations
     requires #isFunctionSymbol(PROCESSED_DECLS, FUNC)
