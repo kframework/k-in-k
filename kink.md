@@ -191,7 +191,7 @@ TODO: This should take Sort parameters of the symbol too
 
 ```k
   syntax Sort ::= #getReturnSort(Declarations, KoreName) [function]
-  rule #getReturnSort( (symbol SNAME { .KoreNames } ( .Sorts ) : SORT ATTRS) DECLS
+  rule #getReturnSort( (symbol SNAME { .KoreNames } ( _ ) : SORT ATTRS) DECLS
                      , SNAME
                      )
     => SORT
