@@ -1,0 +1,7 @@
+kseq{}( inj{Nat{}, KItem{}}
+           ( plus{} ( succ{}( succ{}( zero {} () ) )
+                    , succ{}( succ{}( zero {} () ) )
+                    )
+           )
+      , dotk{}()
+      )
