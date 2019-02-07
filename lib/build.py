@@ -87,7 +87,8 @@ proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests))
 peano_tests = []
 peano_tests += [ kink_test('t/peano', 'peano.ekore')    ]
 peano_tests += [ kink_test('t/peano', 'expected.ekore') ]
-proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests)) 
+peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
+proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
 
 # Imp : make sure we can parse IMP
 proj.source('imp/imp.ekore0').then(run_kink(pipeline = '#nullPipeline')).default()
