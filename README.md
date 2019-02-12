@@ -42,7 +42,13 @@ EKORE to KORE transformations
     2.  Generalize sorts declaration code
     3.  Generalize symbols declaration code
     4.  Generalize function axioms
-    5.  (Not sure if needed yet) Define functional and no-junk/mu axioms for
+    5.  Desugar `syntax` declarations with multiple productions,
+        into multiple `syntax` declarations with one production.
+        Multiple passes will become easier in this format (passing grammars
+        to the parser, declaring symbols, and adding function and constructor
+        axioms).
+    5.  Add `functional` & `constructor` axioms to all non-function productions.
+    6.  (Not needed for execution semantics) Define functional and no-junk/mu axioms for
         constructors
 
 3.  Imp:
