@@ -37,11 +37,11 @@ EKORE to KORE transformations
 
 2.  Arithmetic Expressions:
 
-    1.  Identify exactly what axioms are needed for the haskell backend to
-        exectute definitions
-    2.  Generalize sorts declaration code
-    3.  Generalize symbols declaration code
-    4.  Generalize function axioms
+    1.  ~~Identify exactly what axioms are needed for the haskell backend to
+        exectute definitions~~
+    2.  ~~Generalize sorts declaration code~~
+    3.  ~~Generalize symbols declaration code~~
+    4.  ~~Generalize function axioms~~
     5.  Desugar `syntax` declarations with multiple productions,
         into multiple `syntax` declarations with one production.
         Multiple passes will become easier in this format (passing grammars
