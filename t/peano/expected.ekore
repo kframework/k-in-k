@@ -31,11 +31,11 @@ endmodule [ ]
 module PEANO
   import K [ ]
   sort Nat { } [ ]
-  symbol zero { } (  ) : Nat { } [ functional { } ( ) ]
+  symbol zero { } (  ) : Nat { } [ constructor { } ( ) , functional { } ( ) ]
   symbol succ { } ( Nat { } ) : Nat { } [ constructor { } ( ) , functional { } ( ) ]
   symbol plus { } ( Nat { } , Nat { } ) : Nat { } [ function { } ( ) ]
   syntax Nat ::=
-    "zero" [ klabel ( zero ) , functional ]
+    "zero" [ klabel ( zero ) , constructor , functional ]
     | "succ" "(" Nat ")" [ klabel ( succ ) , constructor , functional ]
     | "plus" "(" Nat "," Nat ")" [ klabel ( plus ), function ]
   axiom { R } \equals { Nat { } , R } ( plus { } (zero { } ( ) , Y : Nat { }) , Y : Nat { }) [ ]

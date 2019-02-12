@@ -26,7 +26,7 @@ module PEANO
   import K []
 
   syntax Nat ::=
-      "zero" [ klabel ( zero ), functional ]
+      "zero" [ klabel ( zero ), constructor, functional ]
     | "succ" "(" Nat ")" [ klabel ( succ ), constructor, functional ]
     | "plus" "(" Nat "," Nat ")" [ klabel ( plus ), function ]
   rule plus{}(zero{}(), Y:Nat{}) => Y:Nat{}
