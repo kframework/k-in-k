@@ -262,7 +262,7 @@ module FRONTEND-MODULES-TO-KORE-MODULES
        <k> koreDefinition(_, MODS:Modules => #toKoreModules(MODS)) </k>
 
   rule #toKoreModules(MOD:KoreModule MODS)
-    => koreModules(MOD, #toKoreModules(MODS))
+    => consModules(MOD, #toKoreModules(MODS))
   rule #toKoreModules
            ( kModule
                  ( MNAME
@@ -495,7 +495,7 @@ given an E-Kore frontend production declaration.
   rule #sortsFromKSortList(KSORTS, KSORT:UpperName)
     => #sortsFromKSortList(KSORTS) ++Sorts (KSORT, .Sorts)
   rule #sortsFromKSortList(KSORT:UpperName)
-    => KSORT
+    => KSORT, .Sorts
 
   syntax Declarations ::= #filterDeclaredSymbols(Set, Declarations) [function]
 ```

@@ -124,6 +124,7 @@ endmodule
 
 module K-PRODUCTION-SYNTAX
   imports K-PRODUCTION-COMMON
+  imports KORE-SYNTAX
   imports ATTRIBUTES-SYNTAX
 
   syntax AssocAttribute  ::= "" [klabel(noAttribute)]
@@ -137,6 +138,8 @@ endmodule
 
 module K-PRODUCTION-ABSTRACT
   imports K-PRODUCTION-COMMON
+  imports KORE-ABSTRACT
+
   syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
   syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal)]
                            | terminal(KString)          [klabel(terminal), format(%3)]
@@ -161,13 +164,14 @@ endmodule
 
 module CONFIG-RULE-CONTEXT-ABSTRACT
   imports CONFIG-RULE-CONTEXT-COMMON
+  imports KORE-ABSTRACT
   syntax Contents ::= noAttrs(Pattern)                       [klabel(noAttrs), format(%3)]
                     | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
 endmodule
 
 module CONFIG-RULE-CONTEXT-SYNTAX
-  imports KORE-SYNTAX
   imports CONFIG-RULE-CONTEXT-COMMON
+  imports KORE-SYNTAX
   syntax Contents ::= Pattern                        [klabel(noAttrs)]
                     | Pattern KAttributesDeclaration [klabel(attrs), prefer]
 endmodule
@@ -272,7 +276,7 @@ endmodule
 
 module K-DEFINITION-ABSTRACT
   imports K-DEFINITION-COMMON
-  imports KORE-COMMON
+  imports KORE-ABSTRACT
   imports ATTRIBUTES-ABSTRACT
 
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%3%n%n%5)]
