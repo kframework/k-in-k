@@ -35,7 +35,8 @@ def kore_exec(kore, ext = 'kore-exec'):
 
 ekore = proj.source('ekore.md') \
             .then(proj.tangle().output(proj.tangleddir('ekore.k')))
-kore = proj.source('kore.k')
+kore = proj.source('kore.md') \
+           .then(proj.tangle().output(proj.tangleddir('kore.k')))
 kink = proj.source('kink.md') \
            .then(proj.tangle().output(proj.tangleddir('kink.k'))) \
            .then(proj.kompile(backend = 'java')

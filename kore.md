@@ -1,3 +1,4 @@
+```k
 module TOKENS
   syntax UpperName
   syntax LowerName
@@ -107,4 +108,4 @@ module KORE-HELPERS
     => (P inPatterns               PS)
     requires notBool P ==K P1
 endmodule
-
+```
