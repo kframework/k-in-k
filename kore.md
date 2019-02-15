@@ -3,14 +3,14 @@ module TOKENS
   syntax UpperName
   syntax LowerName
   syntax Numbers
+
   syntax KModuleName ::= UpperName
-  syntax KoreName    ::= UpperName | LowerName
-                       | KModuleName
   syntax KSort       ::= UpperName
 
-// commonly needed tokens:
-  syntax LowerName ::= "function" [token]
-
+  syntax ModuleName  ::= KModuleName | UpperName | LowerName
+  syntax SymbolName  ::= UpperName | LowerName
+  syntax SortName    ::= UpperName | LowerName
+  syntax VariableName ::= UpperName | LowerName
 endmodule
 
 // TODO: UpperName is used for K modules names and shouldn't allow primes or #s.
@@ -24,17 +24,16 @@ module TOKENS-SYNTAX
                      //  but it gives a parsing error otherwise
 
   syntax Numbers   ::= r"[\\+-]?[0-9]+"        [token]
-  syntax KoreName ::= r"\\rewrites"     [token, prec(2)]
 endmodule
 
 module KORE-COMMON
   imports TOKENS
   imports STRING-SYNTAX
 
-  syntax Sort     ::= KoreName | KoreName "{" Sorts "}" [klabel(nameParam)]
+  syntax Sort     ::= SortName | SortName "{" Sorts "}" [klabel(nameParam)]
   syntax Sorts
-  syntax Symbol   ::= KoreName "{" Sorts "}" [klabel(symbolSorts)]
-  syntax Variable ::= KoreName ":" Sort [klabel(varType)]
+  syntax Symbol   ::= SymbolName "{" Sorts "}" [klabel(symbolSorts)]
+  syntax Variable ::= VariableName ":" Sort [klabel(varType)]
 
   syntax Pattern ::= Variable
                    | String
@@ -59,20 +58,18 @@ module KORE-COMMON
 
   syntax Attribute ::= "[" Patterns "]"
 
-  syntax SortDeclaration ::= "sort" KoreName "{" KoreNames "}" Attribute
-  syntax SymbolDeclaration ::= "symbol" KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
+  syntax SortDeclaration ::= "sort" Sort Attribute
+  syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort Attribute
   syntax Declaration ::=
-      "import"      KoreName                                          Attribute
-    | "hook-sort"   KoreName "{" KoreNames "}"                        Attribute
-    | "hook-symbol" KoreName "{" KoreNames "}" "(" Sorts ")" ":" Sort Attribute
-    | "axiom"                "{" KoreNames "}" Pattern                Attribute
+      "import" ModuleName Attribute
+    | "hook-sort" Sort Attribute
+    | "hook-symbol" Symbol "(" Sorts ")" ":" Sort Attribute
+    | "axiom" "{" Sorts "}" Pattern Attribute
     | SortDeclaration
     | SymbolDeclaration
   syntax Declarations
 
-  syntax KoreNames ::= List{KoreName, ","} [klabel(nameList)]
-
-  syntax KoreModule ::= "module" KoreName Declarations "endmodule" Attribute [klabel(koreModule), format(%1 %2%i%n%3%n%d%4 %5%n)]
+  syntax KoreModule ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModule), format(%1 %2%i%n%3%n%d%4 %5%n)]
   syntax Module ::= KoreModule
   syntax Modules
 
