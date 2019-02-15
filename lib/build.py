@@ -31,10 +31,10 @@ def kore_exec(kore, ext = 'kore-exec'):
 def build_k_light():
     return proj.rule( 'build-k-light'
                     , description = 'Building K'
-                    , command = 'cd k_light_repo && mvn package -q -DskipTests'
+                    , command = 'cd ext/k-light && mvn package -q -DskipTests'
                     ) \
-                    .output('$k_light_repo/bin/kompile')
-proj.dotTarget().then(build_k_light()).default()
+                    .output('ext/k-light/bin/kompile')
+k_light = proj.dotTarget().then(build_k_light())
 
 # Kore to K Pipeline
 # ------------------
