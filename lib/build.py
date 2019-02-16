@@ -20,12 +20,12 @@ kore_from_config = proj.rule( 'kore-from-config'
                             )
 kore_parser = proj.rule( 'kore-parser'
                        , description = 'kore-parser'
-                       , command     = 'stack build kore:exe:kore-parser && stack exec -- kore-parser $in > $out'
+                       , command     = '$k_bindir/kore-parser $in > $out'
                        )
 def kore_exec(kore, ext = 'kore-exec'):
     return proj.rule( 'kore-exec'
                     , description = 'kore-exec'
-                    , command     = 'stack build kore:exe:kore-exec && stack exec -- kore-exec $kore --module "$module" --pattern $in > $out'
+                    , command     = '$k_bindir/kore-exec $kore --module "$module" --pattern $in > $out'
                     ) \
                     .variables(kore = kore) \
                     .implicit([kore])
