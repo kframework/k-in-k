@@ -43,7 +43,8 @@ kink = proj.source('kink.md') \
                         .implicit([kore, ekore])
                         .variables( directory = proj.builddir('kink')
                                   , flags = '-I . --syntax-module EKORE-SYNTAX'
-                                  ))
+                                  )) \
+           .alias('kink')
 
 def testdir(*paths):
     return os.path.join('t', *paths)

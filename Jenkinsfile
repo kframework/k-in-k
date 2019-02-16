@@ -13,7 +13,34 @@ pipeline {
         }
       }
     }
-    stage('Test') {
+    stage('Build') {
+      steps {
+        ansiColor('xterm') {
+          sh '''#!/bin/bash
+            ./build kink
+          '''
+        }
+      }
+    }
+    stage('t/foobar') {
+      steps {
+        ansiColor('xterm') {
+          sh '''#!/bin/bash
+            ./build t/foobar
+          '''
+        }
+      }
+    }
+    stage('t/peano') {
+      steps {
+        ansiColor('xterm') {
+          sh '''#!/bin/bash
+            ./build t/foobar
+          '''
+        }
+      }
+    }
+    stage('t/*') {
       steps {
         ansiColor('xterm') {
           sh '''#!/bin/bash
