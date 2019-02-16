@@ -8,8 +8,8 @@ RUN    apt update                                                          \
     && apt upgrade --yes                                                   \
     && apt install --yes                                                   \
            autoconf build-essential curl flex gcc libffi-dev libmpfr-dev   \
-           libtool make maven opam ninja-build netcat openjdk-8-jdk pandoc \
-           pkg-config python3 zlib1g-dev
+           libtool libz3-dev make maven opam ninja-build netcat            \
+           openjdk-8-jdk pandoc pkg-config python3 zlib1g-dev z3
 
 RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
