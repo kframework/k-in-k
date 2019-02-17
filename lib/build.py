@@ -18,17 +18,13 @@ kore_from_config = proj.rule( 'kore-from-config'
                             , command = 'lib/kore-from-config "$cell" "$in" "$out"'
                             , ext = 'kore'
                             )
-kore_parser = proj.rule( 'kore-parser'
-                       , description = 'kore-parser'
-                       , command     = '$k_bindir/kore-parser $in > $out'
-                       )
 def kore_exec(kore, ext = 'kore-exec'):
     return proj.rule( 'kore-exec'
                     , description = 'kore-exec'
                     , command     = '$k_bindir/kore-exec $kore --module "$module" --pattern $in > $out'
                     ) \
                     .variables(kore = kore) \
-                    .implicit([kore])
+                    .implicit([kore, proj.build_k('haskell')])
 
 # Kore to K Pipeline
 # ------------------
