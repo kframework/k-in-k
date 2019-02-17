@@ -58,7 +58,7 @@ def kink_test(base_dir, test_file):
                .then(run_kink()) \
                .then(kore_from_config.variables(cell = 'k')) \
                .then(proj.check(proj.source(expected))
-                            .variables(flags = '--ignore-all-space')) \
+                         .variables(flags = '--ignore-all-space')) \
                .default()
 
 def lang_test(base_dir, module, program):
@@ -74,7 +74,8 @@ def lang_test(base_dir, module, program):
                                                  .ext('kore-exec')
                                                  .variables(module = module)
                                             ) \
-                                       .then(proj.check(expected_pattern)) \
+                                       .then(proj.check(expected_pattern) \
+                                                 .variables(flags = '--ignore-all-space')) \
                                        .default()
 
 # Foobar
