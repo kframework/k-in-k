@@ -28,30 +28,26 @@ def kore_exec(kore, ext = 'kore-exec'):
 # Kore to K Pipeline
 # ------------------
 
-ekore = proj.source('ekore.md') \
-            .then(proj.tangle().output(proj.tangleddir('ekore.k')))
-kore = proj.source('kore.md') \
-           .then(proj.tangle().output(proj.tangleddir('kore.k')))
-kink = proj.source('kink.md') \
-           .then(proj.tangle().output(proj.tangleddir('kink.k'))) \
-           .then(proj.kompile(backend = 'java')
-                        .implicit([kore, ekore])
-                        .variables( directory = proj.builddir('kink')
-                                  , flags = '-I . --syntax-module EKORE-SYNTAX'
-                                  )) \
-           .alias('kink')
+ekore = proj.tangle('ekore.md')
+kore  = proj.tangle('kore.md')
+kink  = proj.definition( backend   = 'java'
+                       , main      = proj.tangle('kink.md')
+                       , other     = [kore, ekore]
+                       , directory = proj.builddir('kink')
+                       , flags     = '--syntax-module EKORE-SYNTAX'
+                       , alias     = 'kink'
+                       )
 
-def testdir(*paths):
-    return os.path.join('t', *paths)
-
-def run_kink(pipeline = '#ekorePipeline'):
+def pipeline(pipeline, extension):
     return kink.krun().variables(flags = '"-cPIPELINE=%s"' %(pipeline))
 
 def kink_test(base_dir, test_file):
     input = os.path.join(base_dir, test_file)
     expected = os.path.join(base_dir, 'expected.ekore')
+    ekore_pipeline = pipeline('#ekorePipeline', 'krun')
+
     return proj.source(input) \
-               .then(run_kink()) \
+               .then(ekore_pipeline) \
                .then(kore_from_config.variables(cell = 'k')) \
                .then(proj.check(proj.source(expected))
                          .variables(flags = '--ignore-all-space')) \
@@ -61,9 +57,10 @@ def lang_test(base_dir, module, program):
     language_kore    = os.path.join(base_dir, 'expected.ekore')
     program_pattern  = os.path.join(base_dir, 'programs', program + '.kast')
     expected_pattern = os.path.join(base_dir, 'programs', program + '.expected')
+    runWithHaskell_pipeline = pipeline('#runWithHaskellBackendPipeline', 'noFrontend')
 
     lang_no_frontend_kore =  proj.source(language_kore) \
-                                 .then(run_kink(pipeline = '#runWithHaskellBackendPipeline') \
+                                 .then(runWithHaskell_pipeline \
                                           .ext('noFrontend')) \
                                  .then(kore_from_config.variables(cell = 'k'))
     return proj.source(program_pattern).then(kore_exec(lang_no_frontend_kore)
@@ -89,13 +86,13 @@ peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
 
 # Imp : make sure we can parse IMP
-proj.source('imp/imp.ekore0').then(run_kink(pipeline = '#nullPipeline')).default()
-proj.source('imp/imp.ekore1').then(run_kink(pipeline = '#nullPipeline')).default()
+proj.source('imp/imp.ekore0').then(pipeline('#nullPipeline', 'null')).default()
+proj.source('imp/imp.ekore1').then(pipeline('#nullPipeline', 'null')).default()
 
 # Unit tests
 # ==========
 
 proj.source('unit-tests.md') \
-    .then(proj.tangle().output(proj.tangleddir('unit-tests-spec.k'))) \
+    .then(proj.rule_tangle().output(proj.tangleddir('unit-tests-spec.k'))) \
     .then(kink.kprove()) \
     .alias('unit-tests')
