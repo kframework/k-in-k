@@ -3,6 +3,7 @@
 from kninja import *
 import sys
 import os.path
+import functools
 
 # Project Definition
 # ==================
@@ -52,17 +53,18 @@ kink  = proj.definition( backend   = 'java'
 def pipeline(pipeline, extension):
     return kink.krun().variables(flags = '"-cPIPELINE=%s"' %(pipeline))
 
-def kink_test(base_dir, test_file):
+def kink_test(base_dir, test_file, pipeline):
     input = os.path.join(base_dir, test_file)
     expected = os.path.join(base_dir, 'expected.ekore')
-    ekore_pipeline = pipeline('#ekorePipeline', 'krun')
-
     return proj.source(input) \
-               .then(ekore_pipeline) \
+               .then(pipeline) \
                .then(kore_from_config.variables(cell = 'k')) \
                .then(proj.check(proj.source(expected))
                          .variables(flags = '--ignore-all-space')) \
                .default()
+
+ekore_test    = functools.partial(kink_test, pipeline = pipeline('#ekorePipeline'   , 'ekorePipeline'))
+frontend_test = functools.partial(kink_test, pipeline = pipeline('#frontendPipeline', 'frontendPipeline'))
 
 def lang_test(base_dir, module, program):
     language_kore    = os.path.join(base_dir, 'expected.ekore')
@@ -84,15 +86,16 @@ def lang_test(base_dir, module, program):
 
 # Foobar
 foobar_tests = []
-foobar_tests += [ kink_test('t/foobar', 'foobar.ekore')         ]
-foobar_tests += [ kink_test('t/foobar', 'expected.ekore')       ]
+foobar_tests += [ frontend_test('t/foobar', 'foobar.k')          ]
+foobar_tests += [ ekore_test('t/foobar', 'foobar.ekore')         ]
+foobar_tests += [ ekore_test('t/foobar', 'expected.ekore')       ]
 foobar_tests += [ lang_test('t/foobar', 'FOOBAR', 'bar.foobar') ]
 proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests))
 
 # Peano
 peano_tests = []
-peano_tests += [ kink_test('t/peano', 'peano.ekore')    ]
-peano_tests += [ kink_test('t/peano', 'expected.ekore') ]
+peano_tests += [ ekore_test('t/peano', 'peano.ekore')    ]
+peano_tests += [ ekore_test('t/peano', 'expected.ekore') ]
 peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
 

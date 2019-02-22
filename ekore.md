@@ -47,6 +47,46 @@ module EKORE-ABSTRACT
 endmodule
 ```
 
+Frontend
+--------
+
+```k
+module FRONTEND-SYNTAX
+  imports KORE-SYNTAX
+  imports K-PRODUCTION-SYNTAX
+  imports K-DEFINITION-SYNTAX
+  imports RULES-WITH-BUBBLES-SYNTAX
+  syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
+endmodule
+
+module FRONTEND-ABSTRACT
+  imports KORE-ABSTRACT
+  imports K-PRODUCTION-ABSTRACT
+  imports K-DEFINITION-ABSTRACT
+  imports RULES-WITH-BUBBLES-ABSTRACT
+endmodule
+
+module RULES-WITH-BUBBLES-COMMON
+  imports CONFIG-RULE-CONTEXT-COMMON
+  syntax BubbleItem
+  syntax Bubble ::= Bubble BubbleItem  [token]
+                  | BubbleItem         [token]
+
+  syntax RuleContents ::= Bubble
+endmodule
+
+module RULES-WITH-BUBBLES-ABSTRACT
+  imports RULES-WITH-BUBBLES-COMMON
+  imports CONFIG-RULE-CONTEXT-ABSTRACT
+endmodule
+
+module RULES-WITH-BUBBLES-SYNTAX
+  imports RULES-WITH-BUBBLES-COMMON
+  imports CONFIG-RULE-CONTEXT-SYNTAX
+  syntax BubbleItem ::= r"[^ \t\n\r]+" [token, reject2("rule|syntax|endmodule|configuration|context")]
+endmodule
+```
+
 Extensions
 ==========
 

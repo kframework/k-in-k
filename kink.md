@@ -35,12 +35,19 @@ endmodule
 ```k
 module KINK
   imports META-ACCESSORS
+  imports PARSE-OUTER
   imports PARSE-TO-EKORE
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
+
+  syntax KItem ::= "#frontendPipeline"
+  rule <pipeline> #frontendPipeline
+               => #parseOuter
+                  ...
+       </pipeline>
 
   syntax KItem ::= "#ekorePipeline"
   rule <pipeline> #ekorePipeline
@@ -275,6 +282,23 @@ endmodule
 Transforms
 ==========
 
+Parse Outer
+----------------
+
+```k
+module PARSE-OUTER
+  imports KINK-CONFIGURATION
+  imports K-IO
+  syntax KItem ::= "#parseOuter"
+  rule <pipeline> #parseOuter => .K ... </pipeline>
+       <k> T:Any
+        // TODO: Hard-coded path
+        => #parseString("k-light2k5.sh --module FRONTEND-SYNTAX .build/ekore.k Definition", T)
+           ...
+       </k>
+endmodule
+```
+
 Parse into EKore
 ----------------
 
@@ -284,17 +308,10 @@ module PARSE-TO-EKORE
   imports KINK-CONFIGURATION
   imports K-IO
   syntax KItem ::= "#parseToEKore"
-  syntax Input
-  syntax Stdout
-  syntax Stderr
-  syntax KItem ::= parseError(K, K, K) [klabel(parseError)]
-                 | amb(K, K)           [klabel(amb)]
-                 | bottom(K, K)        [klabel(bottom)]
-
   rule <pipeline> #parseToEKore => .K ... </pipeline>
        <k> T:Any
         // TODO: Hard-coded path
-        => #parseString("k-light2k5.sh .build/ekore.k Definition", T)
+        => #parseString("k-light2k5.sh --module EKORE-SYNTAX .build/ekore.k Definition", T)
            ...
        </k>
 endmodule
