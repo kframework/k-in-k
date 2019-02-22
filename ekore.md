@@ -134,23 +134,23 @@ module CONFIG-RULE-CONTEXT-COMMON
   imports KORE-COMMON
   imports FRONTEND-COMMON
   imports ATTRIBUTES-COMMON
-  syntax Contents
-  syntax KFrontendDeclaration ::= "configuration" Contents [klabel(kConfiguration)]
-                                | "rule"    Contents [klabel(kRule)]
-                                | "context" Contents [klabel(kContext)]
+  syntax RuleContents
+  syntax KFrontendDeclaration ::= "configuration" RuleContents [klabel(kConfiguration)]
+                                | "rule"    RuleContents       [klabel(kRule)]
+                                | "context" RuleContents       [klabel(kContext)]
 endmodule
 
 module CONFIG-RULE-CONTEXT-ABSTRACT
   imports CONFIG-RULE-CONTEXT-COMMON
   imports KORE-ABSTRACT
-  syntax Contents ::= noAttrs(Pattern)                       [klabel(noAttrs), format(%3)]
+  syntax RuleContents ::= noAttrs(Pattern)                   [klabel(noAttrs), format(%3)]
                     | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
 endmodule
 
 module CONFIG-RULE-CONTEXT-SYNTAX
   imports CONFIG-RULE-CONTEXT-COMMON
   imports KORE-SYNTAX
-  syntax Contents ::= Pattern                        [klabel(noAttrs)]
+  syntax RuleContents ::= Pattern                    [klabel(noAttrs)]
                     | Pattern KAttributesDeclaration [klabel(attrs), prefer]
 endmodule
 ```
