@@ -22,7 +22,7 @@ EKORE extents the KORE syntax to allow:
 
 1. `syntax` declarations,
 2. `configuration`, `rule`s and `context`s, with contents as patterns
-3. Patterns also allow `requires` clauses
+3. Patterns also allow `requires` and `=>`
 4. Patterns also allow "backtick" syntax and `#token`
 
 ```k
@@ -30,7 +30,8 @@ module EKORE
   imports KORE-SYNTAX
   imports K-PRODUCTION-SYNTAX
   imports CONFIG-RULE-CONTEXT-SYNTAX
-  imports EXTEND-PATTERNS-WITH-KAST-SYNTAX
+  imports REWRITES-REQUIRES-IN-PATTERNS-SYNTAX
+  imports BACKTICK-PATTERNS-SYNTAX
   imports K-DEFINITION-SYNTAX
 
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
@@ -40,7 +41,8 @@ module EKORE-ABSTRACT
   imports KORE-ABSTRACT
   imports K-PRODUCTION-ABSTRACT
   imports CONFIG-RULE-CONTEXT-ABSTRACT
-  imports EXTEND-PATTERNS-WITH-KAST-ABSTRACT
+  imports REWRITES-REQUIRES-IN-PATTERNS-ABSTRACT
+  imports BACKTICK-PATTERNS-ABSTRACT
   imports K-DEFINITION-ABSTRACT
 endmodule
 ```
@@ -239,22 +241,32 @@ kast in "backtick" notation. The "Symbol" production in the following module has
 to be changed accordingly.
 
 ```k
-module EXTEND-PATTERNS-WITH-KAST-ABSTRACT
+module REWRITES-REQUIRES-IN-PATTERNS-ABSTRACT
+  imports KORE-ABSTRACT
+  syntax Pattern ::= requiresClause(Pattern, Pattern) [klabel(requiresClause)]
+                   > krewrite(Pattern, Pattern)       [non-assoc, klabel(krewrite), format(%3 => %5)]
+endmodule
+
+module REWRITES-REQUIRES-IN-PATTERNS-SYNTAX
+  imports KORE-SYNTAX
+  syntax Pattern ::=  Pattern "requires" Pattern [klabel(requiresClause)]
+                    > Pattern "=>" Pattern [non-assoc, klabel(krewrite)]
+endmodule
+
+module BACKTICK-PATTERNS-ABSTRACT
   imports KORE-ABSTRACT
   imports EKORE-KSTRING-ABSTRACT
-  syntax Variable ::= cast(VarName, KSort) [klabel(cast)]
+  syntax Variable ::= cast(VarName, KSort)             [klabel(cast)]
                     | VarName
   syntax Pattern  ::= ktoken(KString, KString)         [klabel(ktoken)]
                     | wrappedklabel(KLabel2)           [klabel(wrappedklabel)]
-                    | requiresClause(Pattern, Pattern) [klabel(requiresClause)]
                     > ksequence(Pattern, Pattern)      [left, klabel(ksequence)]
-                    > krewrite(Pattern, Pattern)       [non-assoc, klabel(krewrite), format(%3 => %5)]
   syntax KLabel2 ::= LowerName
   syntax Symbol  ::= KLabel2
   syntax VarName ::= UpperName
 endmodule
 
-module EXTEND-PATTERNS-WITH-KAST-SYNTAX
+module BACKTICK-PATTERNS-SYNTAX
   imports KORE-SYNTAX
   imports EKORE-KSTRING-SYNTAX
   syntax Variable ::= VarName
@@ -262,7 +274,6 @@ module EXTEND-PATTERNS-WITH-KAST-SYNTAX
                     | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
                     | Pattern "requires" Pattern [klabel(requiresClause)]
                     > Pattern "~>" Pattern [left, klabel(ksequence)]
-                    > Pattern "=>" Pattern [non-assoc, klabel(krewrite)]
   syntax KLabel2 ::= LowerName | BacktickName
 
   syntax Symbol  ::= KLabel2
