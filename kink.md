@@ -370,13 +370,13 @@ Each `MapTransform` adds a symbol to the `MapTransform` sort.
 
 ```k
   syntax MapTransform ::= "#productionsToSortDeclarations"
-  syntax SortName ::= sortNameFromProdDecl(KProductionDeclaration) [function]
+  syntax SortName ::= sortNameFromProdDecl(SyntaxDeclaration) [function]
   rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
 ```
 
 Finally, we define what the transformation does over each declaration:
 
-* If the `Declaration` was not previously declared and is a `KProductionDeclaration`
+* If the `Declaration` was not previously declared and is a `SyntaxDeclaration`
   we map to a new kore `sort` declaration. We also keep the old declaration `DECL` around:
 
 ```k
@@ -384,7 +384,7 @@ Finally, we define what the transformation does over each declaration:
            ( #productionsToSortDeclarations
            , DEFN
            , koreModule(MNAME, PROCESSED_DECLS:Declarations, ATTRS)
-           , DECL:KProductionDeclaration
+           , DECL:SyntaxDeclaration
            )
     => (sort sortNameFromProdDecl(DECL) { .Sorts } [ .Patterns ])
        DECL
@@ -403,10 +403,10 @@ Finally, we define what the transformation does over each declaration:
 ```
 
 The helper function `sortNameFromProdDecl` extracts the name of the sort from
-the `KProductionDeclaration`:
+the `SyntaxDeclaration`:
 
 ```k
-  syntax SortName ::= sortNameFromProdDecl(KProductionDeclaration) [function]
+  syntax SortName ::= sortNameFromProdDecl(SyntaxDeclaration) [function]
   rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
 ```
 
@@ -453,7 +453,7 @@ Generic recursion that we'd like to factor out:
            ( #productionsToSymbolDeclarations
            , DEFN
            , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
-           , DECL:KProductionDeclaration
+           , DECL:SyntaxDeclaration
            )
     => #filterDeclaredSymbols( #getDeclaredKoreSymbolsFromDecls(PROCESSED_DECLS)
                              , #symbolDeclsFromProdDecl(DECL)
@@ -466,7 +466,7 @@ Generic recursion that we'd like to factor out:
 given an E-Kore frontend production declaration.
 
 ```k
-  syntax Declarations ::= #symbolDeclsFromProdDecl(KProductionDeclaration) [function]
+  syntax Declarations ::= #symbolDeclsFromProdDecl(SyntaxDeclaration) [function]
   rule #symbolDeclsFromProdDecl(kSyntaxProduction(KSORT:UpperName, PSEQBLOCK))
     => #symbolDeclsFromPSeqBlock(KSORT, PSEQBLOCK)
 

@@ -90,7 +90,7 @@ module K-PRODUCTION-COMMON
   syntax KProduction ::= KProductionItem
                        | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
 
-  syntax KProductionDeclaration
+  syntax SyntaxDeclaration
     ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
       | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
       | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
@@ -98,7 +98,7 @@ module K-PRODUCTION-COMMON
       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
       | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
       | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
-  syntax EKoreDeclaration ::= KProductionDeclaration
+  syntax EKoreDeclaration ::= SyntaxDeclaration
 endmodule
 
 module K-PRODUCTION-SYNTAX
