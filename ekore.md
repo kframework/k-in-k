@@ -54,16 +54,16 @@ K Productions
 -------------
 
 ```k
-module FRONTEND-COMMON
+module EKORE-BASE
   imports KORE-COMMON
-  syntax KFrontendDeclaration
-  syntax Declaration ::= KFrontendDeclaration
+  syntax EKoreDeclaration
+  syntax Declaration ::= EKoreDeclaration
 endmodule
 ```
 
 ```k
 module K-PRODUCTION-COMMON
-  imports FRONTEND-COMMON
+  imports EKORE-BASE
   imports ATTRIBUTES-COMMON
 
   syntax Tag ::= UpperName | LowerName
@@ -98,7 +98,7 @@ module K-PRODUCTION-COMMON
       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
       | "syntax" "right" KNeTagSet OptionalAttributes [klabel(kSyntaxRight)]
       | "syntax" "non-assoc" KNeTagSet OptionalAttributes [klabel(kSyntaxNonAssoc)]
-  syntax KFrontendDeclaration ::= KProductionDeclaration
+  syntax EKoreDeclaration ::= KProductionDeclaration
 endmodule
 
 module K-PRODUCTION-SYNTAX
@@ -134,12 +134,12 @@ Configuration, Rules and Contexts
 ```k
 module CONFIG-RULE-CONTEXT-COMMON
   imports KORE-COMMON
-  imports FRONTEND-COMMON
+  imports EKORE-BASE
   imports ATTRIBUTES-COMMON
   syntax RuleContents
-  syntax KFrontendDeclaration ::= "configuration" RuleContents [klabel(kConfiguration)]
-                                | "rule"    RuleContents       [klabel(kRule)]
-                                | "context" RuleContents       [klabel(kContext)]
+  syntax EKoreDeclaration ::= "configuration" RuleContents [klabel(kConfiguration)]
+                            | "rule"    RuleContents       [klabel(kRule)]
+                            | "context" RuleContents       [klabel(kContext)]
 endmodule
 
 module CONFIG-RULE-CONTEXT-ABSTRACT

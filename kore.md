@@ -63,13 +63,14 @@ module KORE-COMMON
 
   syntax SortDeclaration ::= "sort" Sort Attribute [klabel(sortDeclaration)]
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort Attribute [klabel(symbolDeclaration)]
-  syntax Declaration ::=
+  syntax KoreDeclaration ::=
       "import" ModuleName Attribute [klabel(koreImports)]
     | "hook-sort" Sort Attribute
     | "hook-symbol" Symbol "(" Sorts ")" ":" Sort Attribute
     | "axiom" "{" Sorts "}" Pattern Attribute [klabel(axiomDeclaration)]
     | SortDeclaration
     | SymbolDeclaration
+  syntax Declaration ::= KoreDeclaration
   syntax Declarations
 
   syntax KoreModule ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModule), format(%1 %2%i%n%3%n%d%4 %5%n)]

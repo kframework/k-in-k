@@ -59,7 +59,7 @@ module KINK
   syntax K ::= "#runWithHaskellBackendPipeline"
   rule <pipeline> #runWithHaskellBackendPipeline
                =>    #ekorePipeline
-                  ~> #removeFrontendDeclarations
+                  ~> #filterKoreDeclarations
                   ...
        </pipeline>
 endmodule
@@ -633,21 +633,21 @@ module REMOVE-FRONTEND-DECLARATIONS
   imports KINK-CONFIGURATION
   imports KINK-VISITORS
 
-  syntax MapTransform ::= "#removeFrontendDeclarations"
+  syntax MapTransform ::= "#filterKoreDeclarations"
   rule #mapDeclarations
-           ( #removeFrontendDeclarations
+           ( #filterKoreDeclarations
            , DEFN
            , MOD
-           , DECL:KFrontendDeclaration
+           , DECL:KoreDeclaration
            )
-    => .Declarations
+    => DECL .Declarations
   rule #mapDeclarations
-           ( #removeFrontendDeclarations
+           ( #filterKoreDeclarations
            , DEFN
            , MOD
            , DECL
            )
-    => DECL .Declarations
+    => .Declarations
        [owise]
 endmodule
 ```
