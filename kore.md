@@ -1,12 +1,15 @@
 ```k
 module TOKENS
+  // Lexical
   syntax UpperName
   syntax LowerName
+  syntax DollarName
   syntax Numbers
+  syntax BacktickName
 
+  // Abstract
   syntax KModuleName ::= UpperName
   syntax KSort       ::= UpperName
-
   syntax ModuleName  ::= KModuleName | UpperName | LowerName
   syntax SymbolName  ::= UpperName | LowerName
   syntax SortName    ::= UpperName | LowerName
@@ -22,8 +25,9 @@ module TOKENS-SYNTAX
                      | "left" [token]
                      // ^ I have no idea why I need to redeclare 'left',
                      //  but it gives a parsing error otherwise
-
   syntax Numbers   ::= r"[\\+-]?[0-9]+"        [token]
+  syntax DollarName ::= r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
+  syntax BacktickName ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
 endmodule
 
 module KORE-COMMON

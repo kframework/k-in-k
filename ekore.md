@@ -260,15 +260,12 @@ module EXTEND-PATTERNS-WITH-KAST-SYNTAX
   syntax Pattern  ::= "#token" "(" KString "," KString ")" [klabel(ktoken)]
                     | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
                     | Pattern "requires" Pattern [klabel(requiresClause)]
-                    // TODO: Can we enforce disallowing nested rewrites at syntax?
                     > Pattern "~>" Pattern [left, klabel(ksequence)]
                     > Pattern "=>" Pattern [non-assoc, klabel(krewrite)]
-  syntax KLabel2 ::= LowerName
-                   | r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
+  syntax KLabel2 ::= LowerName | BacktickName
 
   syntax Symbol  ::= KLabel2
-  syntax VarName ::= UpperName
-                //   | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
+  syntax VarName ::= UpperName | DollarName
 endmodule
 ```
 
