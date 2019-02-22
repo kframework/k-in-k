@@ -18,29 +18,30 @@ module (suffixed `-COMMON`) with code that these two modules can share.
 EKORE
 -----
 
--   the use of "backtick" kast syntax, `#token`, rewrite and sequencing arrows.
--   `syntax`, `rule`s, `configuration` and `context`s. Rules do not allow for
-    concrete language syntax or even kast syntax, but only for the Kore notation
-    for referencing symbols.
--   K Frontend modules
+EKORE extents the KORE syntax to allow:
+
+1. `syntax` declarations,
+2. `configuration`, `rule`s and `context`s, with contents as patterns
+3. Patterns also allow `requires` clauses
+4. Patterns also allow "backtick" syntax and `#token`
 
 ```k
 module EKORE
+  imports KORE-SYNTAX
+  imports K-PRODUCTION-SYNTAX
   imports CONFIG-RULE-CONTEXT-SYNTAX
   imports EXTEND-PATTERNS-WITH-KAST-SYNTAX
   imports K-DEFINITION-SYNTAX
-  imports K-PRODUCTION-SYNTAX
-  imports KORE-SYNTAX
 
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
 endmodule
 
 module EKORE-ABSTRACT
+  imports KORE-ABSTRACT
+  imports K-PRODUCTION-ABSTRACT
   imports CONFIG-RULE-CONTEXT-ABSTRACT
   imports EXTEND-PATTERNS-WITH-KAST-ABSTRACT
   imports K-DEFINITION-ABSTRACT
-  imports K-PRODUCTION-ABSTRACT
-  imports KORE-ABSTRACT
 endmodule
 ```
 
