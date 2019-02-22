@@ -18,65 +18,29 @@ module (suffixed `-COMMON`) with code that these two modules can share.
 EKORE
 -----
 
-In addition to the `EKORE0` syntax, `EKORE` also allows K Frontend modules and
-definitions.
+-   the use of "backtick" kast syntax, `#token`, rewrite and sequencing arrows.
+-   `syntax`, `rule`s, `configuration` and `context`s. Rules do not allow for
+    concrete language syntax or even kast syntax, but only for the Kore notation
+    for referencing symbols.
+-   K Frontend modules
 
 ```k
 module EKORE
+  imports CONFIG-RULE-CONTEXT-SYNTAX
+  imports EXTEND-PATTERNS-WITH-KAST-SYNTAX
   imports K-DEFINITION-SYNTAX
-  imports EKORE0-SYNTAX
+  imports K-PRODUCTION-SYNTAX
+  imports KORE-SYNTAX
 
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
 endmodule
 
 module EKORE-ABSTRACT
-  imports K-DEFINITION-ABSTRACT
-  imports EKORE0-ABSTRACT
-endmodule
-```
-
-EKore 0
--------
-
-`EKORE0` extends `EKORE1` allowing the use of "backtick" kast syntax, `#token`,
-rewrite and sequencing arrows.
-
-```k
-module EKORE0-SYNTAX
-  imports EKORE1-SYNTAX
-  imports EXTEND-PATTERNS-WITH-KAST-SYNTAX
-endmodule
-
-module EKORE0-ABSTRACT
-  imports EKORE1-ABSTRACT
-  imports EXTEND-PATTERNS-WITH-KAST-ABSTRACT
-endmodule
-```
-
-EKore 1
--------
-
-EKORE1 extends KORE with frontend syntax for `syntax`, `rule`s,
-`configuration` and `context`s. Rules do not allow for concrete language syntax
-or even kast syntax, but only for the Kore notation for referencing symbols.
-
-```k
-module EKORE1-COMMON
-  imports KORE-COMMON
-endmodule
-
-module EKORE1-ABSTRACT
-  imports EKORE1-COMMON
-  imports KORE-ABSTRACT
-  imports K-PRODUCTION-ABSTRACT
   imports CONFIG-RULE-CONTEXT-ABSTRACT
-endmodule
-
-module EKORE1-SYNTAX
-  imports EKORE1-COMMON
-  imports KORE-SYNTAX
-  imports K-PRODUCTION-SYNTAX
-  imports CONFIG-RULE-CONTEXT-SYNTAX
+  imports EXTEND-PATTERNS-WITH-KAST-ABSTRACT
+  imports K-DEFINITION-ABSTRACT
+  imports K-PRODUCTION-ABSTRACT
+  imports KORE-ABSTRACT
 endmodule
 ```
 
@@ -97,7 +61,6 @@ endmodule
 ```k
 module K-PRODUCTION-COMMON
   imports FRONTEND-COMMON
-  imports EKORE1-COMMON
   imports ATTRIBUTES-COMMON
 
   syntax Tag ::= UpperName | LowerName
@@ -197,14 +160,18 @@ KString
 We name this module differently to avoid conflicts the `domains.k`s version.
 
 ```k
+module EKORE-KSTRING-COMMON
+  syntax KString
+endmodule
+
+module EKORE-KSTRING-ABSTRACT
+  imports EKORE-KSTRING-COMMON
+endmodule
+
 module EKORE-KSTRING-SYNTAX
   imports EKORE-KSTRING-COMMON
   // optionally qualified strings, like in Scala "abc", i"abc", r"a*bc", etc.
   syntax KString ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token]
-endmodule
-
-module EKORE-KSTRING-COMMON
-  syntax KString
 endmodule
 ```
 
@@ -272,8 +239,8 @@ to be changed accordingly.
 
 ```k
 module EXTEND-PATTERNS-WITH-KAST-ABSTRACT
-  imports TOKENS
-  imports EKORE1-ABSTRACT
+  imports KORE-ABSTRACT
+  imports EKORE-KSTRING-ABSTRACT
   syntax Variable ::= cast(VarName, KSort) [klabel(cast)]
                     | VarName
   syntax Pattern  ::= ktoken(KString, KString)         [klabel(ktoken)]
@@ -287,8 +254,8 @@ module EXTEND-PATTERNS-WITH-KAST-ABSTRACT
 endmodule
 
 module EXTEND-PATTERNS-WITH-KAST-SYNTAX
-  imports TOKENS
-  imports EKORE1-SYNTAX
+  imports KORE-SYNTAX
+  imports EKORE-KSTRING-SYNTAX
   syntax Variable ::= VarName
   syntax Pattern  ::= "#token" "(" KString "," KString ")" [klabel(ktoken)]
                     | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
