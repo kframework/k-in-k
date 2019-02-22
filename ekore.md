@@ -26,7 +26,7 @@ EKORE extents the KORE syntax to allow:
 4. Patterns also allow "backtick" syntax and `#token`
 
 ```k
-module EKORE
+module EKORE-SYNTAX
   imports KORE-SYNTAX
   imports K-PRODUCTION-SYNTAX
   imports CONFIG-RULE-CONTEXT-SYNTAX
