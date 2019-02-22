@@ -61,6 +61,9 @@ module EKORE-BASE
 endmodule
 ```
 
+TODO: `OptionalAttributes` should be macro for `[]`
+TODO: Combine with KORE's `Attribute`
+
 ```k
 module K-PRODUCTION-COMMON
   imports EKORE-BASE
@@ -287,6 +290,8 @@ K Frontend modules
 Since K and Kore have Modules and Definitions that differ slightly, we must
 define a separate K (frontend) module syntax. Note that this module allows both
 K and Kore declarations.
+
+TODO: Make these macros for the corresponding kore concepts
 
 ```k
 module K-DEFINITION-COMMON
