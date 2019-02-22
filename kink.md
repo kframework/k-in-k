@@ -42,7 +42,7 @@ module KINK
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
 
-  syntax K ::= "#ekorePipeline"
+  syntax KItem ::= "#ekorePipeline"
   rule <pipeline> #ekorePipeline
                =>    #parseToEKore
                   ~> #frontendModulesToKoreModules
@@ -53,10 +53,10 @@ module KINK
        </pipeline>
 
   // TODO: Why can't we just specify `-cPIPELINE=.K` from the commandline?
-  syntax K ::= "#nullPipeline"
+  syntax KItem ::= "#nullPipeline"
   rule <pipeline> #nullPipeline => .K </pipeline>
 
-  syntax K ::= "#runWithHaskellBackendPipeline"
+  syntax KItem ::= "#runWithHaskellBackendPipeline"
   rule <pipeline> #runWithHaskellBackendPipeline
                =>    #ekorePipeline
                   ~> #filterKoreDeclarations
@@ -283,13 +283,13 @@ module PARSE-TO-EKORE
   imports EKORE-ABSTRACT
   imports KINK-CONFIGURATION
   imports K-IO
-  syntax K ::= "#parseToEKore"
+  syntax KItem ::= "#parseToEKore"
   syntax Input
   syntax Stdout
   syntax Stderr
-  syntax K ::= parseError(K, K, K) [klabel(parseError)]
-             | amb(K, K)           [klabel(amb)]
-             | bottom(K, K)        [klabel(bottom)]
+  syntax KItem ::= parseError(K, K, K) [klabel(parseError)]
+                 | amb(K, K)           [klabel(amb)]
+                 | bottom(K, K)        [klabel(bottom)]
 
   rule <pipeline> #parseToEKore => .K ... </pipeline>
        <k> T:Any
@@ -314,7 +314,7 @@ module FRONTEND-MODULES-TO-KORE-MODULES
   imports KORE-HELPERS
   imports STRING-SYNTAX
 
-  syntax K ::= "#frontendModulesToKoreModules"
+  syntax KItem ::= "#frontendModulesToKoreModules"
   syntax Modules ::= #toKoreModules(Modules) [function]
 
   rule <pipeline> #frontendModulesToKoreModules => .K
