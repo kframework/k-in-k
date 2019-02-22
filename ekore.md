@@ -155,8 +155,8 @@ endmodule
 module CONFIG-RULE-CONTEXT-SYNTAX
   imports CONFIG-RULE-CONTEXT-COMMON
   imports KORE-SYNTAX
-  syntax RuleContents ::= Pattern                    [klabel(noAttrs)]
-                    | Pattern KAttributesDeclaration [klabel(attrs), prefer]
+  syntax RuleContents ::= Pattern                        [klabel(noAttrs)]
+                        | Pattern KAttributesDeclaration [klabel(attrs), prefer]
 endmodule
 ```
 
