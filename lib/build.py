@@ -60,7 +60,7 @@ def kink_test(base_dir, test_file, pipeline):
                .then(pipeline) \
                .then(kore_from_config.variables(cell = 'k')) \
                .then(proj.check(proj.source(expected))
-                         .variables(flags = '--ignore-all-space')) \
+                         .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
                .default()
 
 ekore_test    = functools.partial(kink_test, pipeline = pipeline('#ekorePipeline'   , 'ekorePipeline'))
@@ -81,7 +81,7 @@ def lang_test(base_dir, module, program):
                                                  .variables(module = module)
                                             ) \
                                        .then(proj.check(expected_pattern) \
-                                                 .variables(flags = '--ignore-all-space')) \
+                                                 .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
                                        .default()
 
 # Foobar
