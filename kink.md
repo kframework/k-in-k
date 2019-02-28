@@ -38,6 +38,7 @@ module KINK
   imports PARSE-OUTER
   imports PARSE-TO-EKORE
   imports FRONTEND-MODULES-TO-KORE-MODULES
+  imports FLATTEN-PRODUCTIONS
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports TRANSLATE-FUNCTION-RULES
@@ -53,6 +54,7 @@ module KINK
   rule <pipeline> #ekorePipeline
                =>    #parseToEKore
                   ~> #frontendModulesToKoreModules
+                  ~> #flattenProductions
                   ~> #productionsToSortDeclarations
                   ~> #productionsToSymbolDeclarations
                   ~> #translateFunctionRules
@@ -221,6 +223,19 @@ module META-ACCESSORS
 ```
 
 ```k
+  syntax Bool ::= #isSymbolDeclared(Declarations, SymbolName) [function]
+  rule #isSymbolDeclared(.Declarations, _) => false
+  rule #isSymbolDeclared( (symbol SYMBOL_NAME { _ } ( _ ) : _ ATTRS)
+                          DECLS
+                        , SYMBOL_NAME
+                        )
+    => true
+  rule #isSymbolDeclared(DECL DECLS, SYMBOL_NAME)
+    => #isSymbolDeclared(DECLS     , SYMBOL_NAME)
+       [owise]
+```
+
+```k
   syntax Set ::= #getDeclaredKoreSymbolsFromDecls(Declarations)         [function]
   rule #getDeclaredKoreSymbolsFromDecls
            ( (symbol SYMBOL_NAME { SORT_PARAM } ( SORT_ARGS ) : SORT ATTRS):Declaration
@@ -371,6 +386,89 @@ endmodule
 Below, in the "Main Module" section, we import this module and add this
 transform to the `#ekorePipeline` function.
 
+Flatten Productions
+-------------------
+
+Convert productions of the form:
+
+```
+    syntax Foo ::= "bar"
+                 | "buzz"
+                 > "gizmo"
+```
+
+into productions fo the form:
+
+```
+    syntax Foo ::= "bar"
+    syntax Foo ::= "buzz"
+    syntax Foo ::= "gizmo"
+```
+
+TODO: Add `prec()` attributes.
+
+```k
+module FLATTEN-PRODUCTIONS
+  imports KINK-VISITORS
+  syntax MapTransform ::= "#flattenProductions"
+
+  rule #mapDeclarations
+           ( #flattenProductions
+           , DEFN
+           , PROCESSED_MODULES
+           , kSyntaxProduction(SORT, P:KProductionWAttr)
+           )
+    => kSyntaxProduction(SORT, P) .Declarations
+
+  rule #mapDeclarations
+           ( #flattenProductions
+           , DEFN
+           , PROCESSED_MODULES
+           , kSyntaxProduction(SORT, P1 > P2)
+           )
+    => #mapDeclarations
+           ( #flattenProductions
+           , DEFN
+           , PROCESSED_MODULES
+           , kSyntaxProduction(SORT, P1)
+           )
+       ++Declarations
+       #mapDeclarations
+           ( #flattenProductions
+           , DEFN
+           , PROCESSED_MODULES
+           , kSyntaxProduction(SORT, P2)
+           )
+
+  rule #mapDeclarations
+           ( #flattenProductions
+           , DEFN
+           , PROCESSED_MODULES
+           , kSyntaxProduction(SORT, P1 | P2)
+           )
+    => #mapDeclarations
+           ( #flattenProductions
+           , DEFN
+           , PROCESSED_MODULES
+           , kSyntaxProduction(SORT, P1)
+           )
+       ++Declarations
+       #mapDeclarations
+           ( #flattenProductions
+           , DEFN
+           , PROCESSED_MODULES
+           , kSyntaxProduction(SORT, P2)
+           )
+
+  rule #mapDeclarations
+           ( #flattenProductions
+           , DEFN, MOD, DECL
+           )
+    => DECL .Declarations [owise]
+endmodule
+```
+
+
 Extract sorts from productions
 ------------------------------
 
@@ -455,11 +553,7 @@ Kore syntax. This transformation is idempotent.
 module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports KINK-VISITORS
   imports META-ACCESSORS
-```
 
-Generic recursion that we'd like to factor out:
-
-```k
   syntax MapTransform ::= "#productionsToSymbolDeclarations"
   rule #mapDeclarations
            ( #productionsToSymbolDeclarations
@@ -469,52 +563,21 @@ Generic recursion that we'd like to factor out:
   rule #mapDeclarations
            ( #productionsToSymbolDeclarations
            , DEFN
-           , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
-           , DECL:SyntaxDeclaration
+           , koreModule(MNAME, PROCESSED_DECLS:Declarations, MOD_ATTRS)
+           , kSyntaxProduction(SORT, kProductionWAttr(PROD, [ ATTRS ]))
            )
-    => #filterDeclaredSymbols( #getDeclaredKoreSymbolsFromDecls(PROCESSED_DECLS)
-                             , #symbolDeclsFromProdDecl(DECL)
-                             )
-       ++Declarations
-       DECL .Declarations
-```
-
-`#symbolDeclsFromProdDecls` extracts a Kore symbol declaration,
-given an E-Kore frontend production declaration.
-
-```k
-  syntax Declarations ::= #symbolDeclsFromProdDecl(SyntaxDeclaration) [function]
-  rule #symbolDeclsFromProdDecl(kSyntaxProduction(KSORT:UpperName, PSEQBLOCK))
-    => #symbolDeclsFromPSeqBlock(KSORT, PSEQBLOCK)
-
-  syntax Declarations ::= #symbolDeclsFromPSeqBlock(SortName, PrioritySeqBlock) [function]
-  rule #symbolDeclsFromPSeqBlock(SORT, prioritySeqBlock(PSEQBLOCK, _, PRODBLOCK))
-    => #symbolDeclsFromPSeqBlock(SORT, PSEQBLOCK)
-       ++Declarations #symbolDeclsFromProdBlock(SORT, PRODBLOCK)
-  rule #symbolDeclsFromPSeqBlock(SORT, PRODBLOCK:ProdBlock)
-    => #symbolDeclsFromProdBlock(SORT, PRODBLOCK)
-
-  syntax Declarations ::= #symbolDeclsFromProdBlock(SortName, ProdBlock) [function]
-  rule #symbolDeclsFromProdBlock(SORT, prodBlock(PRODBLOCK, PRODWATTR))
-    => #symbolDeclsFromProdBlock(SORT, PRODBLOCK)
-       ++Declarations #symbolDeclsFromProdWAttr(SORT, PRODWATTR)
-  rule #symbolDeclsFromProdBlock(SORT, PRODWATTR:KProductionWAttr)
-    => #symbolDeclsFromProdWAttr(SORT, PRODWATTR)
-
-  syntax Declarations ::= #symbolDeclsFromProdWAttr(SortName, KProductionWAttr) [function]
-  rule #symbolDeclsFromProdWAttr(SORT, kProductionWAttr(PROD, [ ATTRS ]))
     => symbol #symbolNameFromAttrList(ATTRS)
-              { .Sorts } (#sortsFromProd(PROD)) : SORT { .Sorts }
-              [ #removeKlabelAttr(ATTRS) ]
+               { .Sorts } (#symbolArgumentsFromProduction(PROD)) : SORT { .Sorts }
+               [ #removeKlabelAttr(ATTRS) ]
+       kSyntaxProduction(SORT, kProductionWAttr(PROD, [ ATTRS ]))
        .Declarations
-
+    requires notBool #isSymbolDeclared(PROCESSED_DECLS, #symbolNameFromAttrList(ATTRS))
 ```
 
 `#symbolNameFromAttrList` extracts the Name to be used for a symbol from the
 
 ```k
   syntax LowerName ::= "klabel" [token]
-
   syntax SymbolName ::= #symbolNameFromAttrList(AttrList) [function]
   rule #symbolNameFromAttrList
            ( consAttrList
@@ -549,56 +612,19 @@ given an E-Kore frontend production declaration.
   rule #attrList2Patterns(.AttrList) => .Patterns
 ```
 
-`#sortsFromProd` extracts a list of kore sorts for an ekore production.
+`#symbolArgumentsFromProduction` extracts a list of kore sorts for an ekore production.
 
 ```k
-  syntax Sorts ::= #sortsFromProd(KProduction) [function]
-
-  rule #sortsFromProd(PRODITEM:KProductionItem)
+  syntax Sorts ::= #symbolArgumentsFromProduction(KProduction) [function]
+  rule #symbolArgumentsFromProduction(PRODITEM:KProductionItem)
     => #sortsFromProdItem(PRODITEM)
-
-  rule #sortsFromProd(kProduction(PROD, PRODITEM))
-    => #sortsFromProd(PROD) ++Sorts #sortsFromProdItem(PRODITEM)
+  rule #symbolArgumentsFromProduction(kProduction(PROD, PRODITEM))
+    => #symbolArgumentsFromProduction(PROD) ++Sorts #sortsFromProdItem(PRODITEM)
 
   syntax Sorts ::= #sortsFromProdItem(KProductionItem) [function]
-
   rule #sortsFromProdItem(nonTerminal(KSORT:UpperName))
     => KSORT { .Sorts } , .Sorts
-
   rule #sortsFromProdItem(_) => .Sorts [owise]
-
-  syntax Sorts ::= #sortsFromKSortList(KSortList) [function]
-
-  rule #sortsFromKSortList(KSORTS, KSORT:UpperName)
-    => #sortsFromKSortList(KSORTS) ++Sorts (KSORT, .Sorts)
-  rule #sortsFromKSortList(KSORT:UpperName)
-    => KSORT, .Sorts
-
-  syntax Declarations ::= #filterDeclaredSymbols(Set, Declarations) [function]
-```
-
-`#filterDeclaredSymbols` - given a set of declared symbols as the first argument,
-filter symbol declarations to avoid duplicate symbol declarations.
-
-```k
-  rule #filterDeclaredSymbols
-           ( SYMBOLS
-           , (symbol NAME { .Sorts } ( SORTS ) : SORT ATTRS)
-             DECLS
-           )
-    => (symbol NAME { .Sorts } ( SORTS ) : SORT ATTRS)
-       #filterDeclaredSymbols(SYMBOLS, DECLS)
-    requires notBool(NAME in SYMBOLS)
-
-  rule #filterDeclaredSymbols(SYMBOLS, (symbol NAME { _ } ( _ ) : _  _ ) DECLS)
-    => #filterDeclaredSymbols(SYMBOLS, DECLS)
-    requires NAME in SYMBOLS
-  rule #filterDeclaredSymbols(SYMBOLS, .Declarations) => .Declarations
-
-  syntax Set ::= #symbolsFromSymbolDecls(Declarations) [function]
-  rule #symbolsFromSymbolDecls((symbol NAME { _ } ( _ ) : _ _) DECLS)
-    => SetItem(NAME) #symbolsFromSymbolDecls(DECLS)
-  rule #symbolsFromSymbolDecls(.Declarations) => .Set
 ```
 
 ```k

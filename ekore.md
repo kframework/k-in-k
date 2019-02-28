@@ -135,7 +135,7 @@ module K-PRODUCTION-COMMON
 
   syntax SyntaxDeclaration
     ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
-      | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3%i%n%4%d)]
+      | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3 %4)]
       | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
       | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
