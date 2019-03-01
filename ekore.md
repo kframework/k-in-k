@@ -69,9 +69,7 @@ endmodule
 module RULES-WITH-BUBBLES-COMMON
   imports CONFIG-RULE-CONTEXT-COMMON
   syntax BubbleItem
-  syntax Bubble ::= Bubble BubbleItem  [token]
-                  | BubbleItem         [token]
-
+  syntax Bubble
   syntax RuleContents ::= Bubble
 endmodule
 
@@ -84,6 +82,8 @@ module RULES-WITH-BUBBLES-SYNTAX
   imports RULES-WITH-BUBBLES-COMMON
   imports CONFIG-RULE-CONTEXT-SYNTAX
   syntax BubbleItem ::= r"[^ \t\n\r]+" [token, reject2("rule|syntax|endmodule|configuration|context")]
+  syntax Bubble ::= Bubble BubbleItem  [token]
+                  | BubbleItem         [token]
 endmodule
 ```
 
