@@ -325,10 +325,19 @@ Parse Bubbles
 ```k
 module PARSE-BUBBLES
   imports KINK-CONFIGURATION
+  imports K-PRODUCTION-ABSTRACT
+  imports EKORE-KSTRING-ABSTRACT
   imports KORE-HELPERS
   imports STRING
 
   syntax KItem ::= "#makeGrammar"
+
+  rule <k> DEFN => "module PGM-GRAMMAR\n" +String
+                   grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
+                   "\nendmodule"
+           ...
+       </k>
+       <pipeline> #makeGrammar ... </pipeline>
 
   syntax Declarations ::= #getAllDeclarations(Definition) [function]
   rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
@@ -345,12 +354,19 @@ module PARSE-BUBBLES
     => .Declarations [owise]
 
   syntax String ::= grammarToString(Declarations) [function]
+  rule grammarToString(.Declarations)
+    => ""
   rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, _)) DECLS)
     => "syntax " +String tokenToString(S) +String " ::= " +String KProductionToString(P)
+       +String "\n"
        +String grammarToString(DECLS)
-  rule grammarToString(kSyntaxProduction(S, kFuncProductionWAttr(TAG, KSORTLIST)) DECLS)
+  rule grammarToString( kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS)
+                        DECLS
+                      )
     => "syntax " +String tokenToString(S) +String " ::= "
-                 +String tokenToString(TAG) +String "(" +String KSortListToString(KSORTLIST) +String ")"
+                 +String tokenToString(TAG)
+                 +String "(" +String KSortListToString(KSORTLIST) +String ")"
+       +String "\n"
        +String grammarToString(DECLS)
 
   syntax String ::= KSortListToString(KSortList) [function]
@@ -363,14 +379,11 @@ module PARSE-BUBBLES
   rule KProductionToString(kProduction(PI, PIs))
     => KProductionItemToString(PI) +String "\n" +String KProductionToString(PIs)
 
+  syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
+
   syntax String ::= KProductionItemToString(KProductionItem) [function]
   rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)
   rule KProductionItemToString(terminal(T))    => tokenToString(T)
-
-  syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
-
-  rule <k> DEFN => grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) ... </k>
-       <pipeline> #makeGrammar ... </pipeline>
 endmodule
 ```
 
