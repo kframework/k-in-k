@@ -329,15 +329,27 @@ module PARSE-BUBBLES
   imports EKORE-KSTRING-ABSTRACT
   imports KORE-HELPERS
   imports STRING
+  imports K-IO
 
   syntax KItem ::= "#makeGrammar"
+                 | "#close"
+                 | "#written"
 
   rule <k> DEFN => "module PGM-GRAMMAR\n" +String
                    grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
-                   "\nendmodule"
+                   "endmodule\n"
            ...
        </k>
        <pipeline> #makeGrammar ... </pipeline>
+  rule <k> GRAMMAR:String => #open("tmp/pgm-grammar.k", "w") ~> GRAMMAR ... </k>
+  rule <k> FD:Int ~> GRAMMAR:String => #write(FD, GRAMMAR) ~> FD ~> #close ... </k>
+  rule <k> FD:Int ~> #close => #written ... </k>
+  rule <k> #written
+        => #parseString( "k-light2k5.sh --output meta-kore --module PGM-GRAMMAR tmp/pgm-grammar.k Nat"
+                       , #token("succ(zero)", "X")
+                       )
+           ...
+       </k>
 
   syntax Declarations ::= #getAllDeclarations(Definition) [function]
   rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
@@ -356,8 +368,10 @@ module PARSE-BUBBLES
   syntax String ::= grammarToString(Declarations) [function]
   rule grammarToString(.Declarations)
     => ""
-  rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, _)) DECLS)
-    => "syntax " +String tokenToString(S) +String " ::= " +String KProductionToString(P)
+  rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, ATTRS)) DECLS)
+    => "syntax " +String tokenToString(S) +String " ::= "
+                 +String KProductionToString(P) +String " "
+                 +String OptionalAttributesToString(ATTRS)
        +String "\n"
        +String grammarToString(DECLS)
   rule grammarToString( kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS)
@@ -365,7 +379,8 @@ module PARSE-BUBBLES
                       )
     => "syntax " +String tokenToString(S) +String " ::= "
                  +String tokenToString(TAG)
-                 +String "(" +String KSortListToString(KSORTLIST) +String ")"
+                 +String "(" +String KSortListToString(KSORTLIST) +String ")" +String " "
+                 +String OptionalAttributesToString(ATTRS)
        +String "\n"
        +String grammarToString(DECLS)
 
@@ -384,6 +399,30 @@ module PARSE-BUBBLES
   syntax String ::= KProductionItemToString(KProductionItem) [function]
   rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)
   rule KProductionItemToString(terminal(T))    => tokenToString(T)
+
+  syntax String ::= OptionalAttributesToString(OptionalAttributes) [function]
+  rule OptionalAttributesToString(noAtt) => ""
+  rule OptionalAttributesToString([ ATTRLIST ])
+    => "[" +String AttrListToString(ATTRLIST) +String "]"
+
+  syntax String ::= AttrListToString(AttrList) [function]
+  rule AttrListToString(.AttrList)       => ""
+  rule AttrListToString(ATTR, .AttrList) => AttrToString(ATTR)
+  rule AttrListToString(ATTR, ATTRs)     => AttrToString(ATTR) +String "," +String AttrListToString(ATTRs)
+
+  syntax String ::= AttrToString(Attr) [function]
+  rule AttrToString(tagSimple(KEY))
+    => tokenToString(KEY)
+  rule AttrToString(KEY:KEY(CONTENTS:TagContents))
+    => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
+  rule AttrToString(KEY:KEY(CONTENTS:EKoreKString))
+    => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
+
+  syntax String ::= TagContentsToString(TagContents) [function]
+  rule TagContentsToString(tagContents(TC, TCs))
+    => tokenToString(TC) +String " " +String TagContentsToString(TCs)
+  rule TagContentsToString(.TagContents)
+    => ""
 endmodule
 ```
 

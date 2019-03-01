@@ -1,10 +1,8 @@
 module PEANO
-  syntax Nat ::= "zero"
-               | succ(Nat)
-               | plus(Nat, Nat) [function]
+  syntax Nat ::= "zero" [klabel(zero)]
+               | succ(Nat) [klabel(succ)]
+               | plus(Nat, Nat) [function, klabel(plus)]
 
   rule plus(zero, Y:Nat) => Y
-
   rule plus(succ(X:Nat), Y:Nat) => succ(plus(X, Y))
-
 endmodule

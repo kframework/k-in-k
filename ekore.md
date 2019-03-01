@@ -245,11 +245,11 @@ endmodule
 
 module ATTRIBUTES-ABSTRACT
   imports ATTRIBUTES-COMMON
-  syntax Attr ::= tagSimple(KEY)          [klabel(tagSimple), format(%3)]
-                | KEY "(" TagContents ")" [klabel(tagContent)]
-                | KEY "(" EKoreKString ")"     [klabel(tagString)]
-  syntax AttrList ::= Attr "," AttrList   [klabel(consAttrList), format(%1 %2 %3)]
-                    | ".AttrList"         [klabel(dotAttrList)]
+  syntax Attr ::= tagSimple(KEY)           [klabel(tagSimple), format(%3)]
+                | KEY "(" TagContents ")"  [klabel(tagContent)]
+                | KEY "(" EKoreKString ")" [klabel(tagString)]
+  syntax AttrList ::= Attr "," AttrList    [klabel(consAttrList), format(%1 %2 %3)]
+                    | ".AttrList"          [klabel(dotAttrList)]
 
   syntax OptionalAttributes ::= "noAtt" [klabel(noKAttributesDeclaration)]
 
@@ -271,8 +271,8 @@ module ATTRIBUTES-SYNTAX
 
   syntax OptionalAttributes ::= "" [klabel(noKAttributesDeclaration)]
 
-  syntax TagContents ::= ""  [klabel(dotTagContents)]
-                       | TagContent TagContents [klabel(tagContents)]
+  syntax TagContents ::= ""  [token, klabel(dotTagContents)]
+                       | TagContent TagContents [token, klabel(tagContents)]
 endmodule
 ```
 
