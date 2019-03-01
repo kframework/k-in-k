@@ -169,7 +169,7 @@ module K-PRODUCTION-ABSTRACT
                            | neListProd(KSort, KString) [klabel(neListProd)]
                            | listProd(KSort,KString)    [klabel(listProd)]
 endmodule
-````
+```
 
 Configuration, Rules and Contexts
 ---------------------------------

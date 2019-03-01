@@ -36,9 +36,11 @@ endmodule
 module KINK
   imports META-ACCESSORS
   imports PARSE-OUTER
+  imports PARSE-BUBBLES
   imports PARSE-TO-EKORE
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports FLATTEN-PRODUCTIONS
+  imports FRONTEND-ABSTRACT
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports TRANSLATE-FUNCTION-RULES
@@ -46,7 +48,10 @@ module KINK
 
   syntax KItem ::= "#frontendPipeline"
   rule <pipeline> #frontendPipeline
-               => #parseOuter
+               =>    #parseOuter
+                  ~> #frontendModulesToKoreModules
+                  ~> #flattenProductions
+                  ~> #makeGrammar
                   ...
        </pipeline>
 
@@ -298,7 +303,7 @@ Transforms
 ==========
 
 Parse Outer
-----------------
+-----------
 
 ```k
 module PARSE-OUTER
@@ -311,6 +316,61 @@ module PARSE-OUTER
         => #parseString("k-light2k5.sh --module FRONTEND-SYNTAX .build/ekore.k Definition", T)
            ...
        </k>
+endmodule
+```
+
+Parse Bubbles
+-------------
+
+```k
+module PARSE-BUBBLES
+  imports KINK-CONFIGURATION
+  imports KORE-HELPERS
+  imports STRING
+
+  syntax KItem ::= "#makeGrammar"
+
+  syntax Declarations ::= #getAllDeclarations(Definition) [function]
+  rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
+    => DECLS ++Declarations #getAllDeclarations(koreDefinition(ATTRS, MODULES))
+  rule #getAllDeclarations(koreDefinition(_, .Modules))
+    => .Declarations
+
+  syntax Declarations ::= #getLanguageGrammar(Declarations) [function]
+  rule #getLanguageGrammar(kSyntaxProduction(S, P) DECLS)
+    => kSyntaxProduction(S, P) #getLanguageGrammar(DECLS)
+  rule #getLanguageGrammar(DECL DECLS)
+    => #getLanguageGrammar(DECLS) [owise]
+  rule #getLanguageGrammar(.Declarations)
+    => .Declarations [owise]
+
+  syntax String ::= grammarToString(Declarations) [function]
+  rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, _)) DECLS)
+    => "syntax " +String tokenToString(S) +String " ::= " +String KProductionToString(P)
+       +String grammarToString(DECLS)
+  rule grammarToString(kSyntaxProduction(S, kFuncProductionWAttr(TAG, KSORTLIST)) DECLS)
+    => "syntax " +String tokenToString(S) +String " ::= "
+                 +String tokenToString(TAG) +String "(" +String KSortListToString(KSORTLIST) +String ")"
+       +String grammarToString(DECLS)
+
+  syntax String ::= KSortListToString(KSortList) [function]
+  rule KSortListToString(S:KSort) => tokenToString(S)
+  rule KSortListToString(Ss, S) => KSortListToString(Ss) +String "," +String tokenToString(S)
+
+  syntax String ::= KProductionToString(KProduction) [function]
+  rule KProductionToString(PI:KProductionItem)
+    => KProductionItemToString(PI)
+  rule KProductionToString(kProduction(PI, PIs))
+    => KProductionItemToString(PI) +String "\n" +String KProductionToString(PIs)
+
+  syntax String ::= KProductionItemToString(KProductionItem) [function]
+  rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)
+  rule KProductionItemToString(terminal(T))    => tokenToString(T)
+
+  syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
+
+  rule <k> DEFN => grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) ... </k>
+       <pipeline> #makeGrammar ... </pipeline>
 endmodule
 ```
 
