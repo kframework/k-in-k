@@ -131,7 +131,7 @@ module K-PRODUCTION-COMMON
 
   syntax KProductionItem
   syntax KProduction ::= KProductionItem
-                       | KProduction KProductionItem [klabel(kProduction), unit(emptyKProduction)]
+                       | KProductionItem KProduction [klabel(kProduction), unit(emptyKProduction)]
 
   syntax SyntaxDeclaration
     ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
