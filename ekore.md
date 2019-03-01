@@ -151,10 +151,10 @@ module K-PRODUCTION-SYNTAX
 
   syntax AssocAttribute  ::= "" [klabel(noAttribute)]
   syntax KProductionItem ::= KSort       [klabel(nonTerminal)]
-                           | KString     [klabel(terminal)]
-                           | "r" KString [klabel(regexTerminal)]
-                           | "NeList" "{" KSort "," KString "}" [klabel(neListProd)]
-                           |   "List" "{" KSort "," KString "}" [klabel(listProd)]
+                           | EKoreKString     [klabel(terminal)]
+                           | "r" EKoreKString [klabel(regexTerminal)]
+                           | "NeList" "{" KSort "," EKoreKString "}" [klabel(neListProd)]
+                           |   "List" "{" KSort "," EKoreKString "}" [klabel(listProd)]
 
 endmodule
 
@@ -163,11 +163,11 @@ module K-PRODUCTION-ABSTRACT
   imports KORE-ABSTRACT
 
   syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
-  syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal), format(%3)]
-                           | terminal(KString)          [klabel(terminal), format(%3)]
-                           | regexTerminal(KString)     [klabel(regexTerminal)]
-                           | neListProd(KSort, KString) [klabel(neListProd)]
-                           | listProd(KSort,KString)    [klabel(listProd)]
+  syntax KProductionItem ::= nonTerminal(KSort)              [klabel(nonTerminal), format(%3)]
+                           | terminal(EKoreKString)          [klabel(terminal), format(%3)]
+                           | regexTerminal(EKoreKString)     [klabel(regexTerminal)]
+                           | neListProd(KSort, EKoreKString) [klabel(neListProd)]
+                           | listProd(KSort,EKoreKString)    [klabel(listProd)]
 endmodule
 ```
 
@@ -194,20 +194,21 @@ endmodule
 
 module CONFIG-RULE-CONTEXT-SYNTAX
   imports CONFIG-RULE-CONTEXT-COMMON
+  imports EKORE-KSTRING-SYNTAX
   imports KORE-SYNTAX
   syntax RuleContents ::= Pattern                        [klabel(noAttrs)]
                         | Pattern KAttributesDeclaration [klabel(attrs), prefer]
 endmodule
 ```
 
-KString
+EKoreKString
 -------
 
 We name this module differently to avoid conflicts the `domains.k`s version.
 
 ```k
 module EKORE-KSTRING-COMMON
-  syntax KString
+  syntax EKoreKString
 endmodule
 
 module EKORE-KSTRING-ABSTRACT
@@ -217,7 +218,7 @@ endmodule
 module EKORE-KSTRING-SYNTAX
   imports EKORE-KSTRING-COMMON
   // optionally qualified strings, like in Scala "abc", i"abc", r"a*bc", etc.
-  syntax KString ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token]
+  syntax EKoreKString ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token]
 endmodule
 ```
 
@@ -246,7 +247,7 @@ module ATTRIBUTES-ABSTRACT
   imports ATTRIBUTES-COMMON
   syntax Attr ::= tagSimple(KEY)          [klabel(tagSimple), format(%3)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
-                | KEY "(" KString ")"     [klabel(tagString)]
+                | KEY "(" EKoreKString ")"     [klabel(tagString)]
   syntax AttrList ::= Attr "," AttrList   [klabel(consAttrList), format(%1 %2 %3)]
                     | ".AttrList"         [klabel(dotAttrList)]
 
@@ -262,7 +263,7 @@ module ATTRIBUTES-SYNTAX
 
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
-                | KEY "(" KString ")"     [klabel(tagString)]
+                | KEY "(" EKoreKString ")"     [klabel(tagString)]
   syntax EmptyAttrList ::= ""             [klabel(dotAttrList )]
   syntax NeAttrList    ::=  Attr "," NeAttrList [klabel(consAttrList)]
                          | Attr EmptyAttrList  [klabel(consAttrList)]
@@ -301,7 +302,7 @@ module BACKTICK-PATTERNS-ABSTRACT
   imports EKORE-KSTRING-ABSTRACT
   syntax Variable ::= cast(VarName, KSort)             [klabel(cast)]
                     | VarName
-  syntax Pattern  ::= ktoken(KString, KString)         [klabel(ktoken)]
+  syntax Pattern  ::= ktoken(EKoreKString, EKoreKString)         [klabel(ktoken)]
                     | wrappedklabel(KLabel2)           [klabel(wrappedklabel)]
                     > ksequence(Pattern, Pattern)      [left, klabel(ksequence)]
   syntax KLabel2 ::= LowerName
@@ -313,7 +314,7 @@ module BACKTICK-PATTERNS-SYNTAX
   imports KORE-SYNTAX
   imports EKORE-KSTRING-SYNTAX
   syntax Variable ::= VarName
-  syntax Pattern  ::= "#token" "(" KString "," KString ")" [klabel(ktoken)]
+  syntax Pattern  ::= "#token" "(" EKoreKString "," EKoreKString ")" [klabel(ktoken)]
                     | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
                     | Pattern "requires" Pattern [klabel(requiresClause)]
                     > Pattern "~>" Pattern [left, klabel(ksequence)]
@@ -341,7 +342,7 @@ module K-DEFINITION-COMMON
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
   syntax KImportList
 
-  syntax KRequire      ::= kRequire(KString) [klabel(kRequire)]
+  syntax KRequire      ::= kRequire(EKoreKString) [klabel(kRequire)]
   syntax KRequireList
 endmodule
 
