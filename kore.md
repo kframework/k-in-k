@@ -12,7 +12,7 @@ module TOKENS
   syntax KSort       ::= UpperName
   syntax ModuleName  ::= KModuleName | UpperName | LowerName
   syntax SymbolName  ::= UpperName | LowerName
-  syntax SortName    ::= UpperName | LowerName
+  syntax SortName    ::= KSort | UpperName | LowerName
   syntax VariableName ::= UpperName | LowerName
 endmodule
 
