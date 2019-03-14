@@ -29,6 +29,7 @@ module KINK-CONFIGURATION
   syntax Any
   configuration <pipeline> $PIPELINE:K </pipeline>
                 <k> $PGM </k>
+  syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
 endmodule
 ```
 
@@ -309,20 +310,63 @@ Parse Outer
 module PARSE-OUTER
   imports KINK-CONFIGURATION
   imports K-IO
+  imports EXTERNAL-PARSE
   syntax KItem ::= "#parseOuter"
   rule <pipeline> #parseOuter => .K ... </pipeline>
        <k> T:Any
-        // TODO: Hard-coded path
-        => #parseString("k-light2k5.sh --module FRONTEND-SYNTAX .build/ekore.k Definition", T)
+        => outerParse(tokenToString(T))
            ...
        </k>
+
+  // take the input given as argument and run outer parsing to get the syntax AST
+  syntax KItem ::= outerParse(String) [function]
+  // TODO: Hard-coded path
+  rule outerParse(S)
+    => externalParse("k-light2k5.sh --module FRONTEND-SYNTAX --output kast .build/ekore.k Definition", S)
 endmodule
 ```
 
 Parse Bubbles
 -------------
 
+
 ```k
+module FILE-UTIL
+  imports K-IO
+  imports DOMAINS
+
+  // saveToFile(path:String, contents:String) -> .K
+  syntax KItem ::= saveToFile(String, String)
+
+  syntax KItem ::= callWriteToFile(String)
+                 | callCloseFile(Int)
+  rule saveToFile(Path, S)
+    => #open(Path, "w") ~> callWriteToFile(S)
+  rule Fd:Int ~> callWriteToFile(S)
+    => #write(Fd, S) ~> callCloseFile(Fd)
+  rule callCloseFile(Fd)
+    => #close(Fd)
+endmodule
+
+module EXTERNAL-PARSE
+  imports K-IO
+  imports LIST
+  imports DOMAINS
+  imports META
+  imports FILE-UTIL
+
+  // externalParse(cmd:String, input:String) -> KAST
+  syntax KItem ::= externalParse(String, String)
+  syntax KItem ::= callSystem ( K )
+                 | "callParseAST"
+                 | "callParseResult"
+  rule externalParse(Path, S)
+    => saveToFile("tempToParse.k", S) ~> callSystem(Path)
+  rule callSystem(Path)
+    => #system(Path +String " tempToParse.k") ~> callParseAST
+  rule #systemResult(0, Stdout, _) ~> callParseAST => #parseAST(Stdout)
+endmodule
+
 module PARSE-BUBBLES
   imports KINK-CONFIGURATION
   imports K-PRODUCTION-ABSTRACT
@@ -330,99 +374,110 @@ module PARSE-BUBBLES
   imports KORE-HELPERS
   imports STRING
   imports K-IO
+  imports EXTERNAL-PARSE
 
   syntax KItem ::= "#makeGrammar"
-                 | "#close"
                  | "#written"
+                 | "#parseToMeta"
 
-  rule <k> DEFN => "module PGM-GRAMMAR\n" +String
-                   grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
-                   "endmodule\n"
-           ...
-       </k>
-       <pipeline> #makeGrammar ... </pipeline>
-  rule <k> GRAMMAR:String => #open("tmp/pgm-grammar.k", "w") ~> GRAMMAR ... </k>
-  rule <k> FD:Int ~> GRAMMAR:String => #write(FD, GRAMMAR) ~> FD ~> #close ... </k>
-  rule <k> FD:Int ~> #close => #written ... </k>
-  rule <k> #written
-        => #parseString( "k-light2k5.sh --output meta-kore --module PGM-GRAMMAR tmp/pgm-grammar.k Nat"
-                       , #token("succ(zero)", "X")
+   rule <k> DEFN => "module PGM-GRAMMAR\n" +String
+                    grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
+                    "endmodule\n"
+            ...
+        </k>
+        <pipeline> #makeGrammar => .K ... </pipeline>
+   rule <k> GRAMMAR:String
+         => saveToFile("tmp/pgm-grammar.k", GRAMMAR)
+         ~> saveToFile("tmp/pgm", "succ(zero)")
+         ~> #written
+            ...
+        </k>
+
+   rule <k> #written
+         => #system("k-light2k5.sh --output kore --module PGM-GRAMMAR tmp/pgm-grammar.k Nat tmp/pgm")
+         ~> #parseToMeta
+            ...
+        </k>
+   rule <k> #systemResult(0, S, _) ~> #parseToMeta
+         => saveToFile("tmp/pgm.kast", S) ~> #parseToMeta
+            ...
+        </k>
+   rule <k> #parseToMeta
+         => #system("k-light2k5.sh --output kast --module KORE-SYNTAX .build/kore.k Pattern tmp/pgm.kast")
+         ~> callParseAST
+            ...
+        </k>
+
+   syntax Declarations ::= #getAllDeclarations(Definition) [function]
+   rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
+     => DECLS ++Declarations #getAllDeclarations(koreDefinition(ATTRS, MODULES))
+   rule #getAllDeclarations(koreDefinition(_, .Modules))
+     => .Declarations
+
+   syntax Declarations ::= #getLanguageGrammar(Declarations) [function]
+   rule #getLanguageGrammar(kSyntaxProduction(S, P) DECLS)
+     => kSyntaxProduction(S, P) #getLanguageGrammar(DECLS)
+   rule #getLanguageGrammar(DECL DECLS)
+     => #getLanguageGrammar(DECLS) [owise]
+   rule #getLanguageGrammar(.Declarations)
+     => .Declarations [owise]
+
+   syntax String ::= grammarToString(Declarations) [function]
+   rule grammarToString(.Declarations)
+     => ""
+   rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, ATTRS)) DECLS)
+     => "syntax " +String tokenToString(S) +String " ::= "
+                  +String KProductionToString(P) +String " "
+                  +String OptionalAttributesToString(ATTRS)
+        +String "\n"
+        +String grammarToString(DECLS)
+   rule grammarToString( kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS)
+                         DECLS
                        )
-           ...
-       </k>
+     => "syntax " +String tokenToString(S) +String " ::= "
+                  +String tokenToString(TAG)
+                  +String "(" +String KSortListToString(KSORTLIST) +String ")" +String " "
+                  +String OptionalAttributesToString(ATTRS)
+        +String "\n"
+        +String grammarToString(DECLS)
 
-  syntax Declarations ::= #getAllDeclarations(Definition) [function]
-  rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
-    => DECLS ++Declarations #getAllDeclarations(koreDefinition(ATTRS, MODULES))
-  rule #getAllDeclarations(koreDefinition(_, .Modules))
-    => .Declarations
+   syntax String ::= KSortListToString(KSortList) [function]
+   rule KSortListToString(S:KSort) => tokenToString(S)
+   rule KSortListToString(Ss, S) => KSortListToString(Ss) +String "," +String tokenToString(S)
 
-  syntax Declarations ::= #getLanguageGrammar(Declarations) [function]
-  rule #getLanguageGrammar(kSyntaxProduction(S, P) DECLS)
-    => kSyntaxProduction(S, P) #getLanguageGrammar(DECLS)
-  rule #getLanguageGrammar(DECL DECLS)
-    => #getLanguageGrammar(DECLS) [owise]
-  rule #getLanguageGrammar(.Declarations)
-    => .Declarations [owise]
+   syntax String ::= KProductionToString(KProduction) [function]
+   rule KProductionToString(PI:KProductionItem)
+     => KProductionItemToString(PI)
+   rule KProductionToString(kProduction(PI, PIs))
+     => KProductionItemToString(PI) +String "\n" +String KProductionToString(PIs)
 
-  syntax String ::= grammarToString(Declarations) [function]
-  rule grammarToString(.Declarations)
-    => ""
-  rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, ATTRS)) DECLS)
-    => "syntax " +String tokenToString(S) +String " ::= "
-                 +String KProductionToString(P) +String " "
-                 +String OptionalAttributesToString(ATTRS)
-       +String "\n"
-       +String grammarToString(DECLS)
-  rule grammarToString( kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS)
-                        DECLS
-                      )
-    => "syntax " +String tokenToString(S) +String " ::= "
-                 +String tokenToString(TAG)
-                 +String "(" +String KSortListToString(KSORTLIST) +String ")" +String " "
-                 +String OptionalAttributesToString(ATTRS)
-       +String "\n"
-       +String grammarToString(DECLS)
+   syntax String ::= KProductionItemToString(KProductionItem) [function]
+   rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)
+   rule KProductionItemToString(terminal(T))    => tokenToString(T)
 
-  syntax String ::= KSortListToString(KSortList) [function]
-  rule KSortListToString(S:KSort) => tokenToString(S)
-  rule KSortListToString(Ss, S) => KSortListToString(Ss) +String "," +String tokenToString(S)
+   syntax String ::= OptionalAttributesToString(OptionalAttributes) [function]
+   rule OptionalAttributesToString(noAtt) => ""
+   rule OptionalAttributesToString([ ATTRLIST ])
+     => "[" +String AttrListToString(ATTRLIST) +String "]"
 
-  syntax String ::= KProductionToString(KProduction) [function]
-  rule KProductionToString(PI:KProductionItem)
-    => KProductionItemToString(PI)
-  rule KProductionToString(kProduction(PI, PIs))
-    => KProductionItemToString(PI) +String "\n" +String KProductionToString(PIs)
+   syntax String ::= AttrListToString(AttrList) [function]
+   rule AttrListToString(.AttrList)       => "dummy"
+   rule AttrListToString(ATTR, .AttrList) => AttrToString(ATTR)
+   rule AttrListToString(ATTR, ATTRs)     => AttrToString(ATTR) +String "," +String AttrListToString(ATTRs)
 
-  syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
+   syntax String ::= AttrToString(Attr) [function]
+   rule AttrToString(tagSimple(KEY))
+     => tokenToString(KEY)
+   rule AttrToString(KEY:KEY(CONTENTS:TagContents))
+     => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
+   rule AttrToString(KEY:KEY(CONTENTS:EKoreKString))
+     => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
 
-  syntax String ::= KProductionItemToString(KProductionItem) [function]
-  rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)
-  rule KProductionItemToString(terminal(T))    => tokenToString(T)
-
-  syntax String ::= OptionalAttributesToString(OptionalAttributes) [function]
-  rule OptionalAttributesToString(noAtt) => ""
-  rule OptionalAttributesToString([ ATTRLIST ])
-    => "[" +String AttrListToString(ATTRLIST) +String "]"
-
-  syntax String ::= AttrListToString(AttrList) [function]
-  rule AttrListToString(.AttrList)       => ""
-  rule AttrListToString(ATTR, .AttrList) => AttrToString(ATTR)
-  rule AttrListToString(ATTR, ATTRs)     => AttrToString(ATTR) +String "," +String AttrListToString(ATTRs)
-
-  syntax String ::= AttrToString(Attr) [function]
-  rule AttrToString(tagSimple(KEY))
-    => tokenToString(KEY)
-  rule AttrToString(KEY:KEY(CONTENTS:TagContents))
-    => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
-  rule AttrToString(KEY:KEY(CONTENTS:EKoreKString))
-    => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
-
-  syntax String ::= TagContentsToString(TagContents) [function]
-  rule TagContentsToString(tagContents(TC, TCs))
-    => tokenToString(TC) +String " " +String TagContentsToString(TCs)
-  rule TagContentsToString(.TagContents)
-    => ""
+   syntax String ::= TagContentsToString(TagContents) [function]
+   rule TagContentsToString(tagContents(TC, TCs))
+     => tokenToString(TC) +String " " +String TagContentsToString(TCs)
+   rule TagContentsToString(.TagContents)
+     => ""
 endmodule
 ```
 
@@ -435,12 +490,12 @@ module PARSE-TO-EKORE
   imports KINK-CONFIGURATION
   imports K-IO
   syntax KItem ::= "#parseToEKore"
-  rule <pipeline> #parseToEKore => .K ... </pipeline>
-       <k> T:Any
-        // TODO: Hard-coded path
-        => #parseString("k-light2k5.sh --module EKORE-SYNTAX .build/ekore.k Definition", T)
-           ...
-       </k>
+//  rule <pipeline> #parseToEKore => .K ... </pipeline>
+//       <k> T:Any
+//        // TODO: Hard-coded path
+//        => #parseString("k-light2k5.sh --module EKORE-SYNTAX .build/ekore.k Definition", T)
+//           ...
+//       </k>
 endmodule
 ```
 
@@ -665,6 +720,8 @@ Kore syntax. This transformation is idempotent.
 module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports KINK-VISITORS
   imports META-ACCESSORS
+  imports STRING
+  imports ID
 
   syntax MapTransform ::= "#productionsToSymbolDeclarations"
   rule #mapDeclarations
@@ -693,11 +750,12 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   syntax SymbolName ::= #symbolNameFromAttrList(AttrList) [function]
   rule #symbolNameFromAttrList
            ( consAttrList
-                 ( tagContent(klabel, tagContents(SNAME, _))
+                 ( tagContent(klabel, SNAME:TagContents)
                  , ATTRS
                  )
            )
-    => SNAME
+    // TODO: Should allow both LowerName and UpperName
+    => {#parseToken("LowerName", tokenToString(SNAME))}:>LowerName
   rule #symbolNameFromAttrList(consAttrList(_, ATTRS))
     => #symbolNameFromAttrList(ATTRS) [owise]
 
