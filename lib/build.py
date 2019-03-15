@@ -8,7 +8,6 @@ import os.path
 # ==================
 
 proj = KProject()
-proj.build(proj.extdir('kore', '.git'), 'git-submodule-init')
 
 # Non-standard rules needed for K in K
 # ------------------------------------
