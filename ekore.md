@@ -91,7 +91,8 @@ module K-PRODUCTION-COMMON
   imports ATTRIBUTES-COMMON
 
   syntax Tag ::= UpperName | LowerName
-  syntax KNeTagSet    ::= NeList{Tag, ""} [klabel(kTagSet)]
+  syntax KNeTagSet    ::= Tag KNeTagSet [klabel(kTagSet)]
+                        | Tag
 
   syntax AssocAttribute ::= "left:"      [klabel(leftAttribute)]
                           | "right:"     [klabel(rightAttribute)]
