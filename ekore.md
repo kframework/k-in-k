@@ -25,6 +25,8 @@ definitions.
 module EKORE-SYNTAX
   imports K-DEFINITION-SYNTAX
   imports EKORE0-SYNTAX
+
+  syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
 endmodule
 
 module EKORE-ABSTRACT
