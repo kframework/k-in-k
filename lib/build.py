@@ -86,7 +86,7 @@ def lang_test(base_dir, module, program):
 
 # Foobar
 foobar_tests = []
-foobar_tests += [ frontend_test('t/foobar', 'foobar.k')          ]
+# foobar_tests += [ frontend_test('t/foobar', 'foobar.k')          ]
 foobar_tests += [ ekore_test('t/foobar', 'foobar.ekore')         ]
 foobar_tests += [ ekore_test('t/foobar', 'expected.ekore')       ]
 foobar_tests += [ lang_test('t/foobar', 'FOOBAR', 'bar.foobar') ]
@@ -94,7 +94,7 @@ proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests))
 
 # Peano
 peano_tests = []
-peano_tests += [ frontend_test('t/peano', 'peano.k')          ]
+# peano_tests += [ frontend_test('t/peano', 'peano.k')          ]
 peano_tests += [ ekore_test('t/peano', 'peano.ekore')    ]
 peano_tests += [ ekore_test('t/peano', 'expected.ekore') ]
 peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]

@@ -37,7 +37,7 @@ endmodule
 module KINK
   imports META-ACCESSORS
   imports PARSE-OUTER
-  imports PARSE-BUBBLES
+  imports PARSE-PROGRAM
   imports PARSE-TO-EKORE
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports FLATTEN-PRODUCTIONS
@@ -300,6 +300,58 @@ TODO: I'd like something like this eventually:
 endmodule
 ```
 
+```k
+module IO-HELPERS
+  imports KINK-CONFIGURATION
+  imports K-IO
+  imports META
+
+  syntax StringOrHole ::= "#hole"
+                        | String
+  syntax KItem ::= "#withFD" "(" IOInt ")"
+                 | "#doWrite" "(" String ")"
+                 | "#doClose"
+                 | "#writeStringToFile" "(" StringOrHole "," String ")"
+                 | "#doSystem" "(" String ")"
+                 | "#doSystemGetOutput"
+                 | "#doParseAST"
+
+  rule <k> S:String ~> #writeStringToFile(#hole, FILE)
+        => #writeStringToFile(S, FILE)
+           ...
+       </k>
+  rule <k> #writeStringToFile(STRING, FILE)
+        => #withFD(#open(FILE, "w")) ~> #doWrite(STRING) ~> #doClose
+           ...
+       </k>
+
+  rule <k> #withFD(I:Int) ~> #doWrite(CONTENT)
+        => #withFD(I) ~> #write(I, CONTENT)
+           ...
+       </k>
+
+  rule <k> #withFD(I:Int) ~> #doClose
+        => #close(I)
+           ...
+       </k>
+
+  rule <k> #doSystem(COMMAND) => #system(COMMAND)
+           ...
+       </k>
+
+  rule <k> #systemResult(0, STDOUT, STDERR) ~> #doSystemGetOutput
+        => STDOUT
+           ...
+       </k>
+
+  rule <k> S:String ~> #doParseAST
+        => #parseAST(S)
+           ...
+       </k>
+
+endmodule
+```
+
 Transforms
 ==========
 
@@ -309,104 +361,50 @@ Parse Outer
 ```k
 module PARSE-OUTER
   imports KINK-CONFIGURATION
-  imports K-IO
-  imports EXTERNAL-PARSE
+  imports IO-HELPERS
+
   syntax KItem ::= "#parseOuter"
   rule <pipeline> #parseOuter => .K ... </pipeline>
        <k> T:Any
-        => outerParse(tokenToString(T))
+        => #writeStringToFile(tokenToString(T), "tmp/definition")
+        ~> #doSystem("k-light2k5.sh --module FRONTEND-SYNTAX --output kast .build/ekore.k Definition tmp/definition")
+        ~> #doSystemGetOutput
+        ~> #doParseAST
            ...
        </k>
-
-  // take the input given as argument and run outer parsing to get the syntax AST
-  syntax KItem ::= outerParse(String) [function]
-  // TODO: Hard-coded path
-  rule outerParse(S)
-    => externalParse("k-light2k5.sh --module FRONTEND-SYNTAX --output kast .build/ekore.k Definition", S)
 endmodule
 ```
 
-Parse Bubbles
+Parse Program
 -------------
 
-
 ```k
-module FILE-UTIL
-  imports K-IO
-  imports DOMAINS
-
-  // saveToFile(path:String, contents:String) -> .K
-  syntax KItem ::= saveToFile(String, String)
-
-  syntax KItem ::= callWriteToFile(String)
-                 | callCloseFile(Int)
-  rule saveToFile(Path, S)
-    => #open(Path, "w") ~> callWriteToFile(S)
-  rule Fd:Int ~> callWriteToFile(S)
-    => #write(Fd, S) ~> callCloseFile(Fd)
-  rule callCloseFile(Fd)
-    => #close(Fd)
-endmodule
-
-module EXTERNAL-PARSE
-  imports K-IO
-  imports LIST
-  imports DOMAINS
-  imports META
-  imports FILE-UTIL
-
-  // externalParse(cmd:String, input:String) -> KAST
-  syntax KItem ::= externalParse(String, String)
-  syntax KItem ::= callSystem ( K )
-                 | "callParseAST"
-                 | "callParseResult"
-  rule externalParse(Path, S)
-    => saveToFile("tempToParse.k", S) ~> callSystem(Path)
-  rule callSystem(Path)
-    => #system(Path +String " tempToParse.k") ~> callParseAST
-  rule #systemResult(0, Stdout, _) ~> callParseAST => #parseAST(Stdout)
-endmodule
-
-module PARSE-BUBBLES
+module PARSE-PROGRAM
   imports KINK-CONFIGURATION
   imports K-PRODUCTION-ABSTRACT
   imports EKORE-KSTRING-ABSTRACT
   imports KORE-HELPERS
   imports STRING
-  imports K-IO
-  imports EXTERNAL-PARSE
+  imports IO-HELPERS
 
   syntax KItem ::= "#makeGrammar"
-                 | "#written"
-                 | "#parseToMeta"
 
-   rule <k> DEFN => "module PGM-GRAMMAR\n" +String
-                    grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
-                    "endmodule\n"
-            ...
-        </k>
-        <pipeline> #makeGrammar => .K ... </pipeline>
-   rule <k> GRAMMAR:String
-         => saveToFile("tmp/pgm-grammar.k", GRAMMAR)
-         ~> saveToFile("tmp/pgm", "succ(zero)")
-         ~> #written
-            ...
-        </k>
-
-   rule <k> #written
-         => #system("k-light2k5.sh --output kore --module PGM-GRAMMAR tmp/pgm-grammar.k Nat tmp/pgm")
-         ~> #parseToMeta
-            ...
-        </k>
-   rule <k> #systemResult(0, S, _) ~> #parseToMeta
-         => saveToFile("tmp/pgm.kast", S) ~> #parseToMeta
-            ...
-        </k>
-   rule <k> #parseToMeta
-         => #system("k-light2k5.sh --output kast --module KORE-SYNTAX .build/kore.k Pattern tmp/pgm.kast")
-         ~> callParseAST
-            ...
-        </k>
+  rule <k> DEFN
+        => #writeStringToFile("tmp/pgm-grammar.k"
+                             , "module PGM-GRAMMAR\n" +String
+                               grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
+                               "endmodule\n"
+                             )
+        ~> #writeStringToFile("tmp/pgm", "succ(zero)")
+        ~> #doSystem("k-light2k5.sh --output kore --module PGM-GRAMMAR tmp/pgm-grammar.k Nat tmp/pgm")
+        ~> #doSystemGetOutput
+        ~> #writeStringToFile(#hole, "tmp/pgm.kore")
+        ~> #doSystem("k-light2k5.sh --output kast --module KORE-SYNTAX .build/kore.k Pattern tmp/pgm.kore")
+        ~> #doSystemGetOutput
+        ~> #doParseAST
+           ...
+       </k>
+       <pipeline> #makeGrammar => .K ... </pipeline>
 
    syntax Declarations ::= #getAllDeclarations(Definition) [function]
    rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
@@ -488,14 +486,17 @@ Parse into EKore
 module PARSE-TO-EKORE
   imports EKORE-ABSTRACT
   imports KINK-CONFIGURATION
-  imports K-IO
+  imports IO-HELPERS
   syntax KItem ::= "#parseToEKore"
-//  rule <pipeline> #parseToEKore => .K ... </pipeline>
-//       <k> T:Any
-//        // TODO: Hard-coded path
-//        => #parseString("k-light2k5.sh --module EKORE-SYNTAX .build/ekore.k Definition", T)
-//           ...
-//       </k>
+
+  rule <k> T:Any
+        => #writeStringToFile(tokenToString(T), "tmp/definition.k")
+        ~> #doSystem("k-light2k5.sh --module EKORE-SYNTAX .build/ekore.k Definition tmp/definition.k")
+        ~> #doSystemGetOutput
+        ~> #doParseAST
+           ...
+       </k>
+       <pipeline> #parseToEKore => .K ... </pipeline>
 endmodule
 ```
 
@@ -635,7 +636,6 @@ module FLATTEN-PRODUCTIONS
 endmodule
 ```
 
-
 Extract sorts from productions
 ------------------------------
 
@@ -755,7 +755,10 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
                  )
            )
     // TODO: Should allow both LowerName and UpperName
-    => {#parseToken("LowerName", tokenToString(SNAME))}:>LowerName
+    // TODO: Do not silently allow multiple words as klabels (e.g. if the tag
+    //       contents has a space in it). Really speaking we need to parse
+    //       the TagContents as a SymbolName, and not just do some ad-hoc processing
+    => {#parseToken("LowerName", replaceAll(tokenToString(SNAME), " ", ""))}:>LowerName
   rule #symbolNameFromAttrList(consAttrList(_, ATTRS))
     => #symbolNameFromAttrList(ATTRS) [owise]
 
@@ -788,8 +791,8 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   syntax Sorts ::= #symbolArgumentsFromProduction(KProduction) [function]
   rule #symbolArgumentsFromProduction(PRODITEM:KProductionItem)
     => #sortsFromProdItem(PRODITEM)
-  rule #symbolArgumentsFromProduction(kProduction(PROD, PRODITEM))
-    => #symbolArgumentsFromProduction(PROD) ++Sorts #sortsFromProdItem(PRODITEM)
+  rule #symbolArgumentsFromProduction(kProduction(PRODITEM, PROD))
+    => #sortsFromProdItem(PRODITEM) ++Sorts #symbolArgumentsFromProduction(PROD)
 
   syntax Sorts ::= #sortsFromProdItem(KProductionItem) [function]
   rule #sortsFromProdItem(nonTerminal(KSORT:UpperName))
