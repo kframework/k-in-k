@@ -22,7 +22,7 @@ In addition to the `EKORE0` syntax, `EKORE` also allows K Frontend modules and
 definitions.
 
 ```k
-module EKORE-SYNTAX
+module EKORE
   imports K-DEFINITION-SYNTAX
   imports EKORE0-SYNTAX
 
