@@ -62,18 +62,19 @@ or even kast syntax, but only for the Kore notation for referencing symbols.
 
 ```k
 module EKORE1-COMMON
-  syntax KFrontendDeclaration
-  syntax Declaration ::= KFrontendDeclaration
+  imports KORE-COMMON
 endmodule
 
 module EKORE1-ABSTRACT
   imports EKORE1-COMMON
+  imports KORE-ABSTRACT
   imports K-PRODUCTION-ABSTRACT
   imports CONFIG-RULE-CONTEXT-ABSTRACT
 endmodule
 
 module EKORE1-SYNTAX
   imports EKORE1-COMMON
+  imports KORE-SYNTAX
   imports K-PRODUCTION-SYNTAX
   imports CONFIG-RULE-CONTEXT-SYNTAX
 endmodule
@@ -86,8 +87,17 @@ K Productions
 -------------
 
 ```k
-module K-PRODUCTION-COMMON
+module FRONTEND-COMMON
   imports KORE-COMMON
+  syntax KFrontendDeclaration
+  syntax Declaration ::= KFrontendDeclaration
+endmodule
+```
+
+```k
+module K-PRODUCTION-COMMON
+  imports FRONTEND-COMMON
+  imports EKORE1-COMMON
   imports ATTRIBUTES-COMMON
 
   syntax Tag ::= UpperName | LowerName
@@ -144,7 +154,7 @@ module K-PRODUCTION-ABSTRACT
   imports KORE-ABSTRACT
 
   syntax AssocAttribute  ::= "noAssoc" [klabel(noAttribute)]
-  syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal)]
+  syntax KProductionItem ::= nonTerminal(KSort)         [klabel(nonTerminal), format(%3)]
                            | terminal(KString)          [klabel(terminal), format(%3)]
                            | regexTerminal(KString)     [klabel(regexTerminal)]
                            | neListProd(KSort, KString) [klabel(neListProd)]
@@ -158,6 +168,7 @@ Configuration, Rules and Contexts
 ```k
 module CONFIG-RULE-CONTEXT-COMMON
   imports KORE-COMMON
+  imports FRONTEND-COMMON
   imports ATTRIBUTES-COMMON
   syntax Contents
   syntax KFrontendDeclaration ::= "configuration" Contents [klabel(kConfiguration)]
@@ -215,19 +226,27 @@ module ATTRIBUTES-COMMON
   syntax TagContent ::= UpperName | LowerName | Numbers
   syntax TagContents
   syntax KEY ::= LowerName
+
 endmodule
 
 module ATTRIBUTES-ABSTRACT
   imports ATTRIBUTES-COMMON
-  syntax Attr ::= tagSimple(LowerName)    [klabel(tagSimple), format(%3)]
+  syntax Attr ::= tagSimple(KEY)          [klabel(tagSimple), format(%3)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
+  syntax AttrList ::= Attr "," AttrList   [klabel(consAttrList), format(%1 %2 %3)]
+                    | ".AttrList"         [klabel(dotAttrList)]
+
   syntax OptionalAttributes ::= "noAtt" [klabel(noKAttributesDeclaration)]
+
+  syntax TagContents ::= ".tagContents"  [klabel(dotTagContents), format()]
+                       | TagContent TagContents [klabel(tagContents)]
 endmodule
 
 module ATTRIBUTES-SYNTAX
   imports ATTRIBUTES-COMMON
   imports TOKENS-SYNTAX
+
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
@@ -237,6 +256,9 @@ module ATTRIBUTES-SYNTAX
   syntax AttrList ::= NeAttrList | EmptyAttrList
 
   syntax OptionalAttributes ::= "" [klabel(noKAttributesDeclaration)]
+
+  syntax TagContents ::= ""  [klabel(dotTagContents)]
+                       | TagContent TagContents [klabel(tagContents)]
 endmodule
 ```
 
@@ -267,20 +289,19 @@ endmodule
 module EXTEND-PATTERNS-WITH-KAST-SYNTAX
   imports TOKENS
   imports EKORE1-SYNTAX
-  syntax Variable ::= VarName ":" KSort [klabel(cast)]
-                    | VarName
+  syntax Variable ::= VarName
   syntax Pattern  ::= "#token" "(" KString "," KString ")" [klabel(ktoken)]
                     | "#klabel" "(" KLabel2 ")" [klabel(wrappedklabel)]
                     | Pattern "requires" Pattern [klabel(requiresClause)]
                     // TODO: Can we enforce disallowing nested rewrites at syntax?
                     > Pattern "~>" Pattern [left, klabel(ksequence)]
                     > Pattern "=>" Pattern [non-assoc, klabel(krewrite)]
-  syntax KLabel2 ::= LowerName [token]
+  syntax KLabel2 ::= LowerName
                    | r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
 
   syntax Symbol  ::= KLabel2
-  syntax VarName ::= UpperName [token]
-                   | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
+  syntax VarName ::= UpperName
+                //   | r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
 endmodule
 ```
 
@@ -294,6 +315,7 @@ K and Kore declarations.
 ```k
 module K-DEFINITION-COMMON
   imports TOKENS
+  imports EKORE-KSTRING-COMMON
 
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
   syntax KImportList

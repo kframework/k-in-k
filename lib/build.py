@@ -45,7 +45,7 @@ kink  = proj.definition( backend   = 'java'
                        , main      = proj.tangle('kink.md')
                        , other     = [kore, ekore]
                        , directory = proj.builddir('kink')
-                       , flags     = '--syntax-module EKORE-SYNTAX'
+                       , flags     = '--syntax-module KINK-SYNTAX'
                        , alias     = 'kink'
                        )
 

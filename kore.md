@@ -28,7 +28,6 @@ endmodule
 
 module KORE-COMMON
   imports TOKENS
-  imports STRING-SYNTAX
 
   syntax Sort     ::= SortName | SortName "{" Sorts "}" [klabel(nameParam)]
   syntax Sorts
@@ -36,8 +35,8 @@ module KORE-COMMON
   syntax Variable ::= VariableName ":" Sort [klabel(varType)]
 
   syntax Pattern ::= Variable
-                   | String
-                   | Symbol "(" Patterns ")" [klabel(symbolParams)]
+                // | String
+                   | Symbol "(" Patterns ")" [klabel(application)]
                    | "\\and"      "{" Sort "}"          "(" Pattern "," Pattern ")"
                    | "\\not"      "{" Sort "}"          "(" Pattern ")"
                    | "\\or"       "{" Sort "}"          "(" Pattern "," Pattern ")"
@@ -47,7 +46,7 @@ module KORE-COMMON
                    | "\\exists"   "{" Sort "}"          "(" Variable "," Pattern ")"
                    | "\\ceil"     "{" Sort "," Sort "}" "(" Pattern ")"
                    | "\\floor"    "{" Sort "," Sort "}" "(" Pattern ")"
-                   | "\\equals"   "{" Sort "," Sort "}" "(" Pattern "," Pattern ")"
+                   | "\\equals"   "{" Sort "," Sort "}" "(" Pattern "," Pattern ")" [klabel(equals)]
                    | "\\in"       "{" Sort "," Sort "}" "(" Pattern "," Pattern ")"
                    | "\\top"      "{" Sort "}"          "(" ")"
                    | "\\bottom"   "{" Sort "}"          "(" ")"
@@ -56,15 +55,15 @@ module KORE-COMMON
                    | "\\dv"       "{" Sort "}"          "(" Pattern ")"
   syntax Patterns
 
-  syntax Attribute ::= "[" Patterns "]"
+  syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes)]
 
-  syntax SortDeclaration ::= "sort" Sort Attribute
-  syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort Attribute
+  syntax SortDeclaration ::= "sort" Sort Attribute [klabel(sortDeclaration)]
+  syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort Attribute [klabel(symbolDeclaration)]
   syntax Declaration ::=
-      "import" ModuleName Attribute
+      "import" ModuleName Attribute [klabel(koreImports)]
     | "hook-sort" Sort Attribute
     | "hook-symbol" Symbol "(" Sorts ")" ":" Sort Attribute
-    | "axiom" "{" Sorts "}" Pattern Attribute
+    | "axiom" "{" Sorts "}" Pattern Attribute [klabel(axiomDeclaration)]
     | SortDeclaration
     | SymbolDeclaration
   syntax Declarations
@@ -92,13 +91,13 @@ module KORE-SYNTAX
   syntax Patterns ::= NePatterns | EmptyPatterns
 
   syntax EmptyDeclarations ::= ""               [klabel(dotDeclarations )]
-  syntax NeDeclarations    ::= Declaration NeDeclarations [klabel(consDeclarations), format(%1%n%2)]
-                             | Declaration EmptyDeclarations  [klabel(consDeclarations), format(%1%n%2)]
+  syntax NeDeclarations    ::= Declaration NeDeclarations [klabel(consDeclarations)]
+                             | Declaration EmptyDeclarations  [klabel(consDeclarations)]
   syntax Declarations ::= NeDeclarations | EmptyDeclarations
 
   syntax EmptyModules ::= ""               [klabel(dotModules )]
-  syntax NeModules    ::= Module NeModules [klabel(consModules), format(%1%n%2)]
-                        | Module EmptyModules  [klabel(consModules), format(%1%n%2)]
+  syntax NeModules    ::= Module NeModules [klabel(consModules)]
+                        | Module EmptyModules  [klabel(consModules)]
   syntax Modules ::= NeModules | EmptyModules
 endmodule
 
@@ -111,34 +110,10 @@ module KORE-ABSTRACT
   syntax Patterns ::= Pattern "," Patterns [klabel(consPatterns)]
                     | ".Patterns"          [klabel(dotPatterns )]
 
-  syntax Declarations ::= Declaration Declarations [klabel(consDeclarations)]
+  syntax Declarations ::= Declaration Declarations [klabel(consDeclarations), format(%1%n%2)]
                     | ".Declarations"              [klabel(dotDeclarations )]
 
-  syntax Modules ::= Module Modules [klabel(consModules)]
+  syntax Modules ::= Module Modules [klabel(consModules), format(%1%n%2)]
                     | ".Modules"    [klabel(dotModules )]
-endmodule
-
-module KORE-HELPERS
-  imports KORE-ABSTRACT
-  imports DOMAINS
-
-  syntax Declarations ::= Declarations "++Declarations" Declarations [function]
-  rule (D1 DS1) ++Declarations DS2 => D1 (DS1 ++Declarations DS2)
-  rule .Declarations ++Declarations DS2 => DS2
-
-  syntax Modules ::= Modules "++Modules" Modules [function]
-  rule (M1 MS1) ++Modules MS2 => M1 (MS1 ++Modules MS2)
-  rule .Modules ++Modules MS2 => MS2
-
-  syntax Sorts ::= Sorts "++Sorts" Sorts [function]
-  rule (S1, SS1) ++Sorts SS2 => S1, (SS1 ++Sorts SS2)
-  rule .Sorts ++Sorts SS2 => SS2
-
-  syntax Bool ::= Pattern "inPatterns" Patterns                      [function]
-  rule (P inPatterns           .Patterns) => false
-  rule (P inPatterns P:Pattern  ,  PS)    => true
-  rule (P inPatterns P1:Pattern ,  PS)
-    => (P inPatterns               PS)
-    requires notBool P ==K P1
 endmodule
 ```

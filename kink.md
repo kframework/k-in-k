@@ -2,27 +2,40 @@
 requires "ekore.k"
 ```
 
+Syntax
+======
+
+We bypass K5 parsing to use k-lights. This is because K-light allows returning
+bubbles.
+
+```k
+module KINK-SYNTAX
+  syntax Any ::= r"([\\n\\r]|.)*" [token]
+endmodule
+```
+
 Configuration & Main Module
 ===========================
 
-The K in K configuration has a "k" cell containing a definition, and a "pipeline" cell
-containing operations that map over the definition in the K cell.
+The K in K configuration has a "k" cell containing a definition, and a
+"pipeline" cell containing operations that map over the definition in the K
+cell. When an operation is at the top of the `<pipeline>` cell, it must
+transform the declaration as needed.
 
 ```k
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
   imports SET
+  syntax Any
   configuration <pipeline> $PIPELINE:K </pipeline>
-                <k> $PGM:Definition </k>
+                <k> $PGM </k>
 endmodule
 ```
-
-When an operation is at the top of the `<pipeline>` cell, it must transform the
-declaration as needed.
 
 ```k
 module KINK
   imports META-ACCESSORS
+  imports PARSE-TO-EKORE
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
@@ -31,7 +44,8 @@ module KINK
 
   syntax K ::= "#ekorePipeline"
   rule <pipeline> #ekorePipeline
-               =>    #frontendModulesToKoreModules
+               =>    #parseToEKore
+                  ~> #frontendModulesToKoreModules
                   ~> #productionsToSortDeclarations
                   ~> #productionsToSymbolDeclarations
                   ~> #translateFunctionRules
@@ -150,6 +164,32 @@ endmodule
 Meta functions
 ==============
 
+```k
+module KORE-HELPERS
+  imports KORE-ABSTRACT
+  imports K-EQUAL
+
+  syntax Declarations ::= Declarations "++Declarations" Declarations [function]
+  rule (D1 DS1) ++Declarations DS2 => D1 (DS1 ++Declarations DS2)
+  rule .Declarations ++Declarations DS2 => DS2
+
+  syntax Modules ::= Modules "++Modules" Modules [function]
+  rule (M1 MS1) ++Modules MS2 => M1 (MS1 ++Modules MS2)
+  rule .Modules ++Modules MS2 => MS2
+
+  syntax Sorts ::= Sorts "++Sorts" Sorts [function]
+  rule (S1, SS1) ++Sorts SS2 => S1, (SS1 ++Sorts SS2)
+  rule .Sorts ++Sorts SS2 => SS2
+
+  syntax Bool ::= Pattern "inPatterns" Patterns                      [function]
+  rule (P inPatterns           .Patterns) => false
+  rule (P inPatterns P:Pattern  ,  PS)    => true
+  rule (P inPatterns P1:Pattern ,  PS)
+    => (P inPatterns               PS)
+    requires notBool P ==K P1
+endmodule
+```
+
 -   TODO: Functions defined here should be modelled after the functions in
     section 7 of the semantics of K document.
 -   TODO: Recurse into imported modules
@@ -158,6 +198,7 @@ Meta functions
 module META-ACCESSORS
   imports KINK-CONFIGURATION
   imports KINK-VISITORS
+  imports BOOL
   imports SET
 
   syntax Bool ::= #isSortDeclared(Declarations, SortName) [function]
@@ -234,6 +275,31 @@ endmodule
 Transforms
 ==========
 
+Parse into EKore
+----------------
+
+```k
+module PARSE-TO-EKORE
+  imports EKORE-ABSTRACT
+  imports KINK-CONFIGURATION
+  imports K-IO
+  syntax K ::= "#parseToEKore"
+  syntax Input
+  syntax Stdout
+  syntax Stderr
+  syntax K ::= parseError(K, K, K) [klabel(parseError)]
+             | amb(K, K)           [klabel(amb)]
+             | bottom(K, K)        [klabel(bottom)]
+
+  rule <pipeline> #parseToEKore => .K ... </pipeline>
+       <k> T:Any
+        // TODO: Hard-coded path
+        => #parseString("k-light2k5.sh .build/ekore.k Definition", T)
+           ...
+       </k>
+endmodule
+```
+
 K (frontend) modules to Kore Modules
 ------------------------------------
 
@@ -246,6 +312,7 @@ TODO: This needs to convert the modules into a topological order and check for c
 module FRONTEND-MODULES-TO-KORE-MODULES
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
+  imports STRING-SYNTAX
 
   syntax K ::= "#frontendModulesToKoreModules"
   syntax Modules ::= #toKoreModules(Modules) [function]
@@ -424,28 +491,29 @@ given an E-Kore frontend production declaration.
               [ #removeKlabelAttr(ATTRS) ]
        .Declarations
 
-  syntax LowerName ::= "klabel" [token]
 ```
 
 `#symbolNameFromAttrList` extracts the Name to be used for a symbol from the
 
 ```k
+  syntax LowerName ::= "klabel" [token]
+
   syntax SymbolName ::= #symbolNameFromAttrList(AttrList) [function]
   rule #symbolNameFromAttrList
-           ( kAttributesList
+           ( consAttrList
                  ( tagContent(klabel, tagContents(SNAME, _))
                  , ATTRS
                  )
            )
     => SNAME
-  rule #symbolNameFromAttrList(kAttributesList(_, ATTRS))
+  rule #symbolNameFromAttrList(consAttrList(_, ATTRS))
     => #symbolNameFromAttrList(ATTRS) [owise]
 
   syntax Patterns ::= #removeKlabelAttr(AttrList) [function]
-  rule #removeKlabelAttr(kAttributesList(tagContent(klabel, _), ATTRS))
+  rule #removeKlabelAttr(consAttrList(tagContent(klabel, _), ATTRS))
     => #attrList2Patterns(ATTRS)
-  rule #removeKlabelAttr(kAttributesList(ATTR, ATTRS))
-    => #attr2Pattern(ATTR), #removeKlabelAttr(ATTRS) [owise]
+  rule #removeKlabelAttr(consAttrList(ATTRS, ATTR))
+    => #attr2Pattern(ATTRS), #removeKlabelAttr(ATTR) [owise]
   rule #removeKlabelAttr(.AttrList) => .Patterns
 ```
 
@@ -459,6 +527,7 @@ given an E-Kore frontend production declaration.
 
   syntax Patterns ::= #attrList2Patterns(AttrList) [function]
 
+  // TODO: This reverses the pattern list
   rule #attrList2Patterns(ATTR, ATTRS) => #attr2Pattern(ATTR), #attrList2Patterns(ATTRS)
   rule #attrList2Patterns(.AttrList) => .Patterns
 ```
