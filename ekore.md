@@ -180,6 +180,23 @@ module CONFIG-RULE-CONTEXT-SYNTAX
 endmodule
 ```
 
+KString
+-------
+
+We name this module differently to avoid conflicts the `domains.k`s version.
+
+```k
+module EKORE-KSTRING-SYNTAX
+  imports EKORE-KSTRING-COMMON
+  // optionally qualified strings, like in Scala "abc", i"abc", r"a*bc", etc.
+  syntax KString ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token]
+endmodule
+
+module EKORE-KSTRING-COMMON
+  syntax KString
+endmodule
+```
+
 Attributes
 ----------
 
@@ -187,16 +204,16 @@ Attributes are use both by KModules/Definitions and Productions
 
 ```k
 module ATTRIBUTES-COMMON
-  imports KSTRING
+  imports EKORE-KSTRING-COMMON
   imports TOKENS
 
   syntax Attr
-  syntax AttrList ::= NeList{Attr, ","} [klabel(kAttributesList)]
+  syntax AttrList
   syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
   syntax OptionalAttributes ::= KAttributesDeclaration
 
   syntax TagContent ::= UpperName | LowerName | Numbers
-  syntax TagContents ::= NeList{TagContent,""} [klabel(tagContents)]
+  syntax TagContents
   syntax KEY ::= LowerName
 endmodule
 
@@ -214,6 +231,11 @@ module ATTRIBUTES-SYNTAX
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
                 | KEY "(" KString ")"     [klabel(tagString)]
+  syntax EmptyAttrList ::= ""             [klabel(dotAttrList )]
+  syntax NeAttrList    ::=  Attr "," NeAttrList [klabel(consAttrList)]
+                         | Attr EmptyAttrList  [klabel(consAttrList)]
+  syntax AttrList ::= NeAttrList | EmptyAttrList
+
   syntax OptionalAttributes ::= "" [klabel(noKAttributesDeclaration)]
 endmodule
 ```
@@ -274,7 +296,10 @@ module K-DEFINITION-COMMON
   imports TOKENS
 
   syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
-  syntax KImportList   ::= List{KImport, ""}  [klabel(kImportList), format(%1%2%n%3)]
+  syntax KImportList
+
+  syntax KRequire      ::= kRequire(KString) [klabel(kRequire)]
+  syntax KRequireList
 endmodule
 
 module K-DEFINITION-ABSTRACT
@@ -282,11 +307,13 @@ module K-DEFINITION-ABSTRACT
   imports KORE-ABSTRACT
   imports ATTRIBUTES-ABSTRACT
 
+  syntax KImportList   ::= ".KImportList" [klabel(emptyKImportList)]
+                         | KImportList KImport  [klabel(kImportList), format(%1%2%n%3)]
+  syntax KRequireList  ::= ".KRequireList" [klabel(emptyKRequireList)]
+                         | KRequireList KRequire [klabel(KRequireList), format(%1%2%n%3)]
+
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%3%n%n%5)]
   syntax Definition    ::= KDefinition
-
-  syntax KRequire      ::= kRequire(KString) [klabel(kRequire)]
-  syntax KRequireList  ::= List{KRequire, ""}  [klabel(KRequireList), format(%1%2%n%3)]
 
   syntax KModule       ::= kModule( KModuleName
                                   , OptionalAttributes
@@ -298,14 +325,17 @@ endmodule
 
 module K-DEFINITION-SYNTAX
   imports K-DEFINITION-COMMON
+  imports EKORE-KSTRING-SYNTAX
   imports KORE-SYNTAX
   imports ATTRIBUTES-SYNTAX
 
+  syntax KImportList   ::= "" [klabel(emptyKImportList)]
+                         | KImportList KImport  [klabel(kImportList), format(%1%2%n%3)]
+  syntax KRequireList  ::= "" [klabel(emptyKRequireList)]
+                         | KRequireList KRequire [klabel(KRequireList), format(%1%2%n%3)]
+
   syntax KDefinition   ::= KRequireList Modules [klabel(kDefinition), format(%1%n%n%2)]
   syntax Definition    ::= KDefinition
-
-  syntax KRequire      ::= "require" KString [klabel(kRequire)]
-  syntax KRequireList  ::= List{KRequire, ""}  [klabel(KRequireList), format(%1%2%n%3)]
 
   syntax KModule       ::= "module" KModuleName OptionalAttributes
                                     KImportList
