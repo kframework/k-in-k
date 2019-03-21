@@ -26,9 +26,11 @@ transform the declaration as needed.
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
   imports SET
+  imports STRING-SYNTAX
   syntax Any
   configuration <pipeline> $PIPELINE:K </pipeline>
                 <k> $PGM </k>
+                <kastProgram> "t/peano/programs/two-plus-two.peano" </kastProgram>
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
 endmodule
 ```
@@ -52,9 +54,11 @@ module KINK
                =>    #parseOuter
                   ~> #frontendModulesToKoreModules
                   ~> #flattenProductions
-                  ~> #makeGrammar
+                  ~> #makeGrammar("tmp/pgm-grammar.k")
+                  ~> #parseProgram(FILENAME, "tmp/pgm-grammar.k")
                   ...
        </pipeline>
+       <kastProgram> FILENAME </kastProgram>
 
   syntax KItem ::= "#ekorePipeline"
   rule <pipeline> #ekorePipeline
@@ -387,16 +391,22 @@ module PARSE-PROGRAM
   imports STRING
   imports IO-HELPERS
 
-  syntax KItem ::= "#makeGrammar"
+  syntax KItem ::= "#makeGrammar" "(" String ")" // Grammar Filename
+  syntax KItem ::= "#parseProgram" "(" String "," String ")" // Program Filename, Grammar Filename
 
   rule <k> DEFN
-        => #writeStringToFile("tmp/pgm-grammar.k"
-                             , "module PGM-GRAMMAR\n" +String
+        => #writeStringToFile( "module PGM-GRAMMAR\n" +String
                                grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
                                "endmodule\n"
+                             , GRAMMAR_FILENAME
                              )
-        ~> #writeStringToFile("tmp/pgm", "succ(zero)")
-        ~> #doSystem("k-light2k5.sh --output kore --module PGM-GRAMMAR tmp/pgm-grammar.k Nat tmp/pgm")
+           ...
+       </k>
+       <pipeline> #makeGrammar(GRAMMAR_FILENAME) => .K ... </pipeline>
+       
+  rule <k> .K
+        => #doSystem("k-light2k5.sh --output kore --module PGM-GRAMMAR "
+                     +String GRAMMAR_FILENAME +String " Nat " +String PGM_FILENAME)
         ~> #doSystemGetOutput
         ~> #writeStringToFile(#hole, "tmp/pgm.kore")
         ~> #doSystem("k-light2k5.sh --output kast --module KORE-SYNTAX .build/kore.k Pattern tmp/pgm.kore")
@@ -404,7 +414,7 @@ module PARSE-PROGRAM
         ~> #doParseAST
            ...
        </k>
-       <pipeline> #makeGrammar => .K ... </pipeline>
+       <pipeline> #parseProgram(PGM_FILENAME, GRAMMAR_FILENAME) => .K ... </pipeline>
 
    syntax Declarations ::= #getAllDeclarations(Definition) [function]
    rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
@@ -452,6 +462,7 @@ module PARSE-PROGRAM
    syntax String ::= KProductionItemToString(KProductionItem) [function]
    rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)
    rule KProductionItemToString(terminal(T))    => tokenToString(T)
+   rule KProductionItemToString(regexTerminal(R)) => "r" +String tokenToString(R)
 
    syntax String ::= OptionalAttributesToString(OptionalAttributes) [function]
    rule OptionalAttributesToString(noAtt) => ""

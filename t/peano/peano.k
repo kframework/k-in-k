@@ -1,4 +1,7 @@
 module PEANO
+  syntax Pgm ::= Nat
+  syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
+
   syntax Nat ::= "zero" [klabel(zero)]
                | succ(Nat) [klabel(succ)]
                | plus(Nat, Nat) [function, klabel(plus)]
