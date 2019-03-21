@@ -29,7 +29,7 @@ module KINK-CONFIGURATION
   imports STRING-SYNTAX
   syntax Any
   configuration <pipeline> $PIPELINE:K </pipeline>
-                <k> $PGM </k>
+                <k> $PGM:Any </k>
                 <kastProgram> "t/peano/programs/two-plus-two.peano" </kastProgram>
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
 endmodule
