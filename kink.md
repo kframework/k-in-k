@@ -19,7 +19,7 @@ Configuration & Main Module
 
 The K in K configuration has a "k" cell containing a definition, and a
 "pipeline" cell containing operations that map over the definition in the K
-cell. When an operation is at the top of the `<pipeline>` cell, it must
+cell. When an operation is at the top of the `<k>` cell, it must
 transform the declaration as needed.
 
 ```k
@@ -28,10 +28,14 @@ module KINK-CONFIGURATION
   imports SET
   imports STRING-SYNTAX
   syntax Any
-  configuration <pipeline> $PIPELINE:K </pipeline>
-                <k> $PGM:Any </k>
+  configuration <k> $PIPELINE:K </k>
+                <definition> $PGM:Any ~> .K </definition>
                 <kastProgram> "t/peano/programs/two-plus-two.peano" </kastProgram>
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
+
+  syntax KItem ::= "#moveToDefinitionCell"
+  rule <definition> _ => DEF </definition>
+       <k> DEF:Definition ~> #moveToDefinitionCell => .K ... </k> 
 endmodule
 ```
 
@@ -50,18 +54,18 @@ module KINK
   imports REMOVE-FRONTEND-DECLARATIONS
 
   syntax KItem ::= "#frontendPipeline"
-  rule <pipeline> #frontendPipeline
+  rule <k> #frontendPipeline
                =>    #parseOuter
                   ~> #frontendModulesToKoreModules
                   ~> #flattenProductions
                   ~> #makeGrammar("tmp/pgm-grammar.k")
                   ~> #parseProgram(FILENAME, "tmp/pgm-grammar.k")
                   ...
-       </pipeline>
+       </k>
        <kastProgram> FILENAME </kastProgram>
 
   syntax KItem ::= "#ekorePipeline"
-  rule <pipeline> #ekorePipeline
+  rule <k> #ekorePipeline
                =>    #parseToEKore
                   ~> #frontendModulesToKoreModules
                   ~> #flattenProductions
@@ -69,18 +73,18 @@ module KINK
                   ~> #productionsToSymbolDeclarations
                   ~> #translateFunctionRules
                   ...
-       </pipeline>
+       </k>
 
   // TODO: Why can't we just specify `-cPIPELINE=.K` from the commandline?
   syntax KItem ::= "#nullPipeline"
-  rule <pipeline> #nullPipeline => .K </pipeline>
+  rule <k> #nullPipeline => .K </k>
 
   syntax KItem ::= "#runWithHaskellBackendPipeline"
-  rule <pipeline> #runWithHaskellBackendPipeline
+  rule <k> #runWithHaskellBackendPipeline
                =>    #ekorePipeline
                   ~> #filterKoreDeclarations
                   ...
-       </pipeline>
+       </k>
 endmodule
 ```
 
@@ -92,8 +96,8 @@ module KINK-VISITORS
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
   syntax MapTransform
-  rule <pipeline> T:MapTransform => .K ... </pipeline>
-       <k> DEFN => #mapDeclarations(T, DEFN) </k>
+  rule <k> T:MapTransform => .K ... </k>
+       <definition> DEFN => #mapDeclarations(T, DEFN) </definition>
 ```
 
 `#mapDeclarations` allows mapping a function over the declarations in a (kore)
@@ -368,14 +372,15 @@ module PARSE-OUTER
   imports IO-HELPERS
 
   syntax KItem ::= "#parseOuter"
-  rule <pipeline> #parseOuter => .K ... </pipeline>
-       <k> T:Any
+  rule <k> #parseOuter
         => #writeStringToFile(tokenToString(T), "tmp/definition")
         ~> #doSystem("k-light2k5.sh --module FRONTEND-SYNTAX --output kast .build/ekore.k Definition tmp/definition")
         ~> #doSystemGetOutput
         ~> #doParseAST
+        ~> #moveToDefinitionCell
            ...
        </k>
+       <definition> T:Any </definition>
 endmodule
 ```
 
@@ -394,7 +399,8 @@ module PARSE-PROGRAM
   syntax KItem ::= "#makeGrammar" "(" String ")" // Grammar Filename
   syntax KItem ::= "#parseProgram" "(" String "," String ")" // Program Filename, Grammar Filename
 
-  rule <k> DEFN
+  rule <definition> DEFN </definition>
+       <k> #makeGrammar(GRAMMAR_FILENAME)
         => #writeStringToFile( "module PGM-GRAMMAR\n" +String
                                grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
                                "endmodule\n"
@@ -402,9 +408,8 @@ module PARSE-PROGRAM
                              )
            ...
        </k>
-       <pipeline> #makeGrammar(GRAMMAR_FILENAME) => .K ... </pipeline>
        
-  rule <k> .K
+  rule <k> #parseProgram(PGM_FILENAME, GRAMMAR_FILENAME)
         => #doSystem("k-light2k5.sh --output kore --module PGM-GRAMMAR "
                      +String GRAMMAR_FILENAME +String " Nat " +String PGM_FILENAME)
         ~> #doSystemGetOutput
@@ -414,7 +419,6 @@ module PARSE-PROGRAM
         ~> #doParseAST
            ...
        </k>
-       <pipeline> #parseProgram(PGM_FILENAME, GRAMMAR_FILENAME) => .K ... </pipeline>
 
    syntax Declarations ::= #getAllDeclarations(Definition) [function]
    rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
@@ -500,14 +504,15 @@ module PARSE-TO-EKORE
   imports IO-HELPERS
   syntax KItem ::= "#parseToEKore"
 
-  rule <k> T:Any
+  rule <definition> T:Any </definition>
+       <k> #parseToEKore
         => #writeStringToFile(tokenToString(T), "tmp/definition.k")
         ~> #doSystem("k-light2k5.sh --module EKORE-SYNTAX .build/ekore.k Definition tmp/definition.k")
         ~> #doSystemGetOutput
         ~> #doParseAST
+        ~> #moveToDefinitionCell 
            ...
        </k>
-       <pipeline> #parseToEKore => .K ... </pipeline>
 endmodule
 ```
 
@@ -528,18 +533,18 @@ module FRONTEND-MODULES-TO-KORE-MODULES
   syntax KItem ::= "#frontendModulesToKoreModules"
   syntax Modules ::= #toKoreModules(Modules) [function]
 
-  rule <pipeline> #frontendModulesToKoreModules => .K
+  rule <k> #frontendModulesToKoreModules => .K
                   ...
-       </pipeline>
-       <k> kDefinition(_:KRequireList, MODS)
+       </k>
+       <definition> kDefinition(_:KRequireList, MODS)
         => koreDefinition([ .Patterns ], #toKoreModules(MODS))
            ...
-       </k>
-  rule <pipeline> #frontendModulesToKoreModules
+       </definition>
+  rule <k> #frontendModulesToKoreModules
                => .K
                   ...
-       </pipeline>
-       <k> koreDefinition(_, MODS:Modules => #toKoreModules(MODS)) </k>
+       </k>
+       <definition> koreDefinition(_, MODS:Modules => #toKoreModules(MODS)) </definition>
 
   rule #toKoreModules(MOD:KoreModule MODS)
     => consModules(MOD, #toKoreModules(MODS))

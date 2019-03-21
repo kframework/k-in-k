@@ -58,7 +58,7 @@ def kink_test(base_dir, test_file, pipeline):
     expected = os.path.join(base_dir, 'expected.ekore')
     return proj.source(input) \
                .then(pipeline) \
-               .then(kore_from_config.variables(cell = 'k')) \
+               .then(kore_from_config.variables(cell = 'definition')) \
                .then(proj.check(proj.source(expected))
                          .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
                .default()
@@ -75,7 +75,7 @@ def lang_test(base_dir, module, program):
     lang_no_frontend_kore =  proj.source(language_kore) \
                                  .then(runWithHaskell_pipeline \
                                           .ext('noFrontend')) \
-                                 .then(kore_from_config.variables(cell = 'k'))
+                                 .then(kore_from_config.variables(cell = 'definition'))
     return proj.source(program_pattern).then(kore_exec(lang_no_frontend_kore)
                                                  .ext('kore-exec')
                                                  .variables(module = module)
@@ -94,7 +94,7 @@ proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests))
 
 # Peano
 peano_tests = []
-peano_tests += [ frontend_test('t/peano', 'peano.k')     ]
+# peano_tests += [ frontend_test('t/peano', 'peano.k')     ]
 peano_tests += [ ekore_test('t/peano', 'peano.ekore')    ]
 peano_tests += [ ekore_test('t/peano', 'expected.ekore') ]
 peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
