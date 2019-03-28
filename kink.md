@@ -30,7 +30,6 @@ module KINK-CONFIGURATION
   syntax Any
   configuration <k> $PIPELINE:K </k>
                 <definition> $PGM:Any ~> .K </definition>
-                <kastProgram> "t/peano/programs/two-plus-two.peano" </kastProgram>
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
 
   syntax KItem ::= "#moveToDefinitionCell"
@@ -53,8 +52,8 @@ module KINK
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
 
-  syntax KItem ::= "#frontendPipeline"
-  rule <k> #frontendPipeline
+  syntax KItem ::= "#parsePipeline" "(" String ")"
+  rule <k> #parsePipeline(FILENAME)
                =>    #parseOuter
                   ~> #frontendModulesToKoreModules
                   ~> #flattenProductions
@@ -62,7 +61,6 @@ module KINK
                   ~> #parseProgram(FILENAME, "tmp/pgm-grammar.k")
                   ...
        </k>
-       <kastProgram> FILENAME </kastProgram>
 
   syntax KItem ::= "#ekorePipeline"
   rule <k> #ekorePipeline
@@ -408,10 +406,10 @@ module PARSE-PROGRAM
                              )
            ...
        </k>
-       
+
   rule <k> #parseProgram(PGM_FILENAME, GRAMMAR_FILENAME)
         => #doSystem("k-light2k5.sh --output kore --module PGM-GRAMMAR "
-                     +String GRAMMAR_FILENAME +String " Nat " +String PGM_FILENAME)
+                     +String GRAMMAR_FILENAME +String " Pgm " +String PGM_FILENAME)
         ~> #doSystemGetOutput
         ~> #writeStringToFile(#hole, "tmp/pgm.kore")
         ~> #doSystem("k-light2k5.sh --output kast --module KORE-SYNTAX .build/kore.k Pattern tmp/pgm.kore")

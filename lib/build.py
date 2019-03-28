@@ -64,7 +64,19 @@ def kink_test(base_dir, test_file, pipeline):
                .default()
 
 ekore_test    = functools.partial(kink_test, pipeline = pipeline('#ekorePipeline'   , 'ekorePipeline'))
-frontend_test = functools.partial(kink_test, pipeline = pipeline('#frontendPipeline', 'frontendPipeline'))
+
+def parse_test(base_dir, def_file, input_program):
+    def_path = os.path.join(base_dir, def_file)
+    prog_path = os.path.join(base_dir, 'programs', input_program)
+    expected = prog_path + '.kast'
+    return proj.source(def_path) \
+               .then(pipeline('#parsePipeline(\\"' + prog_path + '\\")'
+                             , 'parse-' + input_program
+                             ).implicit([prog_path])) \
+               .then(kore_from_config.variables(cell = 'k')) \
+               .then(proj.check(proj.source(expected))
+                         .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
+               .default()
 
 def lang_test(base_dir, module, program):
     language_kore    = os.path.join(base_dir, 'expected.ekore')
@@ -86,18 +98,18 @@ def lang_test(base_dir, module, program):
 
 # Foobar
 foobar_tests = []
-# foobar_tests += [ frontend_test('t/foobar', 'foobar.k')          ]
-foobar_tests += [ ekore_test('t/foobar', 'foobar.ekore')         ]
-foobar_tests += [ ekore_test('t/foobar', 'expected.ekore')       ]
-foobar_tests += [ lang_test('t/foobar', 'FOOBAR', 'bar.foobar') ]
+foobar_tests += [ ekore_test('t/foobar', 'foobar.ekore')            ]
+foobar_tests += [ ekore_test('t/foobar', 'expected.ekore')          ]
+foobar_tests += [ parse_test('t/foobar', 'foobar.k', 'bar.foobar')  ]
+foobar_tests += [ lang_test('t/foobar', 'FOOBAR', 'bar.foobar')     ]
 proj.build('t/foobar', 'phony', inputs = Target.to_paths(foobar_tests))
 
 # Peano
 peano_tests = []
-# peano_tests += [ frontend_test('t/peano', 'peano.k')     ]
 peano_tests += [ ekore_test('t/peano', 'peano.ekore')    ]
 peano_tests += [ ekore_test('t/peano', 'expected.ekore') ]
 peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
+peano_tests += [ parse_test('t/peano', 'peano.k', 'two-plus-two.peano') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
 
 # Imp : make sure we can parse IMP
