@@ -11,6 +11,18 @@ module FILE-UTIL
   rule saveToFileHelper(Fd:Int, Contents:String) => saveToFileHelper(Fd, #write(Fd, Contents))
   rule saveToFileHelper(Fd:Int, .K) => #close(Fd)
 
+  // saveToTempFile(contents:String, filenamePrefix:String, filenameSuffix:String)
+  //            -> tempFilename:IOString
+  syntax IOString ::= saveToTempFile(String, String, String) [function, impure]
+                    | saveToTempFileHelper1(K, IOString)     [function, impure]
+                    | saveToTempFileHelper2(K, String)       [function, impure]
+  rule saveToTempFile(CONTENTS, FPREFIX, FSUFFIX)
+    => saveToTempFileHelper1(CONTENTS, #tempFilename(FPREFIX, FSUFFIX))
+  rule saveToTempFileHelper1(CONTENTS, FILENAME:String)
+    => saveToTempFileHelper2(saveToFile(CONTENTS, FILENAME), FILENAME:String)
+  rule saveToTempFileHelper2(.K, FILENAME)
+    => FILENAME
+
   // readFile(path:String) -> String
   syntax IOString ::= readFile(String) [function, impure]
   syntax IOString ::= readFileHelper(IOInt /* File Descriptor */, K /* reader */, String /* accumulator */) [function, impure]
