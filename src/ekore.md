@@ -51,7 +51,7 @@ Frontend
 --------
 
 ```k
-module FRONTEND-SYNTAX
+module OUTER-SYNTAX
   imports KORE-SYNTAX
   imports K-PRODUCTION-SYNTAX
   imports K-DEFINITION-SYNTAX
@@ -59,7 +59,7 @@ module FRONTEND-SYNTAX
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
 endmodule
 
-module FRONTEND-ABSTRACT
+module OUTER-ABSTRACT
   imports KORE-ABSTRACT
   imports K-PRODUCTION-ABSTRACT
   imports K-DEFINITION-ABSTRACT

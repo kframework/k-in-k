@@ -34,9 +34,6 @@ module KINK-CONFIGURATION
                 <definition> $PGM:Any ~> .K </definition>
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
 
-  syntax KItem ::= "#moveToDefinitionCell"
-  rule <definition> _ => DEF </definition>
-       <k> DEF:Definition ~> #moveToDefinitionCell => .K ... </k> 
 endmodule
 ```
 
@@ -48,7 +45,7 @@ module KINK
   imports PARSE-TO-EKORE
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports FLATTEN-PRODUCTIONS
-  imports FRONTEND-ABSTRACT
+  imports OUTER-ABSTRACT
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports TRANSLATE-FUNCTION-RULES
@@ -371,10 +368,10 @@ module PARSE-OUTER
   imports KINK-CONFIGURATION
   imports PARSER-UTIL
 
-  // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST, #moveToDefinitionCell
+  // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
   syntax KItem ::= "#parseOuter"
   rule <k> #parseOuter => .K ... </k>
-       <definition> T:Any => outerParse(tokenToString(T)) </definition>
+       <definition> T:Any => parseOuter(tokenToString(T)) </definition>
 endmodule
 ```
 
@@ -495,18 +492,11 @@ Parse into EKore
 module PARSE-TO-EKORE
   imports EKORE-ABSTRACT
   imports KINK-CONFIGURATION
-  imports IO-HELPERS
+  imports PARSER-UTIL
   syntax KItem ::= "#parseToEKore"
 
-  rule <definition> T:Any </definition>
-       <k> #parseToEKore
-        => #writeStringToFile(tokenToString(T), "tmp/definition.k")
-        ~> #doSystem("k-light2k5.sh --module EKORE-SYNTAX .build/ekore.k Definition tmp/definition.k")
-        ~> #doSystemGetOutput
-        ~> #doParseAST
-        ~> #moveToDefinitionCell 
-           ...
-       </k>
+  rule <k> #parseToEKore => .K ... </k>
+       <definition> T:Any => parseEKore(tokenToString(T)) </definition>
 endmodule
 ```
 

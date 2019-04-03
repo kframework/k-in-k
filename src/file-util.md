@@ -10,7 +10,7 @@ module FILE-UTIL
   rule saveToFile(Contents, Path) => saveToFileHelper(#open(Path, "w"), Contents)
   rule saveToFileHelper(Fd:Int, Contents:String) => saveToFileHelper(Fd, #write(Fd, Contents))
   rule saveToFileHelper(Fd:Int, .K) => #close(Fd)
-    
+
   // readFile(path:String) -> String
   syntax IOString ::= readFile(String) [function, impure]
   syntax IOString ::= readFileHelper(IOInt /* File Descriptor */, K /* reader */, String /* accumulator */) [function, impure]
