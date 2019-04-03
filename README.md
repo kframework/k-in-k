@@ -11,6 +11,35 @@ After installing python3, [ninja-build] and [pandoc] simply run `./build`.
 [pandoc]:      https://pandoc.org
 [ninja-build]: https://ninja-build.org
 
+Building and Testing
+====================
+
+-   To build K-in-K run: `./build kink`
+-   To build and run all tests run `./build`
+-   To build tests for a particlar definition run: `./build t/<lang>` (e.g.
+    `./build t/foobar`)
+-   To run a single test, (e.g. `t/foobar/<TEST>.ekore`), run
+    `./build .build/t/foobar/<TEST>.ekore.kink.kore.test`. If you need to see
+    the generated configuration, run `cat .build/t/foobar-<TEST>.ekore.kink`.
+
+End-to-end tests
+----------------
+
+Each folder is the `t/` directory defines a language. For each language we have
+two tests for the EKORE pipeline:
+
+1. That we generate the expected final ekore from the ekore with kasted bubbles
+2. That the ekore pipeline is the identity over the expected ekore
+
+In addition, there are additional tests to check that we can execute programs
+in each of those languages.
+
+Unit tests
+----------
+
+In addition, unit-tests are implemented using reachability logic in the
+`unit-tests.md` file, and can be run via `./build unit-tests`.
+
 Project Milestones
 ==================
 
@@ -63,35 +92,6 @@ Other important features
 1.  Error messages
 2.  A more K-style implementation: More configuration/cell/matching based rules,
     fewer functions and iteration.
-
-Testing
-=======
-
-End-to-end tests
-----------------
-
-Each folder is the `t/` directory defines a language. For each language we have
-two tests for the EKORE pipeline:
-
-1. That we generate the expected final ekore from the ekore with kasted bubbles
-2. That the ekore pipeline is the identity over the expected ekore
-
-In addition, there are additional tests to check that we can execute programs
-in each of those languages.
-
-For each language we can run all these tests using `./build t/<lang>` (e.g.
-`./build t/foobar`)
-
-To run a single test, (e.g. `t/foobar/<TEST>.ekore`), run
-`./build .build/t/foobar/<TEST>.ekore.krun.kore.test`. If you need to see
-the generated configuration, run
-`cat .build/t/foobar-<TEST>.ekore.krun`.
-
-Unit tests
-----------
-
-In addition, unit-tests are implemented using reachability logic in the
-`unit-tests.md` file, and can be run via `./build unit-tests`.
 
 Getting started writing transformations
 =======================================
