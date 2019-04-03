@@ -1,5 +1,7 @@
 ```k
 requires "ekore.k"
+requires "file-util.k"
+requires "parser-util.k"
 ```
 
 Syntax
@@ -307,7 +309,7 @@ endmodule
 ```
 
 ```k
-module IO-HELPERS
+module IO-HELPERS // TODO: remove
   imports KINK-CONFIGURATION
   imports K-IO
   imports META
@@ -367,18 +369,12 @@ Parse Outer
 ```k
 module PARSE-OUTER
   imports KINK-CONFIGURATION
-  imports IO-HELPERS
+  imports PARSER-UTIL
 
+  // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST, #moveToDefinitionCell
   syntax KItem ::= "#parseOuter"
-  rule <k> #parseOuter
-        => #writeStringToFile(tokenToString(T), "tmp/definition")
-        ~> #doSystem("k-light2k5.sh --module FRONTEND-SYNTAX --output kast .build/ekore.k Definition tmp/definition")
-        ~> #doSystemGetOutput
-        ~> #doParseAST
-        ~> #moveToDefinitionCell
-           ...
-       </k>
-       <definition> T:Any </definition>
+  rule <k> #parseOuter => .K ... </k>
+       <definition> T:Any => outerParse(tokenToString(T)) </definition>
 endmodule
 ```
 

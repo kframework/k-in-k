@@ -40,11 +40,14 @@ k_light = proj.dotTarget().then(build_k_light())
 # Kore to K Pipeline
 # ------------------
 
-ekore = proj.tangle('src/ekore.md')
-kore  = proj.tangle('src/kore.md')
+ekore  = proj.tangle('src/ekore.md')
+kore   = proj.tangle('src/kore.md')
+parser = proj.tangle('src/parser-util.md')
+file   = proj.tangle('src/file-util.md')
+
 kink  = proj.definition( backend   = 'java'
                        , main      = proj.tangle('src/kink.md')
-                       , other     = [kore, ekore]
+                       , other     = [kore, ekore, parser, file]
                        , directory = proj.builddir('kink')
                        , flags     = '--syntax-module KINK-SYNTAX'
                        , alias     = 'kink'
