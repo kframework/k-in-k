@@ -7,16 +7,16 @@ module PARSER-UTIL
 
   syntax KItem ::= parseFileOuter (String /* file path */) [function, impure]
   syntax KItem ::= parseFileHelper(K) [function, impure]
-  rule parseFileOuter(Path) => parseFileHelper(#system("k-light2k5.sh --module OUTER-SYNTAX --output kast .build/ekore.k Definition " +String Path))
+  rule parseFileOuter(Path) => parseFileHelper(#system("k-light2k5.sh --module OUTER-SYNTAX --output kast .build/src/ekore.k Definition " +String Path))
   rule parseFileHelper(#systemResult(0, Stdout, _)) => #parseAST(Stdout)
 
   syntax KItem ::= parseOuter     (String) [function, impure]
   rule parseOuter(S)
-    => parseHelper(S, #tempFilename("", ""), "k-light2k5.sh --module OUTER-SYNTAX --output kast .build/ekore.k Definition ")  // create temp
+    => parseHelper(S, #tempFilename("", ""), "k-light2k5.sh --module OUTER-SYNTAX --output kast .build/src/ekore.k Definition ")  // create temp
 
   syntax KItem ::= parseEKore     (String) [function, impure]
   rule parseEKore(S)
-    => parseHelper(S, #tempFilename("", ""), "k-light2k5.sh --module EKORE-SYNTAX --output kast .build/ekore.k Definition ")
+    => parseHelper(S, #tempFilename("", ""), "k-light2k5.sh --module EKORE-SYNTAX --output kast .build/src/ekore.k Definition ")
 
   syntax KItem ::= parseHelper(
                         K /* contents */,
