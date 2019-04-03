@@ -49,8 +49,8 @@ module KINK
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
 
-  syntax KItem ::= "#parsePipeline" "(" String ")"
-  rule <k> #parsePipeline(FILENAME)
+  syntax KItem ::= "#kastPipeline" "(" String ")"
+  rule <k> #kastPipeline(FILENAME)
                =>    #parseOuter
                   ~> #frontendModulesToKoreModules
                   ~> #flattenProductions

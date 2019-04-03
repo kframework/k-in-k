@@ -73,7 +73,7 @@ def parse_test(base_dir, def_file, input_program):
     prog_path = os.path.join(base_dir, 'programs', input_program)
     expected = prog_path + '.kast'
     return proj.source(def_path) \
-               .then(pipeline('#parsePipeline(\\"' + prog_path + '\\")'
+               .then(pipeline('#kastPipeline(\\"' + prog_path + '\\")'
                              , 'parse-' + input_program
                              ).implicit([prog_path])) \
                .then(kore_from_config.variables(cell = 'k')) \
