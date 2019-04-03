@@ -32,8 +32,6 @@ module KINK-CONFIGURATION
   syntax Any
   configuration <k> $PIPELINE:K </k>
                 <definition> $PGM:Any ~> .K </definition>
-  syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
-
 endmodule
 ```
 
@@ -367,6 +365,7 @@ Parse Outer
 module PARSE-OUTER
   imports KINK-CONFIGURATION
   imports PARSER-UTIL
+  imports META
 
   // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
   syntax KItem ::= "#parseOuter"
@@ -386,6 +385,7 @@ module PARSE-PROGRAM
   imports KORE-HELPERS
   imports STRING
   imports IO-HELPERS
+  imports META
 
   syntax KItem ::= "#makeGrammar" "(" String ")" // Grammar Filename
   syntax KItem ::= "#parseProgram" "(" String "," String ")" // Program Filename, Grammar Filename
@@ -493,8 +493,9 @@ module PARSE-TO-EKORE
   imports EKORE-ABSTRACT
   imports KINK-CONFIGURATION
   imports PARSER-UTIL
-  syntax KItem ::= "#parseToEKore"
+  imports META
 
+  syntax KItem ::= "#parseToEKore"
   rule <k> #parseToEKore => .K ... </k>
        <definition> T:Any => parseEKore(tokenToString(T)) </definition>
 endmodule
@@ -720,6 +721,7 @@ Kore syntax. This transformation is idempotent.
 module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports KINK-VISITORS
   imports META-ACCESSORS
+  imports META
   imports STRING
   imports ID
 
