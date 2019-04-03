@@ -112,10 +112,6 @@ peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
 peano_tests += [ parse_test('t/peano', 'peano.k', 'two-plus-two.peano') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
 
-# Imp : make sure we can parse IMP
-proj.source('imp/imp.ekore0').then(pipeline('#nullPipeline', 'null')).default()
-proj.source('imp/imp.ekore1').then(pipeline('#nullPipeline', 'null')).default()
-
 # Unit tests
 # ==========
 
