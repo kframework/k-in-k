@@ -50,24 +50,23 @@ module KINK
   imports REMOVE-FRONTEND-DECLARATIONS
 
   syntax KItem ::= "#kastPipeline" "(" String ")"
-  rule <k> #kastPipeline(FILENAME)
-               =>    #parseOuter
-                  ~> #frontendModulesToKoreModules
-                  ~> #flattenProductions
-                  ~> #makeGrammar("tmp/pgm-grammar.k")
-                  ~> #parseProgram(FILENAME, "tmp/pgm-grammar.k")
-                  ...
-       </k>
+  rule <k> #kastPipeline(PATH)
+        => #parseOuter
+        ~> #frontendModulesToKoreModules
+        ~> #flattenProductions
+        ~> #parseProgramPath(PATH)
+        ...
+      </k>
 
   syntax KItem ::= "#ekorePipeline"
   rule <k> #ekorePipeline
-               =>    #parseToEKore
-                  ~> #frontendModulesToKoreModules
-                  ~> #flattenProductions
-                  ~> #productionsToSortDeclarations
-                  ~> #productionsToSymbolDeclarations
-                  ~> #translateFunctionRules
-                  ...
+        => #parseToEKore
+        ~> #frontendModulesToKoreModules
+        ~> #flattenProductions
+        ~> #productionsToSortDeclarations
+        ~> #productionsToSymbolDeclarations
+        ~> #translateFunctionRules
+           ...
        </k>
 
   // TODO: Why can't we just specify `-cPIPELINE=.K` from the commandline?
@@ -384,104 +383,33 @@ module PARSE-PROGRAM
   imports EKORE-KSTRING-ABSTRACT
   imports KORE-HELPERS
   imports STRING
-  imports IO-HELPERS
+  imports FILE-UTIL
+  imports PARSER-UTIL
   imports META
 
-  syntax KItem ::= "#makeGrammar" "(" String ")" // Grammar Filename
-  syntax KItem ::= "#parseProgram" "(" String "," String ")" // Program Filename, Grammar Filename
-
-  rule <definition> DEFN </definition>
-       <k> #makeGrammar(GRAMMAR_FILENAME)
-        => #writeStringToFile( "module PGM-GRAMMAR\n" +String
-                               grammarToString(#getLanguageGrammar(#getAllDeclarations(DEFN))) +String
-                               "endmodule\n"
-                             , GRAMMAR_FILENAME
-                             )
+  syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
+                 | "#parseProgram" "(" IOString ")" // Program content 
+  rule <k> #parseProgramPath(PGM_FILENAME) => #parseProgram(readFile(PGM_FILENAME)) ... </k>
+  
+  rule <k> #parseProgram(PGM)
+        => parseWithProductions(#getLanguageGrammar(#getAllDeclarations(DEFN)), "Pgm", PGM)
            ...
        </k>
+       <definition> DEFN </definition>
 
-  rule <k> #parseProgram(PGM_FILENAME, GRAMMAR_FILENAME)
-        => #doSystem("k-light2k5.sh --output kore --module PGM-GRAMMAR "
-                     +String GRAMMAR_FILENAME +String " Pgm " +String PGM_FILENAME)
-        ~> #doSystemGetOutput
-        ~> #writeStringToFile(#hole, "tmp/pgm.kore")
-        ~> #doSystem("k-light2k5.sh --output kast --module KORE-SYNTAX .build/kore.k Pattern tmp/pgm.kore")
-        ~> #doSystemGetOutput
-        ~> #doParseAST
-           ...
-       </k>
+  syntax Declarations ::= #getAllDeclarations(Definition) [function]
+  rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
+    => DECLS ++Declarations #getAllDeclarations(koreDefinition(ATTRS, MODULES))
+  rule #getAllDeclarations(koreDefinition(_, .Modules))
+    => .Declarations
 
-   syntax Declarations ::= #getAllDeclarations(Definition) [function]
-   rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
-     => DECLS ++Declarations #getAllDeclarations(koreDefinition(ATTRS, MODULES))
-   rule #getAllDeclarations(koreDefinition(_, .Modules))
-     => .Declarations
-
-   syntax Declarations ::= #getLanguageGrammar(Declarations) [function]
-   rule #getLanguageGrammar(kSyntaxProduction(S, P) DECLS)
-     => kSyntaxProduction(S, P) #getLanguageGrammar(DECLS)
-   rule #getLanguageGrammar(DECL DECLS)
-     => #getLanguageGrammar(DECLS) [owise]
-   rule #getLanguageGrammar(.Declarations)
-     => .Declarations [owise]
-
-   syntax String ::= grammarToString(Declarations) [function]
-   rule grammarToString(.Declarations)
-     => ""
-   rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, ATTRS)) DECLS)
-     => "syntax " +String tokenToString(S) +String " ::= "
-                  +String KProductionToString(P) +String " "
-                  +String OptionalAttributesToString(ATTRS)
-        +String "\n"
-        +String grammarToString(DECLS)
-   rule grammarToString( kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS)
-                         DECLS
-                       )
-     => "syntax " +String tokenToString(S) +String " ::= "
-                  +String tokenToString(TAG)
-                  +String "(" +String KSortListToString(KSORTLIST) +String ")" +String " "
-                  +String OptionalAttributesToString(ATTRS)
-        +String "\n"
-        +String grammarToString(DECLS)
-
-   syntax String ::= KSortListToString(KSortList) [function]
-   rule KSortListToString(S:KSort) => tokenToString(S)
-   rule KSortListToString(Ss, S) => KSortListToString(Ss) +String "," +String tokenToString(S)
-
-   syntax String ::= KProductionToString(KProduction) [function]
-   rule KProductionToString(PI:KProductionItem)
-     => KProductionItemToString(PI)
-   rule KProductionToString(kProduction(PI, PIs))
-     => KProductionItemToString(PI) +String "\n" +String KProductionToString(PIs)
-
-   syntax String ::= KProductionItemToString(KProductionItem) [function]
-   rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)
-   rule KProductionItemToString(terminal(T))    => tokenToString(T)
-   rule KProductionItemToString(regexTerminal(R)) => "r" +String tokenToString(R)
-
-   syntax String ::= OptionalAttributesToString(OptionalAttributes) [function]
-   rule OptionalAttributesToString(noAtt) => ""
-   rule OptionalAttributesToString([ ATTRLIST ])
-     => "[" +String AttrListToString(ATTRLIST) +String "]"
-
-   syntax String ::= AttrListToString(AttrList) [function]
-   rule AttrListToString(.AttrList)       => "dummy"
-   rule AttrListToString(ATTR, .AttrList) => AttrToString(ATTR)
-   rule AttrListToString(ATTR, ATTRs)     => AttrToString(ATTR) +String "," +String AttrListToString(ATTRs)
-
-   syntax String ::= AttrToString(Attr) [function]
-   rule AttrToString(tagSimple(KEY))
-     => tokenToString(KEY)
-   rule AttrToString(KEY:KEY(CONTENTS:TagContents))
-     => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
-   rule AttrToString(KEY:KEY(CONTENTS:EKoreKString))
-     => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
-
-   syntax String ::= TagContentsToString(TagContents) [function]
-   rule TagContentsToString(tagContents(TC, TCs))
-     => tokenToString(TC) +String " " +String TagContentsToString(TCs)
-   rule TagContentsToString(.TagContents)
-     => ""
+  syntax Declarations ::= #getLanguageGrammar(Declarations) [function]
+  rule #getLanguageGrammar(kSyntaxProduction(S, P) DECLS)
+    => kSyntaxProduction(S, P) #getLanguageGrammar(DECLS)
+  rule #getLanguageGrammar(DECL DECLS)
+    => #getLanguageGrammar(DECLS) [owise]
+  rule #getLanguageGrammar(.Declarations)
+    => .Declarations [owise]
 endmodule
 ```
 
