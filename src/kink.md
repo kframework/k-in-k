@@ -49,36 +49,30 @@ module KINK
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
 
-  syntax KItem ::= "#kastPipeline" "(" String ")"
-  rule <k> #kastPipeline(PATH)
-        => #parseOuter
-        ~> #frontendModulesToKoreModules
-        ~> #flattenProductions
-        ~> #parseProgramPath(PATH)
-        ...
-      </k>
+  syntax K ::= "#kastPipeline" "(" String ")" [function]
+  rule #kastPipeline(PATH)
+    => #parseOuter
+    ~> #defintionToConfiguration
+    ~> #flattenProductions
+    ~> #parseProgramPath(PATH)
 
-  syntax KItem ::= "#ekorePipeline"
-  rule <k> #ekorePipeline
-        => #parseToEKore
-        ~> #frontendModulesToKoreModules
-        ~> #flattenProductions
-        ~> #productionsToSortDeclarations
-        ~> #productionsToSymbolDeclarations
-        ~> #translateFunctionRules
-           ...
-       </k>
+  syntax K ::= "#ekorePipeline" [function]
+  rule #ekorePipeline
+    => #parseToEKore
+    ~> #defintionToConfiguration
+    ~> #flattenProductions
+    ~> #productionsToSortDeclarations
+    ~> #productionsToSymbolDeclarations
+    ~> #translateFunctionRules
 
   // TODO: Why can't we just specify `-cPIPELINE=.K` from the commandline?
-  syntax KItem ::= "#nullPipeline"
-  rule <k> #nullPipeline => .K </k>
+  syntax K ::= "#nullPipeline" [function]
+  rule #nullPipeline => .K
 
-  syntax KItem ::= "#runWithHaskellBackendPipeline"
-  rule <k> #runWithHaskellBackendPipeline
-               =>    #ekorePipeline
-                  ~> #filterKoreDeclarations
-                  ...
-       </k>
+  syntax K ::= "#runWithHaskellBackendPipeline" [function]
+  rule #runWithHaskellBackendPipeline
+    => #ekorePipeline
+    ~> #filterKoreDeclarations
 endmodule
 ```
 
