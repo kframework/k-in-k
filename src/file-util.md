@@ -14,12 +14,12 @@ module FILE-UTIL
   // saveToTempFile(contents:String, filenamePrefix:String, filenameSuffix:String)
   //            -> tempFilename:IOString
   syntax IOString ::= saveToTempFile(String, String, String) [function, impure]
-                    | saveToTempFileHelper1(K, IOString)     [function, impure]
+                    | saveToTempFileHelper1(K, IOFile)       [function, impure]
                     | saveToTempFileHelper2(K, String)       [function, impure]
   rule saveToTempFile(CONTENTS, FPREFIX, FSUFFIX)
-    => saveToTempFileHelper1(CONTENTS, #tempFilename(FPREFIX, FSUFFIX))
-  rule saveToTempFileHelper1(CONTENTS, FILENAME:String)
-    => saveToTempFileHelper2(saveToFile(CONTENTS, FILENAME), FILENAME:String)
+    => saveToTempFileHelper1(CONTENTS, #mkstemp(FPREFIX, FSUFFIX))
+  rule saveToTempFileHelper1(CONTENTS, #tempFile(FILENAME:String, Fd:Int))
+    => saveToTempFileHelper2(saveToFileHelper(Fd, CONTENTS), FILENAME:String)
   rule saveToTempFileHelper2(.K, FILENAME)
     => FILENAME
 

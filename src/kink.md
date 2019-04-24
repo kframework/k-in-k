@@ -646,6 +646,7 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports META
   imports STRING
   imports ID
+  imports PARSER-UTIL
 
   syntax MapTransform ::= "#productionsToSymbolDeclarations"
   rule #mapDeclarations

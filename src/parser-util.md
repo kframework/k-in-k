@@ -6,9 +6,10 @@ module PARSER-UTIL
   imports META
   imports EKORE-ABSTRACT
 
+  syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
   syntax KItem ::= parseOuter(String) [function, impure]
   rule parseOuter(S)
-    => doParseAST(parseHelper( module = "OUTER-SYNTAX"
+    => doParseKAST(parseHelper( module = "OUTER-SYNTAX"
                              , grammarFile = ".build/src/ekore.k" 
                              , start = "Definition"
                              , input = S
@@ -16,15 +17,15 @@ module PARSER-UTIL
                  )           )
   syntax KItem ::= parseEKore     (String) [function, impure]
   rule parseEKore(S)
-    => doParseAST(parseHelper( module = "EKORE-SYNTAX"
+    => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
                              , grammarFile = ".build/src/ekore.k" 
                              , start = "Definition"
                              , input = S
                              , output = "kast"
                  )           )
 
-  syntax KItem ::= doParseAST(K) [function]
-  rule doParseAST(S:String) => #parseAST(S)
+  syntax KItem ::= doParseKAST(K) [function]
+  rule doParseKAST(S:String) => #parseKAST(S)
 
   // TODO: Deal with temp file removal
   syntax KItem ::= "parseHelper"  "(" "module" "=" String
@@ -62,8 +63,8 @@ module PARSER-UTIL
                                        , String /* input */
                                        ) // [function, impure]
   rule parseWithProductions(GRAMMAR, START, INPUT)
-    => doParseAST(parseHelper( module = "KORE-SYNTAX"
-                             , grammarFile = ".build/kore.k"
+    => doParseKAST(parseHelper( module = "KORE-SYNTAX"
+                             , grammarFile = ".build/src/kore.k"
                              , start = "Pattern"
                              , input = parseHelper( module = "LANGUAGE-GRAMMAR"
                                                   , grammarFile = saveToTempFile("module LANGUAGE-GRAMMAR\n"
@@ -132,7 +133,7 @@ module PARSER-UTIL
   syntax String ::= TagContentsToString(TagContents) [function]
   rule TagContentsToString(tagContents(TC, TCs))
     => tokenToString(TC) +String " " +String TagContentsToString(TCs)
-  rule TagContentsToString(.TagContents)
+  rule TagContentsToString(.tagContents)
     => ""
 endmodule
 ```

@@ -104,6 +104,8 @@ module KORE-SYNTAX
   syntax NeModules    ::= Module NeModules [klabel(consModules)]
                         | Module EmptyModules  [klabel(consModules)]
   syntax Modules ::= NeModules | EmptyModules
+  
+  syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
 endmodule
 
 module KORE-ABSTRACT
