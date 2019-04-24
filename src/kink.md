@@ -52,14 +52,14 @@ module KINK
   syntax K ::= "#kastPipeline" "(" String ")" [function]
   rule #kastPipeline(PATH)
     => #parseOuter
-    ~> #defintionToConfiguration
+    ~> #frontendModulesToKoreModules
     ~> #flattenProductions
     ~> #parseProgramPath(PATH)
 
   syntax K ::= "#ekorePipeline" [function]
   rule #ekorePipeline
     => #parseToEKore
-    ~> #defintionToConfiguration
+    ~> #frontendModulesToKoreModules
     ~> #flattenProductions
     ~> #productionsToSortDeclarations
     ~> #productionsToSymbolDeclarations
