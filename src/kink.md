@@ -92,7 +92,7 @@ module KINK-VISITORS
 definition:
 
 ```k
-  syntax Definition ::= #mapDeclarations(MapTransform, Definition) [function]
+  syntax Definition ::= #mapDeclarations(MapTransform, Definition) [function, klabel(#mapDeclsDefn)]
 ```
 
 Each `MapTransform` must implement the following overload. The second argument
@@ -101,7 +101,7 @@ The third is the current Module that has been processed so far.
 The fourth is the `Declaration` that needs to be processed.
 
 ```k
-  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Module, Declaration) [function]
+  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Module, Declaration) [function, klabel(#mapDeclsDefnModDecl)]
 ```
 
 *Here ends the documentation for the user interface of `#mapDeclarations`*
@@ -113,7 +113,7 @@ definition" starting with an empty definition, and processes each module in
 order:
 
 ```k
-  syntax Definition ::= #mapDeclarations(MapTransform, Definition, Modules) [function]
+  syntax Definition ::= #mapDeclarations(MapTransform, Definition, Modules) [function, klabel(#mapDeclsDefnMods)]
   rule #mapDeclarations(T, koreDefinition(ATTRS, UNPROCESSED_MODULES:Modules))
     => #mapDeclarations(T, koreDefinition(ATTRS, .Modules), UNPROCESSED_MODULES)
 
@@ -143,7 +143,7 @@ order:
 ```
 
 ```k
-  syntax Module ::= #mapDeclarations(MapTransform, Definition, Module, Declarations) [function]
+  syntax Module ::= #mapDeclarations(MapTransform, Definition, Module, Declarations) [function, klabel(#mapDeclsDefnModDecls)]
   rule #mapDeclarations
           ( T:MapTransform
           , DEFN
@@ -382,9 +382,9 @@ module PARSE-PROGRAM
   imports META
 
   syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
-                 | "#parseProgram" "(" IOString ")" // Program content 
+                 | "#parseProgram" "(" IOString ")" // Program content
   rule <k> #parseProgramPath(PGM_FILENAME) => #parseProgram(readFile(PGM_FILENAME)) ... </k>
-  
+
   rule <k> #parseProgram(PGM)
         => parseWithProductions(#getLanguageGrammar(#getAllDeclarations(DEFN)), "Pgm", PGM)
            ...
@@ -679,11 +679,8 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
                  , ATTRS
                  )
            )
-    // TODO: Should allow both LowerName and UpperName
-    // TODO: Do not silently allow multiple words as klabels (e.g. if the tag
-    //       contents has a space in it). Really speaking we need to parse
-    //       the TagContents as a SymbolName, and not just do some ad-hoc processing
-    => {#parseToken("LowerName", replaceAll(tokenToString(SNAME), " ", ""))}:>LowerName
+    // TODO: We need to handle errors
+    => {parseSymbolName(tokenToString(SNAME))}:>SymbolName
   rule #symbolNameFromAttrList(consAttrList(_, ATTRS))
     => #symbolNameFromAttrList(ATTRS) [owise]
 

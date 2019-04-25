@@ -45,7 +45,7 @@ kore   = 'src/kore.md'
 parser = 'src/parser-util.md'
 file   = 'src/file-util.md'
 
-kink  = proj.definition( backend   = 'java'
+kink  = proj.definition( backend   = 'ocaml'
                        , main      = 'src/kink.md'
                        , other     = [kore, ekore, parser, file]
                        , directory = proj.builddir('kink')

@@ -7,19 +7,30 @@ module PARSER-UTIL
   imports EKORE-ABSTRACT
 
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
+
   syntax KItem ::= parseOuter(String) [function, impure]
   rule parseOuter(S)
     => doParseKAST(parseHelper( module = "OUTER-SYNTAX"
-                             , grammarFile = ".build/src/ekore.k" 
+                             , grammarFile = ".build/src/ekore.k"
                              , start = "Definition"
                              , input = S
                              , output = "kast"
                  )           )
-  syntax KItem ::= parseEKore     (String) [function, impure]
+
+  syntax KItem ::= parseEKore(String) [function, impure]
   rule parseEKore(S)
     => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
-                             , grammarFile = ".build/src/ekore.k" 
+                             , grammarFile = ".build/src/ekore.k"
                              , start = "Definition"
+                             , input = S
+                             , output = "kast"
+                 )           )
+
+  syntax KItem ::= parseSymbolName(String) [function, impure]
+  rule parseSymbolName(S)
+    => doParseKAST(parseHelper( module = "KORE-SYNTAX"
+                             , grammarFile = ".build/src/kore.k"
+                             , start = "SymbolName"
                              , input = S
                              , output = "kast"
                  )           )
