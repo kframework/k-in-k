@@ -26,11 +26,11 @@ module FILE-UTIL
   // readFile(path:String) -> String
   syntax IOString ::= readFile(String) [function, impure]
   syntax IOString ::= readFileHelper(IOInt /* File Descriptor */, K /* reader */, String /* accumulator */) [function, impure]
-  rule readFile(S) => readFileHelper(#open(S, "r"), .K, "")
-  rule readFileHelper(Fd:Int,   .K, Acc) => readFileHelper(Fd, #read(Fd, 4096), Acc)
-  rule readFileHelper(Fd:Int,    S, Acc) => readFileHelper(Fd, .K, Acc +String S)
-  rule readFileHelper(Fd:Int, #EOF, Acc) => readFileHelper(#EBADF, #close(Fd), Acc)
-  rule readFileHelper(#EBADF, .K, Acc) => Acc
-
+  rule readFile(S)                           => readFileHelper(#open(S, "r"), .K, "")
+  rule readFileHelper(Fd:Int, .K, Acc)       => readFileHelper(Fd, #read(Fd, 4096), Acc)
+  rule readFileHelper(Fd:Int, "", Acc)       => readFileHelper(#EBADF, #close(Fd), Acc)
+  rule readFileHelper(Fd:Int, S:String, Acc) => readFileHelper(Fd, .K, Acc +String S) [owise]
+  rule readFileHelper(#EBADF, .K, Acc)       => Acc
+  rule readFileHelper(ERR:IOError, .K, Acc)  => ERR [owise]
 endmodule
 ```
