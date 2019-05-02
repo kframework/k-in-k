@@ -14,10 +14,15 @@ proj = KProject()
 # -------------------------------------
 
 kore_from_config = proj.rule( 'kore-from-config'
-                            , description = 'Extracting <kore> cell'
-                            , command = 'lib/kore-from-config "$cell" "$in" "$out"'
+                            , description = 'kore-from-config: $in'
+                            , command = 'lib/kore-from-config "$in" "$out"'
                             , ext = 'kore'
                             )
+k_from_config = proj.rule( 'k-from-config'
+                         , description = 'k-from-config'
+                         , command = 'lib/k-from-config "$in" "$out"'
+                         , ext = 'kore'
+                         )
 def kore_exec(kore, ext = 'kore-exec'):
     return proj.rule( 'kore-exec'
                     , description = 'kore-exec'
@@ -61,7 +66,7 @@ def kink_test(base_dir, test_file, pipeline):
     expected = os.path.join(base_dir, 'expected.ekore')
     return proj.source(input) \
                .then(pipeline) \
-               .then(kore_from_config.variables(cell = 'definition')) \
+               .then(kore_from_config) \
                .then(proj.check(proj.source(expected))
                          .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
                .default()
@@ -76,7 +81,7 @@ def parse_test(base_dir, def_file, input_program):
                .then(pipeline('#kastPipeline(\\"' + prog_path + '\\")'
                              , 'parse-' + input_program
                              ).implicit([prog_path])) \
-               .then(kore_from_config.variables(cell = 'k')) \
+               .then(k_from_config) \
                .then(proj.check(proj.source(expected))
                          .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
                .default()

@@ -6,17 +6,17 @@ module A-BASIC-K
 endmodule [  ]
 
 module B-KSEQ
-  import A-BASIC-K [  ]
-  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [  ]
-  symbol append {  } ( K {  } , K {  } ) : K {  } [ function {  } (  ) ]
-  symbol dotk {  } (  ) : K {  } [  ]
   axiom { R } \equals { K {  } , R } ( append {  } ( dotk {  } (  ) , K2 : K {  } ) , K2 : K {  } ) [  ]
   axiom { R } \equals { K {  } , R } ( append {  } ( kseq {  } ( K1 : KItem {  } , K2 : K {  } ) , K3 : K {  } ) , kseq {  } ( K1 : KItem {  } , append {  } ( K2 : K {  } , K3 : K {  } ) ) ) [  ]
+  import A-BASIC-K [  ]
+  symbol append {  } ( K {  } , K {  } ) : K {  } [ function {  } (  ) ]
+  symbol dotk {  } (  ) : K {  } [  ]
+  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [  ]
 endmodule [  ]
 
 module C-INJ
-  symbol inj { From , To } ( From ) : To [  ]
   axiom { S1 , S2 , S3 , R } \equals { S3 , R } ( inj { S2 , S3 } ( inj { S1 , S2 } ( T : S1 ) ) , inj { S1 , S3 } ( T : S1 ) ) [  ]
+  symbol inj { From , To } ( From ) : To [  ]
 endmodule [  ]
 
 module D-K
@@ -25,16 +25,16 @@ module D-K
 endmodule [  ]
 
 module PEANO
+  axiom { R } \equals { Nat {  } , R } ( plus {  } ( succ {  } ( X : Nat {  } ) , Y : Nat {  } ) , succ {  } ( plus {  } ( X : Nat {  } , Y : Nat {  } ) ) ) [  ]
+  axiom { R } \equals { Nat {  } , R } ( plus {  } ( zero {  } (  ) , Y : Nat {  } ) , Y : Nat {  } ) [  ]
   import D-K [  ]
   sort Nat {  } [  ]
-  symbol zero {  } (  ) : Nat {  } [ constructor {  } (  ) , functional {  } (  ) ]
-  syntax Nat ::= "zero" [ klabel ( zero  ) , constructor , functional ]
-  symbol succ {  } ( Nat {  } ) : Nat {  } [ constructor {  } (  ) , functional {  } (  ) ]
-  syntax Nat ::= "succ" "(" Nat ")" [ klabel ( succ  ) , constructor , functional ]
   symbol plus {  } ( Nat {  } , Nat {  } ) : Nat {  } [ function {  } (  ) ]
+  symbol succ {  } ( Nat {  } ) : Nat {  } [ constructor {  } (  ) , functional {  } (  ) ]
+  symbol zero {  } (  ) : Nat {  } [ constructor {  } (  ) , functional {  } (  ) ]
   syntax Nat ::= "plus" "(" Nat "," Nat ")" [ klabel ( plus  ) , function ]
-  axiom { R } \equals { Nat {  } , R } ( plus {  } ( zero {  } (  ) , Y : Nat {  } ) , Y : Nat {  } ) [  ]
-  axiom { R } \equals { Nat {  } , R } ( plus {  } ( succ {  } ( X : Nat {  } ) , Y : Nat {  } ) , succ {  } ( plus {  } ( X : Nat {  } , Y : Nat {  } ) ) ) [  ]
+  syntax Nat ::= "succ" "(" Nat ")" [ klabel ( succ  ) , constructor , functional ]
+  syntax Nat ::= "zero" [ klabel ( zero  ) , constructor , functional ]
 endmodule [  ]
 
 

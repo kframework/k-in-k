@@ -11,7 +11,7 @@ module PARSER-UTIL
   syntax KItem ::= parseOuter(String) [function, impure]
   rule parseOuter(S)
     => doParseKAST(parseHelper( module = "OUTER-SYNTAX"
-                             , grammarFile = ".build/src/ekore.k"
+                             , grammarFile = ".build/kink/src/ekore.k"
                              , start = "Definition"
                              , input = S
                              , output = "kast"
@@ -20,7 +20,7 @@ module PARSER-UTIL
   syntax KItem ::= parseEKore(String) [function, impure]
   rule parseEKore(S)
     => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
-                             , grammarFile = ".build/src/ekore.k"
+                             , grammarFile = ".build/kink/src/ekore.k"
                              , start = "Definition"
                              , input = S
                              , output = "kast"
@@ -29,7 +29,7 @@ module PARSER-UTIL
   syntax KItem ::= parseSymbolName(String) [function, impure]
   rule parseSymbolName(S)
     => doParseKAST(parseHelper( module = "KORE-SYNTAX"
-                             , grammarFile = ".build/src/kore.k"
+                             , grammarFile = ".build/kink/src/kore.k"
                              , start = "SymbolName"
                              , input = S
                              , output = "kast"
@@ -69,13 +69,13 @@ module PARSER-UTIL
   rule parseHelper2(#systemResult(0, STDOUT, _))
     => STDOUT
 
-  syntax KItem ::= parseWithProductions( Declarations   /* list of prods */
+  syntax KItem ::= parseWithProductions( Set   /* list of prods */
                                        , String /* start symbol */
                                        , String /* input */
-                                       ) // [function, impure]
+                                       ) [function, impure]
   rule parseWithProductions(GRAMMAR, START, INPUT)
     => doParseKAST(parseHelper( module = "KORE-SYNTAX"
-                             , grammarFile = ".build/src/kore.k"
+                             , grammarFile = ".build/kink/src/kore.k"
                              , start = "Pattern"
                              , input = parseHelper( module = "LANGUAGE-GRAMMAR"
                                                   , grammarFile = saveToTempFile("module LANGUAGE-GRAMMAR\n"
@@ -89,16 +89,15 @@ module PARSER-UTIL
                                                   )
                              , output = "kast"
                  )           )
-  syntax String ::= grammarToString(Declarations) [function]
-  rule grammarToString(.Declarations)
-    => ""
-  rule grammarToString(kSyntaxProduction(S, kProductionWAttr(P, ATTRS)) DECLS)
+  syntax String ::= grammarToString(Set) [function]
+  rule grammarToString(.Set) => ""
+  rule grammarToString(SetItem(kSyntaxProduction(S, kProductionWAttr(P, ATTRS))) DECLS)
     => "syntax " +String tokenToString(S) +String " ::= "
                  +String KProductionToString(P) +String " "
                  +String OptionalAttributesToString(ATTRS)
        +String "\n"
        +String grammarToString(DECLS)
-  rule grammarToString( kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS)
+  rule grammarToString(SetItem(kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS))
                         DECLS
                       )
     => "syntax " +String tokenToString(S) +String " ::= "

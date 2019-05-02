@@ -29,9 +29,29 @@ module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
   imports SET
   imports STRING-SYNTAX
+
   syntax Any
-  configuration <k> $PIPELINE:K </k>
-                <definition> $PGM:Any ~> .K </definition>
+  syntax Declaration ::= "nullDecl"
+  syntax DeclCellSet
+  syntax DeclarationsCellFragment
+  configuration <pipeline> $PIPELINE:K ~> .K </pipeline>
+                <defn> $PGM:Any ~> .K </defn>
+                <definition>
+                   <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
+                   <modules format="%2%n">
+                     <mod format="module %2%i%n%4%n%5%n%6%n%7%d%n %i%dendmodule %3%n%n"
+                          multiplicity="*" type="Set">
+                       <name format="%2"> #token("UNNAMED", "ModuleName"):ModuleName </name>
+                       <attributes format="[ %2 ]"> .Patterns </attributes>
+                       <imp format="%2"> .Declarations </imp>
+                       <declarations format="%2">
+                         <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
+                       </declarations>
+                       <k> .K </k>
+                       <grammar> .Set </grammar>
+                     </mod>
+                   </modules>
+                </definition>
 endmodule
 ```
 
@@ -52,14 +72,15 @@ module KINK
   syntax K ::= "#kastPipeline" "(" String ")" [function]
   rule #kastPipeline(PATH)
     => #parseOuter
-    ~> #frontendModulesToKoreModules
+    ~> #definitionToConfiguration
     ~> #flattenProductions
+    ~> #collectGrammar
     ~> #parseProgramPath(PATH)
 
   syntax K ::= "#ekorePipeline" [function]
   rule #ekorePipeline
     => #parseToEKore
-    ~> #frontendModulesToKoreModules
+    ~> #definitionToConfiguration
     ~> #flattenProductions
     ~> #productionsToSortDeclarations
     ~> #productionsToSymbolDeclarations
@@ -73,102 +94,6 @@ module KINK
   rule #runWithHaskellBackendPipeline
     => #ekorePipeline
     ~> #filterKoreDeclarations
-endmodule
-```
-
-Visitor Infrastructure
-======================
-
-```k
-module KINK-VISITORS
-  imports KINK-CONFIGURATION
-  imports KORE-HELPERS
-  syntax MapTransform
-  rule <k> T:MapTransform => .K ... </k>
-       <definition> DEFN => #mapDeclarations(T, DEFN) </definition>
-```
-
-`#mapDeclarations` allows mapping a function over the declarations in a (kore)
-definition:
-
-```k
-  syntax Definition ::= #mapDeclarations(MapTransform, Definition) [function, klabel(#mapDeclsDefn)]
-```
-
-Each `MapTransform` must implement the following overload. The second argument
-is the `Definition` processed so far (excluding the current Module).
-The third is the current Module that has been processed so far.
-The fourth is the `Declaration` that needs to be processed.
-
-```k
-  syntax Declarations ::= #mapDeclarations(MapTransform, Definition, Module, Declaration) [function, klabel(#mapDeclsDefnModDecl)]
-```
-
-*Here ends the documentation for the user interface of `#mapDeclarations`*
-
-----------------------------------------------------------------------------
-
-`#mapDeclarations` calls a helper function that accumulates a "transformed
-definition" starting with an empty definition, and processes each module in
-order:
-
-```k
-  syntax Definition ::= #mapDeclarations(MapTransform, Definition, Modules) [function, klabel(#mapDeclsDefnMods)]
-  rule #mapDeclarations(T, koreDefinition(ATTRS, UNPROCESSED_MODULES:Modules))
-    => #mapDeclarations(T, koreDefinition(ATTRS, .Modules), UNPROCESSED_MODULES)
-
-  rule #mapDeclarations
-           ( T:MapTransform
-           , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-           , koreModule(MNAME, UNPROCESSED_DECLS, ATTRS) MODULES:Modules
-           )
-    => #mapDeclarations
-           ( T
-           , koreDefinition
-                 ( DEFN_ATTRS
-                 , PROCESSED_MODULES ++Modules
-                   #mapDeclarations
-                       ( T
-                       , koreDefinition(DEFN_ATTRS, PROCESSED_MODULES:Modules)
-                       , koreModule(MNAME, .Declarations, ATTRS)
-                       , UNPROCESSED_DECLS
-                       )
-                   .Modules
-                 )
-           , MODULES
-           )
-
-  rule #mapDeclarations(T, koreDefinition(ATTRS, PROCESSED_MODULES), .Modules)
-    => koreDefinition(ATTRS, PROCESSED_MODULES)
-```
-
-```k
-  syntax Module ::= #mapDeclarations(MapTransform, Definition, Module, Declarations) [function, klabel(#mapDeclsDefnModDecls)]
-  rule #mapDeclarations
-          ( T:MapTransform
-          , DEFN
-          , koreModule( MNAME
-                      , PROCESSED_DECLS
-                      , ATTRS
-                      )
-          , DECL:Declaration UNPROCESSED_DECLS
-          )
-    => #mapDeclarations
-           ( T:MapTransform
-           , DEFN
-           , koreModule( MNAME
-                       , PROCESSED_DECLS ++Declarations
-                         #mapDeclarations( T:MapTransform
-                                         , DEFN
-                                         , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
-                                         , DECL
-                                         )
-                       , ATTRS
-                       )
-           , UNPROCESSED_DECLS
-           )
-  rule #mapDeclarations(T:MapTransform, DEFN, MOD, .Declarations)
-    => MOD
 endmodule
 ```
 
@@ -201,40 +126,28 @@ module KORE-HELPERS
 endmodule
 ```
 
--   TODO: Functions defined here should be modelled after the functions in
-    section 7 of the semantics of K document.
 -   TODO: Recurse into imported modules
 
 ```k
 module META-ACCESSORS
   imports KINK-CONFIGURATION
-  imports KINK-VISITORS
+  imports KORE-HELPERS
   imports BOOL
   imports SET
 
-  syntax Bool ::= #isSortDeclared(Declarations, SortName) [function]
-  rule #isSortDeclared(.Declarations, _) => false
-  rule #isSortDeclared( (sort SORT_NAME { SORT_PARAM } ATTRS)
-                        DECLS
-                      , SORT_NAME
-                      )
-    => true
-  rule #isSortDeclared(DECL DECLS, SORT_NAME)
-    => #isSortDeclared(DECLS     , SORT_NAME)
-       [owise]
+  syntax Bool ::= #isSortDeclared(ModuleName, SortName) [function, withConfig]
+  rule [[ #isSortDeclared(MNAME:ModuleName, SORT:SortName) => true ]]
+       <name> MNAME </name>
+       <decl> sort SORT { PARAMS } ATTRS </decl>
+  rule #isSortDeclared(_, _) => false [owise]
 ```
 
 ```k
-  syntax Bool ::= #isSymbolDeclared(Declarations, SymbolName) [function]
-  rule #isSymbolDeclared(.Declarations, _) => false
-  rule #isSymbolDeclared( (symbol SYMBOL_NAME { _ } ( _ ) : _ ATTRS)
-                          DECLS
-                        , SYMBOL_NAME
-                        )
-    => true
-  rule #isSymbolDeclared(DECL DECLS, SYMBOL_NAME)
-    => #isSymbolDeclared(DECLS     , SYMBOL_NAME)
-       [owise]
+  syntax Bool ::= #isSymbolDeclared(ModuleName, SymbolName) [function, withConfig]
+  rule [[ #isSymbolDeclared(MNAME, SYMBOL) => true ]]
+       <name> MNAME </name>
+       <decl> (symbol SYMBOL { _ } ( _ ) : _ ATTRS) </decl>
+  rule #isSymbolDeclared(_, _) => false [owise]
 ```
 
 ```k
@@ -251,100 +164,28 @@ module META-ACCESSORS
        [owise]
 ```
 
-See Section 7.3 of Semantics of K.
-TODO: This should take `Symbol`, and not `SymbolName`?
-
 ```k
-  syntax Sort ::= #getReturnSort(Declarations, SymbolName) [function]
-  rule #getReturnSort( (symbol SNAME { .Sorts } ( _ ) : SORT ATTRS) DECLS
-                     , SNAME
-                     )
-    => SORT
-  rule #getReturnSort(DECL DECLS, SNAME)
-    => #getReturnSort(DECLS, SNAME)
-       [owise]
-```
-
-TODO: I'd like something like this eventually:
-
-```commented
-  rule #getReturnSort(.Declarations, SNAME)
-    => #error("Symbol " +String SNAME +String " undeclared")
-       [owise]
+  syntax Sort ::= #getReturnSort(ModuleName, SymbolName) [function, withConfig]
+  rule [[ #getReturnSort(MNAME, SNAME) => SORT ]]
+       <name> MNAME </name>
+       <decl> (symbol SNAME { .Sorts } ( _ ) : SORT ATTRS) </decl>
 ```
 
 ```k
-  syntax Bool ::= #isFunctionSymbol(Declarations, SymbolName) [function]
-  rule #isFunctionSymbol
-            ( ( symbol SNAME { .Sorts } ( _ ) : SORT:Sort
-                             [ function { .Sorts } ( .Patterns )
-                             , ATTRS:Patterns
-                             ]
-              ):Declaration
-              DECLS
-            , SNAME
-            )
-    => true
-  rule #isFunctionSymbol(DECL DECLS, SNAME)
-    => #isFunctionSymbol(DECLS, SNAME)
+  syntax Bool ::= #isFunctionSymbol(ModuleName, SymbolName) [function, withConfig]
+  rule [[ #isFunctionSymbol(MNAME, SNAME) => true ]]
+       <name> MNAME </name>
+       <decl> symbol SNAME { .Sorts } ( _ ) : SORT [ function { .Sorts } ( .Patterns ), ATTRS ]
+       </decl>
+  rule [[ #isFunctionSymbol(MNAME, SNAME) => false ]]
+       <name> MNAME </name>
+       <decl> symbol SNAME { .Sorts } ( _ ) : SORT [                                    ATTRS ]
+       </decl>
        [owise]
-
   syntax LowerName ::= "function" [token]
 ```
 
 ```k
-endmodule
-```
-
-```k
-module IO-HELPERS // TODO: remove
-  imports KINK-CONFIGURATION
-  imports K-IO
-  imports META
-
-  syntax StringOrHole ::= "#hole"
-                        | String
-  syntax KItem ::= "#withFD" "(" IOInt ")"
-                 | "#doWrite" "(" String ")"
-                 | "#doClose"
-                 | "#writeStringToFile" "(" StringOrHole "," String ")"
-                 | "#doSystem" "(" String ")"
-                 | "#doSystemGetOutput"
-                 | "#doParseAST"
-
-  rule <k> S:String ~> #writeStringToFile(#hole, FILE)
-        => #writeStringToFile(S, FILE)
-           ...
-       </k>
-  rule <k> #writeStringToFile(STRING, FILE)
-        => #withFD(#open(FILE, "w")) ~> #doWrite(STRING) ~> #doClose
-           ...
-       </k>
-
-  rule <k> #withFD(I:Int) ~> #doWrite(CONTENT)
-        => #withFD(I) ~> #write(I, CONTENT)
-           ...
-       </k>
-
-  rule <k> #withFD(I:Int) ~> #doClose
-        => #close(I)
-           ...
-       </k>
-
-  rule <k> #doSystem(COMMAND) => #system(COMMAND)
-           ...
-       </k>
-
-  rule <k> #systemResult(0, STDOUT, STDERR) ~> #doSystemGetOutput
-        => STDOUT
-           ...
-       </k>
-
-  rule <k> S:String ~> #doParseAST
-        => #parseAST(S)
-           ...
-       </k>
-
 endmodule
 ```
 
@@ -362,8 +203,8 @@ module PARSE-OUTER
 
   // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
   syntax KItem ::= "#parseOuter"
-  rule <k> #parseOuter => .K ... </k>
-       <definition> T:Any => parseOuter(tokenToString(T)) </definition>
+  rule <pipeline> #parseOuter => .K ... </pipeline>
+       <defn> T:Any => parseOuter(tokenToString(T)) </defn>
 endmodule
 ```
 
@@ -383,27 +224,20 @@ module PARSE-PROGRAM
 
   syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
                  | "#parseProgram" "(" IOString ")" // Program content
+                 | "#collectGrammar"
   rule <k> #parseProgramPath(PGM_FILENAME) => #parseProgram(readFile(PGM_FILENAME)) ... </k>
 
   rule <k> #parseProgram(PGM)
-        => parseWithProductions(#getLanguageGrammar(#getAllDeclarations(DEFN)), "Pgm", PGM)
+        => parseWithProductions(GRAMMAR, "Pgm", PGM)
            ...
        </k>
-       <definition> DEFN </definition>
+       <grammar> GRAMMAR </grammar>
 
-  syntax Declarations ::= #getAllDeclarations(Definition) [function]
-  rule #getAllDeclarations(koreDefinition(ATTRS, koreModule(_, DECLS, _):Module MODULES))
-    => DECLS ++Declarations #getAllDeclarations(koreDefinition(ATTRS, MODULES))
-  rule #getAllDeclarations(koreDefinition(_, .Modules))
-    => .Declarations
-
-  syntax Declarations ::= #getLanguageGrammar(Declarations) [function]
-  rule #getLanguageGrammar(kSyntaxProduction(S, P) DECLS)
-    => kSyntaxProduction(S, P) #getLanguageGrammar(DECLS)
-  rule #getLanguageGrammar(DECL DECLS)
-    => #getLanguageGrammar(DECLS) [owise]
-  rule #getLanguageGrammar(.Declarations)
-    => .Declarations [owise]
+  rule <k> #collectGrammar ... </k>
+       <decl> kSyntaxProduction(SORT, PROD) </decl>
+       <grammar> (.Set => SetItem(kSyntaxProduction(SORT, PROD))) REST </grammar>
+    requires notBool(kSyntaxProduction(SORT, PROD) in REST)
+  rule <k> #collectGrammar => .K ... </k> [owise]
 endmodule
 ```
 
@@ -418,8 +252,8 @@ module PARSE-TO-EKORE
   imports META
 
   syntax KItem ::= "#parseToEKore"
-  rule <k> #parseToEKore => .K ... </k>
-       <definition> T:Any => parseEKore(tokenToString(T)) </definition>
+  rule <pipeline> #parseToEKore => .K ... </pipeline>
+       <defn> T:Any => parseEKore(tokenToString(T)) </defn>
 endmodule
 ```
 
@@ -437,37 +271,54 @@ module FRONTEND-MODULES-TO-KORE-MODULES
   imports KORE-HELPERS
   imports STRING-SYNTAX
 
-  syntax KItem ::= "#frontendModulesToKoreModules"
-  syntax Modules ::= #toKoreModules(Modules) [function]
+  syntax KItem ::= "#definitionToConfiguration"
+  rule <pipeline> #definitionToConfiguration ... </pipeline>
+       <defn> koreDefinition(ATTRS, MODS)
+           => kDefinition(.KRequireList, MODS)
+       </defn>
+  rule <pipeline> #definitionToConfiguration ~> PIPELINE </pipeline>
+       <defn> kDefinition(.KRequireList, koreModule(MNAME, DECLS, [ATTS]) MODS)
+           => kDefinition(.KRequireList,                                  MODS)
+       </defn>
+       <modules>
+         (  .Bag
+         => <mod>
+              <name> MNAME </name>
+              <attributes> ATTS </attributes>
+              <k> DECLS ~> PIPELINE </k>
+              ...
+            </mod>
+         )
+         ...
+       </modules>
 
-  rule <k> #frontendModulesToKoreModules => .K
-                  ...
-       </k>
-       <definition> kDefinition(_:KRequireList, MODS)
-        => koreDefinition([ .Patterns ], #toKoreModules(MODS))
-           ...
-       </definition>
-  rule <k> #frontendModulesToKoreModules
-               => .K
-                  ...
-       </k>
-       <definition> koreDefinition(_, MODS:Modules => #toKoreModules(MODS)) </definition>
+  rule <pipeline> #definitionToConfiguration ~> PIPELINE:K </pipeline>
+       <defn> kDefinition(.KRequireList, kModule(MNAME, noAtt, .KImportList, DECLS) MODS)
+           => kDefinition(.KRequireList,                                           MODS)
+       </defn>
+       <modules>
+         ( .Bag
+         => <mod>
+              <name> MNAME </name>
+              <k> DECLS ~> PIPELINE </k>
+              ...
+            </mod>
+         )
+         ...
+       </modules>
 
-  rule #toKoreModules(MOD:KoreModule MODS)
-    => consModules(MOD, #toKoreModules(MODS))
-  rule #toKoreModules
-           ( kModule
-                 ( MNAME
-                 , OPT_ATTRS // TODO: These need to be converted
-                 , IMPORTS   // TODO: These need to be converted
-                 , DECLS
-                 )
-             MS
-           )
-       => ( koreModule(MNAME, DECLS, [.Patterns])
-            #toKoreModules(MS)
-          ):Modules
-  rule #toKoreModules(.Modules) => .Modules
+  rule <pipeline> #definitionToConfiguration ~> PIPELINE => .K </pipeline>
+       <defn> kDefinition(.KRequireList, .Modules) => .K </defn>
+
+  // Convert K Import statements to Kore import statements
+  rule <pipeline> #definitionToConfiguration ~> PIPELINE:K </pipeline>
+       <defn> kDefinition(.KRequireList, kModule(MNAME, ATTS, kImport(I), DECLS) MODS)
+           => kDefinition(.KRequireList, kModule(MNAME, ATTS, koreImport(I, koreAttributes(.Patterns)), DECLS) MODS)
+       </defn>
+
+  rule <k> DECL DECLS:Declarations => DECLS ... </k>
+       <declarations> .Bag => <decl> DECL </decl> ... </declarations>
+  rule <k> .Declarations => .K ... </k>
 ```
 
 ```k
@@ -500,62 +351,25 @@ TODO: Add `prec()` attributes.
 
 ```k
 module FLATTEN-PRODUCTIONS
-  imports KINK-VISITORS
-  syntax MapTransform ::= "#flattenProductions"
+  imports KINK-CONFIGURATION
+  syntax KItem ::= "#flattenProductions"
 
-  rule #mapDeclarations
-           ( #flattenProductions
-           , DEFN
-           , PROCESSED_MODULES
-           , kSyntaxProduction(SORT, P:KProductionWAttr)
-           )
-    => kSyntaxProduction(SORT, P) .Declarations
+  rule <k> #flattenProductions ... </k>
+       <declarations>
+          <decl> kSyntaxProduction(SORT, P1 > P2) </decl>
+       => <decl> kSyntaxProduction(SORT, P1) </decl>
+          <decl> kSyntaxProduction(SORT, P2) </decl>
+          ...
+       </declarations>
+  rule <k> #flattenProductions ... </k>
+       <declarations>
+          <decl> kSyntaxProduction(SORT, P1 | P2) </decl>
+       => <decl> kSyntaxProduction(SORT, P1) </decl>
+          <decl> kSyntaxProduction(SORT, P2) </decl>
+          ...
+       </declarations>
 
-  rule #mapDeclarations
-           ( #flattenProductions
-           , DEFN
-           , PROCESSED_MODULES
-           , kSyntaxProduction(SORT, P1 > P2)
-           )
-    => #mapDeclarations
-           ( #flattenProductions
-           , DEFN
-           , PROCESSED_MODULES
-           , kSyntaxProduction(SORT, P1)
-           )
-       ++Declarations
-       #mapDeclarations
-           ( #flattenProductions
-           , DEFN
-           , PROCESSED_MODULES
-           , kSyntaxProduction(SORT, P2)
-           )
-
-  rule #mapDeclarations
-           ( #flattenProductions
-           , DEFN
-           , PROCESSED_MODULES
-           , kSyntaxProduction(SORT, P1 | P2)
-           )
-    => #mapDeclarations
-           ( #flattenProductions
-           , DEFN
-           , PROCESSED_MODULES
-           , kSyntaxProduction(SORT, P1)
-           )
-       ++Declarations
-       #mapDeclarations
-           ( #flattenProductions
-           , DEFN
-           , PROCESSED_MODULES
-           , kSyntaxProduction(SORT, P2)
-           )
-
-  rule #mapDeclarations
-           ( #flattenProductions
-           , DEFN, MOD, DECL
-           )
-    => DECL .Declarations [owise]
+  rule <k> #flattenProductions => .K ... </k> [owise]
 endmodule
 ```
 
@@ -567,61 +381,25 @@ each production.
 
 ```k
 module PRODUCTIONS-TO-SORT-DECLARATIONS
-  imports KINK-VISITORS
   imports META-ACCESSORS
 ```
 
-Each `MapTransform` adds a symbol to the `MapTransform` sort.
+If the `Declaration` was not previously declared and is a `SyntaxDeclaration`
+we map to a new kore `sort` declaration. We also keep the old declaration `DECL` around:
 
 ```k
-  syntax MapTransform ::= "#productionsToSortDeclarations"
-  syntax SortName ::= sortNameFromProdDecl(SyntaxDeclaration) [function]
-  rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
-```
-
-Finally, we define what the transformation does over each declaration:
-
-* If the `Declaration` was not previously declared and is a `SyntaxDeclaration`
-  we map to a new kore `sort` declaration. We also keep the old declaration `DECL` around:
-
-```k
-  rule #mapDeclarations
-           ( #productionsToSortDeclarations
-           , DEFN
-           , koreModule(MNAME, PROCESSED_DECLS:Declarations, ATTRS)
-           , DECL:SyntaxDeclaration
-           )
-    => (sort sortNameFromProdDecl(DECL) { .Sorts } [ .Patterns ])
-       DECL
-       .Declarations
-    requires notBool(#isSortDeclared(PROCESSED_DECLS, sortNameFromProdDecl(DECL)))
-```
-
-* In all other cases, this transform simply returns the original declaration unchanged:
-
-```k
-  rule #mapDeclarations
-           ( #productionsToSortDeclarations
-           , DEFN, MOD, DECL
-           )
-    => DECL .Declarations [owise]
-```
-
-The helper function `sortNameFromProdDecl` extracts the name of the sort from
-the `SyntaxDeclaration`:
-
-```k
-  syntax SortName ::= sortNameFromProdDecl(SyntaxDeclaration) [function]
-  rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _)) => KSORT
-```
-
-An alternate definition of `sortNameFromProdDecl` below, is needed for programs
-who's kore is generated via the java frontend:
-
-```commented
-  rule sortNameFromProdDecl(kSyntaxProduction(KSORT:UpperName, _))
-    => {#parseToken("UpperName", "Sort" +String UpperName2String(KSORT))}:>UpperName
-  syntax String ::= UpperName2String(UpperName) [function, hook(STRING.token2string)]
+  syntax KItem ::= "#productionsToSortDeclarations"
+  rule <k>  #productionsToSortDeclarations ... </k>
+       <name> MNAME </name>
+       <declarations>
+         ( .Bag =>
+           <decl> sort SORT { .Sorts } [ .Patterns ] </decl>
+         )
+         <decl> kSyntaxProduction(SORT, _) </decl>
+         ...
+       </declarations>
+    requires notBool(#isSortDeclared(MNAME, SORT))
+  rule <k> #productionsToSortDeclarations => .K ... </k> [owise]
 ```
 
 ```k
@@ -641,7 +419,6 @@ Kore syntax. This transformation is idempotent.
 
 ```k
 module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
-  imports KINK-VISITORS
   imports META-ACCESSORS
   imports META
   imports STRING
@@ -649,23 +426,20 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports PARSER-UTIL
 
   syntax MapTransform ::= "#productionsToSymbolDeclarations"
-  rule #mapDeclarations
-           ( #productionsToSymbolDeclarations
-           , DEFN, MOD, DECL
-           )
-    => DECL .Declarations [owise]
-  rule #mapDeclarations
-           ( #productionsToSymbolDeclarations
-           , DEFN
-           , koreModule(MNAME, PROCESSED_DECLS:Declarations, MOD_ATTRS)
-           , kSyntaxProduction(SORT, kProductionWAttr(PROD, [ ATTRS ]))
-           )
-    => symbol #symbolNameFromAttrList(ATTRS)
-               { .Sorts } (#symbolArgumentsFromProduction(PROD)) : SORT { .Sorts }
-               [ #removeKlabelAttr(ATTRS) ]
-       kSyntaxProduction(SORT, kProductionWAttr(PROD, [ ATTRS ]))
-       .Declarations
-    requires notBool #isSymbolDeclared(PROCESSED_DECLS, #symbolNameFromAttrList(ATTRS))
+  rule <k>  #productionsToSymbolDeclarations ... </k>
+       <name> MNAME </name>
+       <declarations>
+         <decl> kSyntaxProduction(SORT, kProductionWAttr(PROD, [ ATTRS ])) </decl>
+         ( .Bag
+        => <decl> symbol #symbolNameFromAttrList(ATTRS)
+                    { .Sorts } (#symbolArgumentsFromProduction(PROD)) : SORT { .Sorts }
+                    [ #removeKlabelAttr(ATTRS) ]
+           </decl>
+         )
+         ...
+       </declarations>
+    requires notBool #isSymbolDeclared(MNAME, #symbolNameFromAttrList(ATTRS))
+  rule <k>  #productionsToSymbolDeclarations => .K ... </k> [owise]
 ```
 
 `#symbolNameFromAttrList` extracts the Name to be used for a symbol from the
@@ -737,25 +511,19 @@ information over the kore axiom, it can be discarded.
 ```k
 module TRANSLATE-FUNCTION-RULES
   imports KINK-CONFIGURATION
-  imports KINK-VISITORS
   imports META-ACCESSORS
 
-  syntax MapTransform ::= "#translateFunctionRules"
-  rule #mapDeclarations( #translateFunctionRules
-                       , DEFN
-                       , koreModule(MNAME, PROCESSED_DECLS, ATTRS)
-                       , kRule(noAttrs(krewrite( FUNC { .Sorts } ( ARG_PATTERNS ) , RHS)))
-                       )
-    => ( axiom   {                          #token("R", "UpperName") , .Sorts }
-         \equals { #getReturnSort(PROCESSED_DECLS, FUNC), #token("R", "UpperName") }
-         ( FUNC { .Sorts } ( ARG_PATTERNS ) , RHS )
+  syntax KItem ::= "#translateFunctionRules"
+  rule <k> #translateFunctionRules ... </k>
+       <name> MNAME </name>
+       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) , RHS)))
+           => axiom { #token("R", "UpperName") , .Sorts }
+                \equals { #getReturnSort(MNAME, SYMBOL), #token("R", "UpperName") }
+                ( SYMBOL { .Sorts } ( ARG_PATTERNS ) , RHS )
          [ .Patterns ]
-       ) .Declarations
-    requires #isFunctionSymbol(PROCESSED_DECLS, FUNC)
-
-  rule #mapDeclarations(#translateFunctionRules, DEFN, MOD, DECL)
-    => DECL .Declarations
-       [owise]
+       </decl>
+    requires #isFunctionSymbol(MNAME, SYMBOL)
+  rule <k> #translateFunctionRules => .K ... </k> [owise]
 endmodule
 ```
 
@@ -769,23 +537,12 @@ pipeline, just when needed for running against the Haskell backend.
 ```k
 module REMOVE-FRONTEND-DECLARATIONS
   imports KINK-CONFIGURATION
-  imports KINK-VISITORS
+  imports BOOL
 
-  syntax MapTransform ::= "#filterKoreDeclarations"
-  rule #mapDeclarations
-           ( #filterKoreDeclarations
-           , DEFN
-           , MOD
-           , DECL:KoreDeclaration
-           )
-    => DECL .Declarations
-  rule #mapDeclarations
-           ( #filterKoreDeclarations
-           , DEFN
-           , MOD
-           , DECL
-           )
-    => .Declarations
-       [owise]
+  syntax KItem ::= "#filterKoreDeclarations"
+  rule <k> #filterKoreDeclarations ... </k>
+       <declarations> ( <decl> DECL </decl> => .Bag ) ... </declarations>
+    requires notBool isKoreDeclaration(DECL)
+  rule <k> #filterKoreDeclarations => .K ... </k> [owise]
 endmodule
 ```
