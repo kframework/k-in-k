@@ -1,12 +1,12 @@
 [  ]
 
-module BASIC-K
+module A-BASIC-K
   sort K {  } [  ]
   sort KItem {  } [  ]
 endmodule [  ]
 
-module KSEQ
-  import BASIC-K [  ]
+module B-KSEQ
+  import A-BASIC-K [  ]
   symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [  ]
   symbol append {  } ( K {  } , K {  } ) : K {  } [ function {  } (  ) ]
   symbol dotk {  } (  ) : K {  } [  ]
@@ -14,18 +14,18 @@ module KSEQ
   axiom { R } \equals { K {  } , R } ( append {  } ( kseq {  } ( K1 : KItem {  } , K2 : K {  } ) , K3 : K {  } ) , kseq {  } ( K1 : KItem {  } , append {  } ( K2 : K {  } , K3 : K {  } ) ) ) [  ]
 endmodule [  ]
 
-module INJ
+module C-INJ
   symbol inj { From , To } ( From ) : To [  ]
   axiom { S1 , S2 , S3 , R } \equals { S3 , R } ( inj { S2 , S3 } ( inj { S1 , S2 } ( T : S1 ) ) , inj { S1 , S3 } ( T : S1 ) ) [  ]
 endmodule [  ]
 
-module K
-  import KSEQ [  ]
-  import INJ [  ]
+module D-K
+  import B-KSEQ [  ]
+  import C-INJ [  ]
 endmodule [  ]
 
 module PEANO
-  import K [  ]
+  import D-K [  ]
   sort Nat {  } [  ]
   symbol zero {  } (  ) : Nat {  } [ constructor {  } (  ) , functional {  } (  ) ]
   syntax Nat ::= "zero" [ klabel ( zero  ) , constructor , functional ]
