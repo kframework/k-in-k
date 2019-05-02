@@ -10,6 +10,7 @@ k_args = sys.argv[3:]
 
 subprocess.check_call(['./build', 'kink'])
 subprocess.check_call(['./build', '--'
+                      , 'opam', 'config', 'exec', '--'
                       , 'ext/k/k-distribution/target/release/k/bin/krun'
                       , '--directory', '.build/kink'
                       , '-cPIPELINE=#kastPipeline("' + program + '")'
