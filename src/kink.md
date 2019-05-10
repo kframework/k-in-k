@@ -29,6 +29,7 @@ module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
   imports SET
   imports STRING-SYNTAX
+  imports DEFAULT-STRATEGY
 
   syntax Any
   syntax Declaration ::= "nullDecl"
@@ -50,6 +51,7 @@ module KINK-CONFIGURATION
                      </mod>
                    </modules>
                 </definition>
+                <s> $STRATEGY:K </s>
 endmodule
 ```
 
@@ -177,7 +179,7 @@ module META-ACCESSORS
        </decl>
   rule [[ #isFunctionSymbol(MNAME, SNAME) => false ]]
        <name> MNAME </name>
-       <decl> symbol SNAME { .Sorts } ( _ ) : SORT [                                    ATTRS ]
+       <decl> symbol SNAME { .Sorts } ( _ ) : SORT [ ATTRS ]
        </decl>
        [owise]
   syntax LowerName ::= "function" [token]
@@ -234,7 +236,8 @@ module PARSE-PROGRAM
        <decl> kSyntaxProduction(SORT, PROD) </decl>
        <grammar> (.Set => SetItem(kSyntaxProduction(SORT, PROD))) REST </grammar>
     requires notBool(kSyntaxProduction(SORT, PROD) in REST)
-  rule <k> #collectGrammar => .K ... </k> [owise]
+  rule <k> #collectGrammar => .K ... </k>
+       <s> #STUCK() => .K ... </s>
 endmodule
 ```
 
@@ -402,7 +405,8 @@ module FLATTEN-PRODUCTIONS
        ...
        </mod>
 
-  rule <k> #flattenProductions => .K ... </k> [owise]
+  rule <k> #flattenProductions => .K ... </k>
+       <s> #STUCK() => .K ... </s>
 endmodule
 ```
 
@@ -432,7 +436,8 @@ we map to a new kore `sort` declaration. We also keep the old declaration `DECL`
          ...
        </declarations>
     requires notBool(#isSortDeclared(MNAME, SORT))
-  rule <k> #productionsToSortDeclarations => .K ... </k> [owise]
+  rule <k> #productionsToSortDeclarations => .K ... </k>
+       <s> #STUCK() => .K ... </s>
 ```
 
 ```k
@@ -472,7 +477,8 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
          ...
        </declarations>
     requires notBool #isSymbolDeclared(MNAME, #symbolNameFromAttrList(ATTRS))
-  rule <k>  #productionsToSymbolDeclarations => .K ... </k> [owise]
+  rule <k>  #productionsToSymbolDeclarations => .K ... </k>
+       <s> #STUCK() => .K ... </s>
 ```
 
 `#symbolNameFromAttrList` extracts the Name to be used for a symbol from the
@@ -556,7 +562,8 @@ module TRANSLATE-FUNCTION-RULES
          [ .Patterns ]
        </decl>
     requires #isFunctionSymbol(MNAME, SYMBOL)
-  rule <k> #translateFunctionRules => .K ... </k> [owise]
+  rule <k> #translateFunctionRules => .K ... </k>
+       <s> #STUCK() => .K ... </s>
 endmodule
 ```
 
@@ -576,6 +583,7 @@ module REMOVE-FRONTEND-DECLARATIONS
   rule <k> #filterKoreDeclarations ... </k>
        <declarations> ( <decl> DECL </decl> => .Bag ) ... </declarations>
     requires notBool isKoreDeclaration(DECL)
-  rule <k> #filterKoreDeclarations => .K ... </k> [owise]
+  rule <k> #filterKoreDeclarations => .K ... </k>
+       <s> #STUCK() => .K ... </s>
 endmodule
 ```
