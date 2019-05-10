@@ -272,13 +272,55 @@ module FRONTEND-MODULES-TO-KORE-MODULES
   imports STRING-SYNTAX
 
   syntax KItem ::= "#definitionToConfiguration"
+```
+
+Convert K definitions to kore definitions:
+
+```k
   rule <pipeline> #definitionToConfiguration ... </pipeline>
-       <defn> koreDefinition(ATTRS, MODS)
-           => kDefinition(.KRequireList, MODS)
+       <defn> kDefinition(.KRequireList, MODS) => koreDefinition([.Patterns], MODS) </defn>
+```
+
+Convert K Import statements to Kore import statements:
+
+```k
+  rule <pipeline> #definitionToConfiguration ~> PIPELINE:K </pipeline>
+       <defn> koreDefinition(_
+                            , (kModule(MNAME, ATTS, IMPORTS kImport(I), DECLS) MODS)
+                           => (kModule(MNAME, ATTS, IMPORTS, koreImport(I, koreAttributes(.Patterns)) DECLS) MODS)
+                            )
        </defn>
+```
+
+```k
+  rule <pipeline> #definitionToConfiguration ~> PIPELINE:K </pipeline>
+       <defn> koreDefinition(_
+                            , ( kModule(MNAME, noAtt, .KImportList, DECLS)
+                             => koreModule(MNAME, DECLS, [.Patterns])
+                              )
+                              MODS
+                            )
+       </defn>
+       <modules>
+         ( .Bag
+         => <mod>
+              <name> MNAME </name>
+              <k> DECLS ~> PIPELINE </k>
+              ...
+            </mod>
+         )
+         ...
+       </modules>
+```
+
+Move Kore modules to configuration cell:
+
+```k
   rule <pipeline> #definitionToConfiguration ~> PIPELINE </pipeline>
-       <defn> kDefinition(.KRequireList, koreModule(MNAME, DECLS, [ATTS]) MODS)
-           => kDefinition(.KRequireList,                                  MODS)
+       <defn> koreDefinition(_
+                            , (koreModule(MNAME, DECLS, [ATTS]) MODS):Modules
+                           => MODS
+                            )
        </defn>
        <modules>
          (  .Bag
@@ -291,31 +333,16 @@ module FRONTEND-MODULES-TO-KORE-MODULES
          )
          ...
        </modules>
+```
 
-  rule <pipeline> #definitionToConfiguration ~> PIPELINE:K </pipeline>
-       <defn> kDefinition(.KRequireList, kModule(MNAME, noAtt, .KImportList, DECLS) MODS)
-           => kDefinition(.KRequireList,                                           MODS)
-       </defn>
-       <modules>
-         ( .Bag
-         => <mod>
-              <name> MNAME </name>
-              <k> DECLS ~> PIPELINE </k>
-              ...
-            </mod>
-         )
-         ...
-       </modules>
+Remove empty kore definitions:
 
+```k
   rule <pipeline> #definitionToConfiguration ~> PIPELINE => .K </pipeline>
-       <defn> kDefinition(.KRequireList, .Modules) => .K </defn>
+       <defn> koreDefinition([.Patterns], .Modules) => .K </defn>
+```
 
-  // Convert K Import statements to Kore import statements
-  rule <pipeline> #definitionToConfiguration ~> PIPELINE:K </pipeline>
-       <defn> kDefinition(.KRequireList, kModule(MNAME, ATTS, kImport(I), DECLS) MODS)
-           => kDefinition(.KRequireList, kModule(MNAME, ATTS, koreImport(I, koreAttributes(.Patterns)), DECLS) MODS)
-       </defn>
-
+```k
   rule <k> DECL DECLS:Declarations => DECLS ... </k>
        <declarations> .Bag => <decl> DECL </decl> ... </declarations>
   rule <k> .Declarations => .K ... </k>
