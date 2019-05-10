@@ -56,6 +56,7 @@ kink  = proj.definition( backend   = 'ocaml'
                        , directory = proj.builddir('kink')
                        , flags     = '--syntax-module KINK-SYNTAX'
                        , alias     = 'kink'
+                       , runner_script = None # TODO: This is a hack
                        )
 
 def pipeline(pipeline, extension):
