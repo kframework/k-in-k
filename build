@@ -33,6 +33,7 @@ init_env() {
 
 init_env
 export PATH="$base/ext/k-light/bin/:$PATH"
+git submodule update --init --recursive
 python3 lib/build.py
 [[ $# -lt 1 ]] || [[ -- != $1 ]] || { shift ; exec "$@" ; }
 exec ninja -f .build/generated.ninja "$@"
