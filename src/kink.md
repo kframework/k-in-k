@@ -34,11 +34,11 @@ module KINK-CONFIGURATION
   syntax Declaration ::= "nullDecl"
   syntax DeclCellSet
   syntax DeclarationsCellFragment
-  configuration <pipeline> $PGM:Any ~> $PIPELINE:K ~> .K </pipeline>
+  configuration <k> $PGM:Any ~> $PIPELINE:K </k>
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
                    <modules format="%2%n">
-                     <mod format="module %2%i%n%4%n%5%n%6%n%7%d%n %i%dendmodule %3%n%n"
+                     <mod format="module %2%i%n%4%n%5%n%6%d%n %i%dendmodule %3%n%n"
                           multiplicity="*" type="Set">
                        <name format="%2"> #token("UNNAMED", "ModuleName"):ModuleName </name>
                        <attributes format="[ %2 ]"> .Patterns </attributes>
@@ -46,7 +46,6 @@ module KINK-CONFIGURATION
                        <declarations format="%2">
                          <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
                        </declarations>
-                       <k> .K </k>
                        <grammar> .Set </grammar>
                      </mod>
                    </modules>
@@ -202,7 +201,7 @@ module PARSE-OUTER
 
   // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
   syntax KItem ::= "#parseOuter"
-  rule <pipeline> PGM:Any ~> #parseOuter => parseOuter(tokenToString(PGM)) ... </pipeline>
+  rule <k> PGM:Any ~> #parseOuter => parseOuter(tokenToString(PGM)) ... </k>
 endmodule
 ```
 
@@ -250,7 +249,7 @@ module PARSE-TO-EKORE
   imports META
 
   syntax KItem ::= "#parseToEKore"
-  rule <pipeline> PGM:Any ~> #parseToEKore => parseEKore(tokenToString(PGM)) ... </pipeline>
+  rule <k> PGM:Any ~> #parseToEKore => parseEKore(tokenToString(PGM)) ... </k>
 endmodule
 ```
 
@@ -269,65 +268,63 @@ module FRONTEND-MODULES-TO-KORE-MODULES
   imports STRING-SYNTAX
 
   syntax KItem ::= "#defnToConfig"
-  rule <pipeline> (PGM:Definition ~> #defnToConfig)
-               => (#defnToConfig ~> PGM)
-                  ...
-       </pipeline>
+  rule <k> (PGM:Definition ~> #defnToConfig)
+          => (#defnToConfig ~> PGM)
+             ...
+       </k>
 ```
 
 Convert K definitions to kore definitions:
 
 ```k
-  rule <pipeline> #defnToConfig
-               ~> ( kDefinition(.KRequireList, MODS)
-                 => koreDefinition([.Patterns], MODS)
-                  )
-                  ...
-       </pipeline>
+  rule <k> #defnToConfig
+        ~> ( kDefinition(.KRequireList, MODS)
+          => koreDefinition([.Patterns], MODS)
+           )
+           ...
+       </k>
 ```
 
 Convert K Import statements to Kore import statements:
 
 ```k
-  rule <pipeline> #defnToConfig
-               ~> koreDefinition( _
-                                , (kModule(MNAME, ATTS, IMPORTS kImport(I), DECLS) MODS)
-                               => (kModule(MNAME, ATTS, IMPORTS, koreImport(I, koreAttributes(.Patterns)) DECLS) MODS)
-                                )
-                  ...
-       </pipeline>
+  rule <k> #defnToConfig
+        ~> koreDefinition( _
+                         , (kModule(MNAME, ATTS, IMPORTS kImport(I), DECLS) MODS)
+                        => (kModule(MNAME, ATTS, IMPORTS, koreImport(I, koreAttributes(.Patterns)) DECLS) MODS)
+                         )
+           ...
+       </k>
 ```
 
 Convert K modules to kore modules:
 
 ```k
-  rule <pipeline> #defnToConfig
-               ~> koreDefinition(_
-                                , ( kModule(MNAME, noAtt, .KImportList, DECLS)
-                                 => koreModule(MNAME, DECLS, [.Patterns])
-                                  )
-                                  MODS
-                                )
-                  ...
-       </pipeline>
+  rule <k> #defnToConfig
+        ~> koreDefinition(_
+                         , ( kModule(MNAME, noAtt, .KImportList, DECLS)
+                          => koreModule(MNAME, DECLS, [.Patterns])
+                           )
+                           MODS
+                         )
+           ...
+       </k>
 ```
 
 Move Kore modules to configuration cell:
 
 ```k
-  rule <pipeline> #defnToConfig
-               ~> koreDefinition( _
-                                , (koreModule(MNAME, DECLS, [ATTS]) MODS):Modules
-                               => MODS
-                                )
-               ~> PIPELINE
-       </pipeline>
+  rule <k> #defnToConfig
+        ~> ( koreDefinition(DEFATTRS, (koreModule(MNAME, DECLS, [ATTS]) MODS):Modules)
+          => koreModule(MNAME, DECLS, [ATTS]) ~> koreDefinition(DEFATTRS, MODS)
+           )
+           ...
+       </k>
        <modules>
          (  .Bag
          => <mod>
               <name> MNAME </name>
               <attributes> ATTS </attributes>
-              <k> DECLS ~> PIPELINE </k>
               ...
             </mod>
          )
@@ -338,17 +335,17 @@ Move Kore modules to configuration cell:
 Remove empty kore definitions:
 
 ```k
-  rule <pipeline> #defnToConfig
-               ~> koreDefinition([.Patterns], .Modules)
-               ~> PIPELINE
-            =>    .K
-       </pipeline>
+  rule <k> #defnToConfig ~> koreDefinition([.Patterns], .Modules)
+        => .K
+           ...
+       </k>
 ```
 
 ```k
-  rule <k> DECL DECLS:Declarations => DECLS ... </k>
+  rule <k> #defnToConfig ~> koreModule(MNAME, DECL DECLS:Declarations => DECLS, _) ... </k>
+       <name> MNAME </name>
        <declarations> .Bag => <decl> DECL </decl> ... </declarations>
-  rule <k> .Declarations => .K ... </k>
+  rule <k> #defnToConfig ~> (koreModule(MNAME, .Declarations, _) => .K)... </k>
 ```
 
 ```k
@@ -385,19 +382,25 @@ module FLATTEN-PRODUCTIONS
   syntax KItem ::= "#flattenProductions"
 
   rule <k> #flattenProductions ... </k>
+       <mod>
        <declarations>
           <decl> kSyntaxProduction(SORT, P1 > P2) </decl>
        => <decl> kSyntaxProduction(SORT, P1) </decl>
           <decl> kSyntaxProduction(SORT, P2) </decl>
           ...
        </declarations>
+       ...
+       </mod>
   rule <k> #flattenProductions ... </k>
+       <mod>
        <declarations>
           <decl> kSyntaxProduction(SORT, P1 | P2) </decl>
        => <decl> kSyntaxProduction(SORT, P1) </decl>
           <decl> kSyntaxProduction(SORT, P2) </decl>
           ...
        </declarations>
+       ...
+       </mod>
 
   rule <k> #flattenProductions => .K ... </k> [owise]
 endmodule
