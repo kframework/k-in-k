@@ -17,7 +17,7 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh '''#!/bin/bash
-            ./build kink
+            (cd ext/k-light/ && mvn package -DskipTests) && ./build kink
           '''
         }
       }
