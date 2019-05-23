@@ -7,3 +7,6 @@
 [submodule "kninja"]
 	path = ext/kninja
 	url = https://github.com/nishantjr/kninja
+[submodule "ext/k-light"]
+	path = ext/k-light
+	url = https://github.com/radumereuta/k-light/

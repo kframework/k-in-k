@@ -1,10 +1,10 @@
-module BASIC-K
+module A-BASIC-K
   sort K{} []
   sort KItem{} []
 endmodule [ ]
 
-module KSEQ
-  import BASIC-K []
+module B-KSEQ
+  import A-BASIC-K []
 
   symbol kseq{}(KItem{}, K{}) : K{} []
   symbol append{}(K{}, K{}) : K{} [function{}()]
@@ -23,7 +23,7 @@ module KSEQ
   []
 endmodule [ ]
 
-module INJ
+module C-INJ
   symbol inj{From,To}(From) : To []
 
   axiom{S1,S2,S3,R}
@@ -33,13 +33,13 @@ module INJ
   []
 endmodule
 
-module K
-  import KSEQ []
-  import INJ []
+module D-K
+  import B-KSEQ []
+  import C-INJ []
 endmodule
 
 module FOOBAR
-  import K []
+  import D-K []
   syntax Foo ::=
       "bar" [ klabel ( bar   ) , function ]
     | "buzz" [ klabel ( buzz2   ) ]

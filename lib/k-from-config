@@ -4,7 +4,7 @@ import sys
 import string
 import re
 
-# Usage: kore-from-config <input> <output>
+# Usage: k-from-config <input> <output>
 in_file = sys.argv[1]
 out_file = sys.argv[2]
 
@@ -14,8 +14,8 @@ def remove_prefix(text, prefix):
     return text
 
 input = open(in_file).read()
-open_tag = '<definition>'
-close_tag = '</definition>'
+open_tag = '<k>'
+close_tag = '</k>'
 
 begin = re.search(open_tag, input)
 end   = re.search(close_tag, input)
@@ -28,9 +28,6 @@ for listSort in commaSeparated:
     kore = kore.replace(' , .' + listSort, '')
 for listSort in commaSeparated + others:
     kore = kore.replace('.'   + listSort, '')
-kore = re.sub(r' *<k>\n *\.\n *</k>\n', '', kore)
-kore = re.sub(r' *<grammar>.*</grammar>\n', '', kore)
-kore = re.sub(r' *<grammar>\n.*\n *</grammar>\n', '', kore) # '.' doesn't match new lines?!
 
 outfile = open(out_file, 'w')
 for line in kore.split("\n")[1:-1]:
