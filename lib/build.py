@@ -50,14 +50,14 @@ kore   = 'src/kore.md'
 parser = 'src/parser-util.md'
 file   = 'src/file-util.md'
 
-kink  = proj.definition( backend   = 'ocaml'
-                       , main      = 'src/kink.md'
-                       , other     = [kore, ekore, parser, file]
-                       , directory = proj.builddir('kink')
-                       , flags     = '--syntax-module KINK-SYNTAX'
-                       , alias     = 'kink'
-                       , runner_script = None # TODO: This is a hack
-                       )
+kink = proj.definition( backend   = 'ocaml'
+                      , main      = 'src/kink.md'
+                      , other     = [kore, ekore, parser, file]
+                      , directory = proj.builddir('kink')
+                      , flags     = '--syntax-module KINK-SYNTAX'
+                      , alias     = 'kink'
+                      , runner_script = './kink'
+                      )
 
 def pipeline(pipeline, extension):
     return kink.krun().variables(flags = '"-cPIPELINE=%s"' %(pipeline))
