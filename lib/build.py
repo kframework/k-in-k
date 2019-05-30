@@ -120,11 +120,3 @@ peano_tests += [ ekore_test('t/peano', 'expected.ekore') ]
 peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
 peano_tests += [ parse_test('t/peano', 'peano.k', 'two-plus-two.peano') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
-
-# Unit tests
-# ==========
-
-proj.source('unit-tests.md') \
-    .then(proj.rule_tangle().output(proj.tangleddir('unit-tests-spec.k'))) \
-    .then(kink.kprove()) \
-    .alias('unit-tests')
