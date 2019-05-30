@@ -2,6 +2,7 @@
 requires "ekore.k"
 requires "file-util.k"
 requires "parser-util.k"
+requires "command-line.k"
 ```
 
 Syntax
@@ -21,16 +22,18 @@ Configuration & Main Module
 
 ```k
 module KINK-CONFIGURATION
+  imports COMMAND-LINE-SYNTAX
   imports EKORE-ABSTRACT
   imports SET
   imports STRING-SYNTAX
   imports DEFAULT-STRATEGY
 
   syntax Any
+  syntax Pgm ::= Any
   syntax Declaration ::= "nullDecl"
   syntax DeclCellSet
   syntax DeclarationsCellFragment
-  configuration <k> $PGM:Any ~> $PIPELINE:K </k>
+  configuration <k> #parseCommandLine($COMMANDLINE:CommandLine, $PGM:Any) </k>
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
                    <modules format="%2%n">
@@ -52,39 +55,7 @@ endmodule
 
 ```k
 module KINK
-  imports META-ACCESSORS
-  imports PARSE-OUTER
-  imports PARSE-PROGRAM
-  imports PARSE-TO-EKORE
-  imports FRONTEND-MODULES-TO-KORE-MODULES
-  imports FLATTEN-PRODUCTIONS
-  imports OUTER-ABSTRACT
-  imports PRODUCTIONS-TO-SORT-DECLARATIONS
-  imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
-  imports TRANSLATE-FUNCTION-RULES
-  imports REMOVE-FRONTEND-DECLARATIONS
-
-  syntax K ::= "#kastPipeline" "(" String ")" [function]
-  rule #kastPipeline(PATH)
-    => #parseOuter
-    ~> #defnToConfig
-    ~> #flattenProductions
-    ~> #collectGrammar
-    ~> #parseProgramPath(PATH)
-
-  syntax K ::= "#ekorePipeline" [function]
-  rule #ekorePipeline
-    => #parseToEKore
-    ~> #defnToConfig
-    ~> #flattenProductions
-    ~> #productionsToSortDeclarations
-    ~> #productionsToSymbolDeclarations
-    ~> #translateFunctionRules
-
-  syntax K ::= "#runWithHaskellBackendPipeline" [function]
-  rule #runWithHaskellBackendPipeline
-    => #ekorePipeline
-    ~> #filterKoreDeclarations
+  import COMMAND-LINE
 endmodule
 ```
 

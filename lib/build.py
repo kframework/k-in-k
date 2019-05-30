@@ -52,15 +52,15 @@ file   = 'src/file-util.md'
 
 kink = proj.definition( backend   = 'ocaml'
                       , main      = 'src/kink.md'
-                      , other     = [kore, ekore, parser, file]
+                      , other     = [kore, ekore, parser, file, 'src/command-line.md']
                       , directory = proj.builddir('kink')
                       , flags     = '--syntax-module KINK-SYNTAX'
                       , alias     = 'kink'
                       , runner_script = './kink'
                       )
 
-def pipeline(pipeline, extension):
-    return kink.krun().variables(flags = '"-cPIPELINE=%s"' %(pipeline))
+def pipeline(commandline, extension):
+    return kink.krun().variables(flags = "-cCOMMANDLINE='%s'" %(commandline))
 
 def kink_test(base_dir, test_file, pipeline):
     input = os.path.join(base_dir, test_file)
@@ -72,14 +72,14 @@ def kink_test(base_dir, test_file, pipeline):
                          .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
                .default()
 
-ekore_test    = functools.partial(kink_test, pipeline = pipeline('#ekorePipeline'   , 'ekorePipeline'))
+ekore_test = functools.partial(kink_test, pipeline = pipeline('ekore-to-kore'   , 'ekorePipeline'))
 
 def parse_test(base_dir, def_file, input_program):
     def_path = os.path.join(base_dir, def_file)
     prog_path = os.path.join(base_dir, 'programs', input_program)
     expected = prog_path + '.kast'
     return proj.source(def_path) \
-               .then(pipeline('#kastPipeline(\\"' + prog_path + '\\")'
+               .then(pipeline('kast "' + prog_path + '"'
                              , 'parse-' + input_program
                              ).implicit([prog_path])) \
                .then(k_from_config) \
@@ -91,7 +91,7 @@ def lang_test(base_dir, module, program):
     language_kore    = os.path.join(base_dir, 'expected.ekore')
     program_pattern  = os.path.join(base_dir, 'programs', program + '.kast')
     expected_pattern = os.path.join(base_dir, 'programs', program + '.expected')
-    runWithHaskell_pipeline = pipeline('#runWithHaskellBackendPipeline', 'noFrontend')
+    runWithHaskell_pipeline = pipeline('kompile', 'noFrontend')
 
     lang_no_frontend_kore =  proj.source(language_kore) \
                                  .then(runWithHaskell_pipeline \
