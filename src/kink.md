@@ -81,10 +81,6 @@ module KINK
     ~> #productionsToSymbolDeclarations
     ~> #translateFunctionRules
 
-  // TODO: Why can't we just specify `-cPIPELINE=.K` from the commandline?
-  syntax K ::= "#nullPipeline" [function]
-  rule #nullPipeline => .K
-
   syntax K ::= "#runWithHaskellBackendPipeline" [function]
   rule #runWithHaskellBackendPipeline
     => #ekorePipeline
