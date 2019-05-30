@@ -19,11 +19,6 @@ endmodule
 Configuration & Main Module
 ===========================
 
-The K in K configuration has a "k" cell containing a definition, and a
-"pipeline" cell containing operations that map over the definition in the K
-cell. When an operation is at the top of the `<k>` cell, it must
-transform the declaration as needed.
-
 ```k
 module KINK-CONFIGURATION
   imports EKORE-ABSTRACT
