@@ -3,7 +3,7 @@ Parsing utils
 ```k
 module PARSER-UTIL
   imports FILE-UTIL
-  imports META
+  imports K-REFLECTION
   imports EKORE-ABSTRACT
 
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]

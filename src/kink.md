@@ -161,7 +161,6 @@ Parse Outer
 module PARSE-OUTER
   imports KINK-CONFIGURATION
   imports PARSER-UTIL
-  imports META
 
   // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
   syntax KItem ::= "#parseOuter"
@@ -181,7 +180,6 @@ module PARSE-PROGRAM
   imports STRING
   imports FILE-UTIL
   imports PARSER-UTIL
-  imports META
 
   syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
                  | "#parseProgram" "(" IOString ")" // Program content
@@ -211,7 +209,6 @@ module PARSE-TO-EKORE
   imports EKORE-ABSTRACT
   imports KINK-CONFIGURATION
   imports PARSER-UTIL
-  imports META
 
   syntax KItem ::= "#parseToEKore"
   rule <k> PGM:Any ~> #parseToEKore => parseEKore(tokenToString(PGM)) ... </k>
@@ -420,7 +417,6 @@ Kore syntax. This transformation is idempotent.
 ```k
 module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports META-ACCESSORS
-  imports META
   imports STRING
   imports ID
   imports PARSER-UTIL
