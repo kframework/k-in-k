@@ -2,7 +2,7 @@
 
 from sys       import argv
 from itertools import takewhile
-from os        import execv
+from os        import (execv, path)
 
 # Usage: `./kink <kink-args> -- <k-args>`
 # 
@@ -11,16 +11,21 @@ from os        import execv
 # e.g. `./kink kompile         -- definition.k`
 # e.g. `./kink kast    pgm.foo -- foo.k`
 
+repo_dir = path.dirname(path.abspath(__file__))
+build = path.join(repo_dir, 'build')
+krun = path.join(repo_dir , 'ext/k/k-distribution/target/release/k/bin/krun')
+
 args = iter(argv)
 next(args)
 kink_args = takewhile(lambda arg: arg != '--', args)
 k_args = args
 
-command = [ './build', '--' # Need k-light in PATH
+
+command = [ build, '--' # Need k-light in PATH
           , 'opam', 'config', 'exec', '--'
-          , 'ext/k/k-distribution/target/release/k/bin/krun'
+          , krun
           , '--directory', '.build/kink'
           , "-cCOMMANDLINE=%s" %(' '.join(list(kink_args)))
           , *k_args
           ]
-execv ('./build', command)
+execv (build, command)
