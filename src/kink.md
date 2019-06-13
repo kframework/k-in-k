@@ -50,6 +50,7 @@ module KINK-CONFIGURATION
                    </modules>
                 </definition>
                 <s> $STRATEGY:K </s>
+                <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
 endmodule
 ```
 

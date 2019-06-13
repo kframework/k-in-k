@@ -2,7 +2,7 @@
 
 from sys       import argv
 from itertools import takewhile
-from os        import (execv, path)
+from os        import (environ, execvp, path)
 
 # Usage: `./kink <kink-args> -- <k-args>`
 # 
@@ -12,20 +12,18 @@ from os        import (execv, path)
 # e.g. `./kink kast    pgm.foo -- foo.k`
 
 repo_dir = path.dirname(path.abspath(__file__))
-build = path.join(repo_dir, 'build')
 krun = path.join(repo_dir , 'ext/k/k-distribution/target/release/k/bin/krun')
+environ['PATH'] = path.join(repo_dir, 'ext/k-light/bin/') + ':' + environ['PATH']
 
 args = iter(argv)
 next(args)
 kink_args = takewhile(lambda arg: arg != '--', args)
 k_args = args
 
-
-command = [ build, '--' # Need k-light in PATH
-          , 'opam', 'config', 'exec', '--'
-          , krun
-          , '--directory', '.build/kink'
-          , "-cCOMMANDLINE=%s" %(' '.join(list(kink_args)))
-          , *k_args
+command = [ 'opam', 'config', 'exec', '--'
+          , krun , '--directory', path.join(repo_dir, '.build/kink')
+                 , "-cCOMMANDLINE=%s" %(' '.join(list(kink_args)))
+                 , "-cKINKDEPLOYEDDIR=%s" %(path.join(repo_dir, '.build/kink/'))
+                 , *k_args
           ]
-execv (build, command)
+execvp('opam', command)
