@@ -3,8 +3,11 @@ module COMMAND-LINE-SYNTAX
   imports STRING-SYNTAX
   syntax KItem ::= "#parseCommandLine" "(" CommandLine "," Pgm ")"
   syntax Pgm
+
+  syntax Path ::= r"[\\\\./a-zA-Z0-9_-][\\\\./a-zA-Z0-9_-]*" [token]
+  syntax String ::= token2String(KItem) [function, functional, hook(STRING.token2string)]
   syntax CommandLine ::= "kompile"
-                       | "kast" String
+                       | "kast" Path
                        | "ekore-to-kore"
 endmodule
 ```
@@ -44,7 +47,7 @@ the `PATH`:
 
 ```k
   rule <k> #parseCommandLine(kast PATH, PGM)
-        => PGM ~> #kastPipeline(PATH)
+        => PGM ~> #kastPipeline(token2String(PATH))
            ...
        </k>
 ```
