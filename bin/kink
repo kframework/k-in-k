@@ -11,7 +11,7 @@ from os        import (environ, execvp, path)
 # e.g. `./kink kompile         -- definition.k`
 # e.g. `./kink kast    pgm.foo -- foo.k`
 
-repo_dir = path.dirname(path.abspath(__file__))
+repo_dir = path.dirname(path.dirname(path.abspath(__file__)))
 krun = path.join(repo_dir , 'ext/k/k-distribution/target/release/k/bin/krun')
 environ['PATH'] = path.join(repo_dir, 'ext/k-light/bin/') + ':' + environ['PATH']
 
