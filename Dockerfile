@@ -27,3 +27,9 @@ ADD --chown=user:user ext/k/haskell-backend/src/main/native/haskell-backend/stac
 ADD --chown=user:user ext/k/haskell-backend/src/main/native/haskell-backend/kore/package.yaml /home/user/.tmp-haskell/kore/
 RUN    cd /home/user/.tmp-haskell \
     && stack build --only-snapshot --test --bench --no-haddock-deps --haddock --library-profiling
+
+ADD ext/k/k-distribution/src/main/scripts/bin/k-configure-opam-dev ext/k/k-distribution/src/main/scripts/bin/k-configure-opam-common /home/user/.tmp-opam/bin/
+ADD ext/k/k-distribution/src/main/scripts/lib/opam  /home/user/.tmp-opam/lib/opam/
+RUN    cd /home/user \
+    && opam init --yes --no-setup \
+    && ./.tmp-opam/bin/k-configure-opam-dev

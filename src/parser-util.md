@@ -3,37 +3,44 @@ Parsing utils
 ```k
 module PARSER-UTIL
   imports FILE-UTIL
-  imports META
+  imports K-REFLECTION
   imports EKORE-ABSTRACT
+  imports KINK-CONFIGURATION
 
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
 
   syntax KItem ::= parseOuter(String) [function, impure]
-  rule parseOuter(S)
-    => doParseKAST(parseHelper( module = "OUTER-SYNTAX"
-                             , grammarFile = ".build/kink/src/ekore.k"
-                             , start = "Definition"
-                             , input = S
-                             , output = "kast"
-                 )           )
+  rule [[ parseOuter(S)
+       => doParseKAST(parseHelper( module = "OUTER-SYNTAX"
+                               , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
+                               , start = "Definition"
+                               , input = S
+                               , output = "kast"
+                   )           )
+       ]]
+       <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 
   syntax KItem ::= parseEKore(String) [function, impure]
-  rule parseEKore(S)
-    => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
-                             , grammarFile = ".build/kink/src/ekore.k"
+  rule [[ parseEKore(S)
+       => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
+                             , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
                              , start = "Definition"
                              , input = S
                              , output = "kast"
                  )           )
+       ]]
+       <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 
   syntax KItem ::= parseSymbolName(String) [function, impure]
-  rule parseSymbolName(S)
-    => doParseKAST(parseHelper( module = "KORE-SYNTAX"
-                             , grammarFile = ".build/kink/src/kore.k"
-                             , start = "SymbolName"
-                             , input = S
-                             , output = "kast"
-                 )           )
+  rule [[ parseSymbolName(S)
+       => doParseKAST(parseHelper( module = "KORE-SYNTAX"
+                                 , grammarFile = DEPLOY_DIR +String "/src/kore.k"
+                                 , start = "SymbolName"
+                                 , input = S
+                                 , output = "kast"
+                     )           )
+       ]]
+       <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 
   syntax KItem ::= doParseKAST(K) [function]
   rule doParseKAST(S:String) => #parseKAST(S)
@@ -73,22 +80,25 @@ module PARSER-UTIL
                                        , String /* start symbol */
                                        , String /* input */
                                        ) [function, impure]
-  rule parseWithProductions(GRAMMAR, START, INPUT)
-    => doParseKAST(parseHelper( module = "KORE-SYNTAX"
-                             , grammarFile = ".build/kink/src/kore.k"
-                             , start = "Pattern"
-                             , input = parseHelper( module = "LANGUAGE-GRAMMAR"
-                                                  , grammarFile = saveToTempFile("module LANGUAGE-GRAMMAR\n"
-                                                                         +String grammarToString(GRAMMAR)
-                                                                         +String "endmodule"
-                                                                                , "", ""
-                                                                                )
-                                                  , start = START
-                                                  , input = INPUT
-                                                  , output = "kore"
-                                                  )
-                             , output = "kast"
-                 )           )
+  rule [[ parseWithProductions(GRAMMAR, START, INPUT)
+       => doParseKAST(parseHelper( module = "KORE-SYNTAX"
+                                 , grammarFile = DEPLOY_DIR +String "/src/kore.k"
+                                 , start = "Pattern"
+                                 , input = parseHelper( module = "LANGUAGE-GRAMMAR"
+                                                      , grammarFile = saveToTempFile("module LANGUAGE-GRAMMAR\n"
+                                                                             +String grammarToString(GRAMMAR)
+                                                                             +String "endmodule"
+                                                                                    , "", ""
+                                                                                    )
+                                                      , start = START
+                                                      , input = INPUT
+                                                      , output = "kore"
+                                                      )
+                                 , output = "kast"
+                     )           )
+       ]]
+       <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
+
   syntax String ::= grammarToString(Set) [function]
   rule grammarToString(.Set) => ""
   rule grammarToString(SetItem(kSyntaxProduction(S, kProductionWAttr(P, ATTRS))) DECLS)

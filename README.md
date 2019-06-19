@@ -11,8 +11,20 @@ After installing python3, [ninja-build] and [pandoc] simply run `./build`.
 [pandoc]:      https://pandoc.org
 [ninja-build]: https://ninja-build.org
 
-Building and Testing
-====================
+Running
+=======
+
+First, build K-in-K with `./build kink`. Then: 
+
+* to kompile an ekore definition, use `./kink kompile -- foo.ekore`
+* to parse a program, use `./kink kast program.foo -- foo.k`
+
+Note that the `foo.k/ekore` files are arguments to KRun, whereas `kompile` and
+`kast program.foo` are arguments to the K-in-K definition. See
+[src/command-line.md](src/command-line.md) and [./kink](./kink) for details.
+
+Testing
+=======
 
 -   To build K-in-K run: `./build kink`
 -   To build and run all tests run `./build`
@@ -33,12 +45,6 @@ two tests for the EKORE pipeline:
 
 In addition, there are additional tests to check that we can execute programs
 in each of those languages.
-
-Unit tests
-----------
-
-In addition, unit-tests are implemented using reachability logic in the
-`unit-tests.md` file, and can be run via `./build unit-tests`.
 
 Project Milestones
 ==================

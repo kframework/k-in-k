@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+from sys       import argv
+from itertools import takewhile
+from os        import (environ, execvp, path)
+
+# Usage: `./kink <kink-args> -- <k-args>`
+# 
+# See src/command-line.md for details
+# 
+# e.g. `./kink kompile         -- definition.k`
+# e.g. `./kink kast    pgm.foo -- foo.k`
+
+repo_dir = path.dirname(path.dirname(path.abspath(__file__)))
+krun = path.join(repo_dir , 'ext/k/k-distribution/target/release/k/bin/krun')
+environ['PATH'] = path.join(repo_dir, 'ext/k-light/bin/') + ':' + environ['PATH']
+
+args = iter(argv)
+next(args)
+kink_args = takewhile(lambda arg: arg != '--', args)
+k_args = args
+
+command = [ 'opam', 'config', 'exec', '--'
+          , krun , '--directory', path.join(repo_dir, '.build/kink')
+                 , "-cCOMMANDLINE=%s" %(' '.join(list(kink_args)))
+                 , "-cKINKDEPLOYEDDIR=%s" %(path.join(repo_dir, '.build/kink/'))
+                 , *k_args
+          ]
+execvp('opam', command)

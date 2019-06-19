@@ -2,6 +2,7 @@
 requires "ekore.k"
 requires "file-util.k"
 requires "parser-util.k"
+requires "command-line.k"
 ```
 
 Syntax
@@ -19,23 +20,20 @@ endmodule
 Configuration & Main Module
 ===========================
 
-The K in K configuration has a "k" cell containing a definition, and a
-"pipeline" cell containing operations that map over the definition in the K
-cell. When an operation is at the top of the `<k>` cell, it must
-transform the declaration as needed.
-
 ```k
 module KINK-CONFIGURATION
+  imports COMMAND-LINE-SYNTAX
   imports EKORE-ABSTRACT
   imports SET
   imports STRING-SYNTAX
   imports DEFAULT-STRATEGY
 
   syntax Any
+  syntax Pgm ::= Any
   syntax Declaration ::= "nullDecl"
   syntax DeclCellSet
   syntax DeclarationsCellFragment
-  configuration <k> $PGM:Any ~> $PIPELINE:K </k>
+  configuration <k> #parseCommandLine($COMMANDLINE:CommandLine, $PGM:Any) </k>
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
                    <modules format="%2%n">
@@ -52,48 +50,13 @@ module KINK-CONFIGURATION
                    </modules>
                 </definition>
                 <s> $STRATEGY:K </s>
+                <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
 endmodule
 ```
 
 ```k
 module KINK
-  imports META-ACCESSORS
-  imports PARSE-OUTER
-  imports PARSE-PROGRAM
-  imports PARSE-TO-EKORE
-  imports FRONTEND-MODULES-TO-KORE-MODULES
-  imports FLATTEN-PRODUCTIONS
-  imports OUTER-ABSTRACT
-  imports PRODUCTIONS-TO-SORT-DECLARATIONS
-  imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
-  imports TRANSLATE-FUNCTION-RULES
-  imports REMOVE-FRONTEND-DECLARATIONS
-
-  syntax K ::= "#kastPipeline" "(" String ")" [function]
-  rule #kastPipeline(PATH)
-    => #parseOuter
-    ~> #defnToConfig
-    ~> #flattenProductions
-    ~> #collectGrammar
-    ~> #parseProgramPath(PATH)
-
-  syntax K ::= "#ekorePipeline" [function]
-  rule #ekorePipeline
-    => #parseToEKore
-    ~> #defnToConfig
-    ~> #flattenProductions
-    ~> #productionsToSortDeclarations
-    ~> #productionsToSymbolDeclarations
-    ~> #translateFunctionRules
-
-  // TODO: Why can't we just specify `-cPIPELINE=.K` from the commandline?
-  syntax K ::= "#nullPipeline" [function]
-  rule #nullPipeline => .K
-
-  syntax K ::= "#runWithHaskellBackendPipeline" [function]
-  rule #runWithHaskellBackendPipeline
-    => #ekorePipeline
-    ~> #filterKoreDeclarations
+  import COMMAND-LINE
 endmodule
 ```
 
@@ -199,7 +162,6 @@ Parse Outer
 module PARSE-OUTER
   imports KINK-CONFIGURATION
   imports PARSER-UTIL
-  imports META
 
   // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
   syntax KItem ::= "#parseOuter"
@@ -219,7 +181,6 @@ module PARSE-PROGRAM
   imports STRING
   imports FILE-UTIL
   imports PARSER-UTIL
-  imports META
 
   syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
                  | "#parseProgram" "(" IOString ")" // Program content
@@ -249,7 +210,6 @@ module PARSE-TO-EKORE
   imports EKORE-ABSTRACT
   imports KINK-CONFIGURATION
   imports PARSER-UTIL
-  imports META
 
   syntax KItem ::= "#parseToEKore"
   rule <k> PGM:Any ~> #parseToEKore => parseEKore(tokenToString(PGM)) ... </k>
@@ -458,7 +418,6 @@ Kore syntax. This transformation is idempotent.
 ```k
 module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports META-ACCESSORS
-  imports META
   imports STRING
   imports ID
   imports PARSER-UTIL
