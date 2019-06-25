@@ -149,6 +149,22 @@ module META-ACCESSORS
 ```
 
 ```k
+  syntax Bool ::= #keyInAttributes(KEY, AttrList) [function]
+  rule #keyInAttributes(_, .AttrList) => false
+  rule #keyInAttributes(KEY, (tagSimple(KEY), _)) => true
+  rule #keyInAttributes(KEY, (tagContent(KEY, _), _)) => true
+  rule #keyInAttributes(KEY, (_ , REST))
+    => #keyInAttributes(KEY, REST) [owise]
+
+  syntax TagContents ::= #getAttributeContent(KEY, AttrList) [function]
+//  rule #getAttributeContent(_, .AttrList) => undefined
+//  rule #getAttributeContent(KEY, (tagSimple(KEY)    , _)) => undefined
+  rule #getAttributeContent(KEY, (tagContent(KEY, CONTENT), _)) => CONTENT
+  rule #getAttributeContent(KEY, (_ , REST))
+    => #getAttributeContent(KEY, REST) [owise]
+```
+
+```k
 endmodule
 ```
 
@@ -445,16 +461,8 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 ```k
   syntax LowerName ::= "klabel" [token]
   syntax SymbolName ::= #symbolNameFromAttrList(AttrList) [function]
-  rule #symbolNameFromAttrList
-           ( consAttrList
-                 ( tagContent(klabel, SNAME:TagContents)
-                 , ATTRS
-                 )
-           )
-    // TODO: We need to handle errors
-    => {parseSymbolName(tokenToString(SNAME))}:>SymbolName
-  rule #symbolNameFromAttrList(consAttrList(_, ATTRS))
-    => #symbolNameFromAttrList(ATTRS) [owise]
+  rule #symbolNameFromAttrList(ATTRS)
+    => {parseSymbolName(tokenToString(#getAttributeContent(klabel, ATTRS)))}:>SymbolName
 
   syntax Patterns ::= #removeKlabelAttr(AttrList) [function]
   rule #removeKlabelAttr(consAttrList(tagContent(klabel, _), ATTRS))
