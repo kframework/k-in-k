@@ -467,7 +467,7 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports ID
   imports PARSER-UTIL
 
-  syntax MapTransform ::= "#productionsToSymbolDeclarations"
+  syntax KItem ::= "#productionsToSymbolDeclarations"
   rule <k>  #productionsToSymbolDeclarations ... </k>
        <name> MNAME </name>
        <declarations>
@@ -481,7 +481,7 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
          ...
        </declarations>
     requires notBool #isSymbolDeclared(MNAME, #symbolNameFromAttrList(ATTRS))
-  rule <k>  #productionsToSymbolDeclarations => .K ... </k>
+  rule <k> #productionsToSymbolDeclarations => .K ... </k>
        <s> #STUCK() => .K ... </s>
 ```
 
@@ -504,13 +504,10 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 
 ```k
   syntax Pattern ::= #attr2Pattern(Attr) [function]
-
   rule #attr2Pattern(tagSimple(KEY:LowerName))
     => KEY { .Sorts } ( .Patterns )
 
   syntax Patterns ::= #attrList2Patterns(AttrList) [function]
-
-  // TODO: This reverses the pattern list
   rule #attrList2Patterns(ATTR, ATTRS) => #attr2Pattern(ATTR), #attrList2Patterns(ATTRS)
   rule #attrList2Patterns(.AttrList) => .Patterns
 ```
