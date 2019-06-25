@@ -147,8 +147,6 @@ module PARSER-UTIL
     => tokenToString(KEY)
   rule AttrToString(KEY:KEY(CONTENTS:TagContents))
     => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
-  rule AttrToString(KEY:KEY(CONTENTS:EKoreKString))
-    => tokenToString(KEY) +String "(" +String tokenToString(CONTENTS) +String ")"
 
   syntax String ::= TagContentsToString(TagContents) [function]
   rule TagContentsToString(tagContents(TC, TCs))
