@@ -20,8 +20,8 @@ endmodule
 module TOKENS-SYNTAX
   imports TOKENS
 
-  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#]*" [token]
-  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#]*" [token]
+  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#]*" [token, autoReject]
+  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#]*" [token, autoReject]
                      | "left" [token]
                      // ^ I have no idea why I need to redeclare 'left',
                      //  but it gives a parsing error otherwise
@@ -32,6 +32,11 @@ endmodule
 
 module KORE-COMMON
   imports TOKENS
+  syntax LowerName ::= "function"    [token]
+                     | "functional"  [token]
+                     | "constructor" [token]
+                     | "injective"   [token]
+                     | "klabel"      [token]
 
   syntax Sort     ::= SortName | SortName "{" Sorts "}" [klabel(nameParam)]
   syntax Sorts

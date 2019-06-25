@@ -145,7 +145,6 @@ module META-ACCESSORS
        <decl> symbol SNAME { .Sorts } ( _ ) : SORT [ ATTRS ]
        </decl>
        [owise]
-  syntax LowerName ::= "function" [token]
 ```
 
 ```k
@@ -459,7 +458,6 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 `#symbolNameFromAttrList` extracts the Name to be used for a symbol from the
 
 ```k
-  syntax LowerName ::= "klabel" [token]
   syntax SymbolName ::= #symbolNameFromAttrList(AttrList) [function]
   rule #symbolNameFromAttrList(ATTRS)
     => {parseSymbolName(tokenToString(#getAttributeContent(klabel, ATTRS)))}:>SymbolName
