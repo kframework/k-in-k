@@ -5,9 +5,9 @@ endmodule [ ]
 
 module B-KSEQ
   import A-BASIC-K []
-  symbol kseq{}(KItem{},K{}) : K{} []
   symbol append{}(K{}, K{}) : K{} [function{}()]
-  symbol dotk{}() : K{} []
+  symbol dotk {  } (  ) : K {  } [ functional { } ( ), constructor { } ( ), injective { } ( )  ]
+  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [ functional { } ( ), constructor { } ( ), injective { } ( )  ]
   axiom { R } \equals { K { }, R } ( append { } ( dotk { } ( ) , K2:K { } ) , K2 : K { } ) [ ]
   axiom { R } \equals { K { }, R } ( append { } ( kseq { } ( K1 : KItem { } , K2 : K { } ) , K3 : K { } ) , kseq { } ( K1 : KItem { } , append { } (K2 : K { } , K3 : K { } ) ) ) [ ]
 endmodule [ ]
@@ -26,8 +26,8 @@ module PEANO
   import D-K []
 
   syntax Nat ::=
-      "zero" [ klabel ( zero ), constructor, functional ]
-    | "succ" "(" Nat ")" [ klabel ( succ ), constructor, functional ]
+      "zero" [ klabel ( zero ) ]
+    | "succ" "(" Nat ")" [ klabel ( succ ) ]
     | "plus" "(" Nat "," Nat ")" [ klabel ( plus ), function ]
   rule plus{}(zero{}(), Y:Nat{}) => Y:Nat{}
   rule plus{}(succ{}(X:Nat{}), Y:Nat{}) => succ{}(plus{}(X:Nat{}, Y:Nat{}))

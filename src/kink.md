@@ -422,6 +422,36 @@ endmodule
 Once this module is defined, we import it into the main `KINK` module and
 add it to the pipeline.
 
+Make non function productions constructors
+------------------------------------------
+
+If productions are not marked as functions, we consider them constructors.
+
+```k
+module NON-FUNCTIONAL-PRODUCTIONS-TO-CONSTRUCTORS
+  imports META-ACCESSORS
+  syntax KItem ::= "#nonFunctionProductionsToConstructors"
+  rule <k> #nonFunctionProductionsToConstructors ... </k>
+       <name> MNAME </name>
+       <declarations>
+         <decl> kSyntaxProduction(SORT, kProductionWAttr(PROD, [ ATTRS
+                                                              => (tagSimple(functional)
+                                                                 , tagSimple(constructor)
+                                                                 , tagSimple(injective)
+                                                                 , ATTRS
+                                                                 )
+                                                               ]
+                                                        ))
+         </decl>
+         ...
+       </declarations>
+    requires notBool #keyInAttributes(constructor, ATTRS)
+     andBool notBool #keyInAttributes(function, ATTRS)
+  rule <k> #nonFunctionProductionsToConstructors => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+endmodule
+```
+
 Extract symbols from productions
 --------------------------------
 

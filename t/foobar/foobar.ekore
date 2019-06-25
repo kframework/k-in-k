@@ -6,9 +6,9 @@ endmodule [ ]
 module B-KSEQ
   import A-BASIC-K []
 
-  symbol kseq{}(KItem{}, K{}) : K{} []
+  symbol kseq{}(KItem{}, K{}) : K{} [functional{}(), constructor{}(), injective{}()]
   symbol append{}(K{}, K{}) : K{} [function{}()]
-  symbol dotk{}() : K{} []
+  symbol dotk{}() : K{} [functional{}(), constructor{}(), injective{}()]
 
   axiom{ R }
     \equals{K{},R}(
