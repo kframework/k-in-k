@@ -41,22 +41,22 @@ module KORE-COMMON
   syntax Pattern ::= Variable
                 // | String
                    | Symbol "(" Patterns ")" [klabel(application)]
-                   | "\\and"      "{" Sort "}"          "(" Pattern "," Pattern ")"
-                   | "\\not"      "{" Sort "}"          "(" Pattern ")"
-                   | "\\or"       "{" Sort "}"          "(" Pattern "," Pattern ")"
-                   | "\\implies"  "{" Sort "}"          "(" Pattern "," Pattern ")"
-                   | "\\iff"      "{" Sort "}"          "(" Pattern "," Pattern ")"
-                   | "\\forall"   "{" Sort "}"          "(" Variable "," Pattern ")"
-                   | "\\exists"   "{" Sort "}"          "(" Variable "," Pattern ")"
-                   | "\\ceil"     "{" Sort "," Sort "}" "(" Pattern ")"
-                   | "\\floor"    "{" Sort "," Sort "}" "(" Pattern ")"
-                   | "\\equals"   "{" Sort "," Sort "}" "(" Pattern "," Pattern ")" [klabel(equals)]
-                   | "\\in"       "{" Sort "," Sort "}" "(" Pattern "," Pattern ")"
-                   | "\\top"      "{" Sort "}"          "(" ")"
-                   | "\\bottom"   "{" Sort "}"          "(" ")"
-                   | "\\next"     "{" Sort "}"          "(" Pattern ")"
-                // | "\\rewrites" "{" Sort "}"          "(" Pattern "," Pattern ")" // commented so it makes visiting easier
-                   | "\\dv"       "{" Sort "}"          "(" Pattern ")"
+                   | "\\and"      "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(and)]
+                   | "\\not"      "{" Sort "}"          "(" Pattern ")"              [klabel(not)]
+                   | "\\or"       "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(or)]
+                   | "\\implies"  "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(implies)]
+                   | "\\iff"      "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(iff)]
+                   | "\\forall"   "{" Sort "}"          "(" Variable "," Pattern ")" [klabel(forall)]
+                   | "\\exists"   "{" Sort "}"          "(" Variable "," Pattern ")" [klabel(exists)]
+                   | "\\ceil"     "{" Sort "," Sort "}" "(" Pattern ")"              [klabel(ceil)]
+                   | "\\floor"    "{" Sort "," Sort "}" "(" Pattern ")"              [klabel(floor)]
+                   | "\\equals"   "{" Sort "," Sort "}" "(" Pattern "," Pattern ")"  [klabel(equals)]
+                   | "\\in"       "{" Sort "," Sort "}" "(" Pattern "," Pattern ")"  [klabel(in)]
+                   | "\\top"      "{" Sort "}"          "(" ")"                      [klabel(top)]
+                   | "\\bottom"   "{" Sort "}"          "(" ")"                      [klabel(bottom)]
+                   | "\\next"     "{" Sort "}"          "(" Pattern ")"              [klabel(next)]
+                   | "\\rewrites" "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(rewrites)]
+                   | "\\dv"       "{" Sort "}"          "(" Pattern ")"              [klabel(dv)]
   syntax Patterns
 
   syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes)]
