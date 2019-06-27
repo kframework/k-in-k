@@ -33,8 +33,8 @@ module PARSER-UTIL
 
   syntax KItem ::= parseSymbolName(String) [function, impure]
   rule [[ parseSymbolName(S)
-       => doParseKAST(parseHelper( module = "KORE-SYNTAX"
-                                 , grammarFile = DEPLOY_DIR +String "/src/kore.k"
+       => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
+                                 , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
                                  , start = "SymbolName"
                                  , input = S
                                  , output = "kast"

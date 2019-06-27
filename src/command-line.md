@@ -85,7 +85,7 @@ High-level pipeline steps
     ~> #nonFunctionProductionsToConstructors
     ~> #productionsToSortDeclarations
     ~> #productionsToSymbolDeclarations
-    ~> #translateFunctionRules
+    ~> #translateRules
 ```
 
 ```k

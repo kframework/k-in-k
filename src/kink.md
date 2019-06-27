@@ -534,27 +534,41 @@ endmodule
 Translate Function Rules
 ------------------------
 
-`#translateFunctionRules` generates new kore axioms for rewrite rules over
-function symbols. Rules whose LHS is not a kore symbol with the function
-attribute should be ignored. Since the rewrite rule carries no additional
-information over the kore axiom, it can be discarded.
+`#translateRules` generates new kore axioms for rules. When the left-hand-side
+of the rule is a function symbol, we generate an axiom that uses equalities.
+Otherwise, if it has a constructor attribute, we generate one with rewrites. We
+do not handle `requires` and `ensures` clauses yet.
 
 ```k
 module TRANSLATE-FUNCTION-RULES
   imports KINK-CONFIGURATION
   imports META-ACCESSORS
 
-  syntax KItem ::= "#translateFunctionRules"
-  rule <k> #translateFunctionRules ... </k>
+  syntax KItem ::= "#translateRules"
+  rule <k> #translateRules ... </k>
        <name> MNAME </name>
-       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) , RHS)))
+       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS, RHS)))
            => axiom { #token("R", "UpperName") , .Sorts }
                 \equals { #getReturnSort(MNAME, SYMBOL), #token("R", "UpperName") }
-                ( SYMBOL { .Sorts } ( ARG_PATTERNS ) , RHS )
+                ( LHS , RHS )
          [ .Patterns ]
        </decl>
     requires #isFunctionSymbol(MNAME, SYMBOL)
-  rule <k> #translateFunctionRules => .K ... </k>
+
+  rule <k> #translateRules ... </k>
+       <name> MNAME </name>
+       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS , RHS)))
+           => #fun( RETSORT
+                 => axiom { .Sorts } \rewrites { RETSORT }
+                        ( \and { RETSORT } (\top{ RETSORT }(), LHS)
+                        , \and { RETSORT } (\top{ RETSORT }(), RHS)
+                        )
+                    [ .Patterns ]
+                  ) (#getReturnSort(MNAME, SYMBOL))
+       </decl>
+    requires notBool #isFunctionSymbol(MNAME, SYMBOL)
+
+  rule <k> #translateRules => .K ... </k>
        <s> #STUCK() => .K ... </s>
 endmodule
 ```
