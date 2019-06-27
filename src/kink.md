@@ -209,9 +209,9 @@ module PARSE-PROGRAM
        <grammar> GRAMMAR </grammar>
 
   rule <k> #collectGrammar ... </k>
-       <decl> kSyntaxProduction(SORT, PROD) </decl>
-       <grammar> (.Set => SetItem(kSyntaxProduction(SORT, PROD))) REST </grammar>
-    requires notBool(kSyntaxProduction(SORT, PROD) in REST)
+       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
+       <grammar> ( .Set => SetItem(SYNTAXDECL) ) REST </grammar>
+    requires notBool(SYNTAXDECL in REST)
   rule <k> #collectGrammar => .K ... </k>
        <s> #STUCK() => .K ... </s>
 endmodule
