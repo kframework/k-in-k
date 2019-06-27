@@ -64,7 +64,7 @@ kink = proj.definition( backend   = 'ocaml'
                       )
 
 def pipeline(commandline, extension):
-    return kink.krun().variables(
+    return kink.krun().ext(extension).variables(
                 flags = "-cCOMMANDLINE='%s' -cKINKDEPLOYEDDIR=%s"
                       % (commandline, kink.directory()))
 
