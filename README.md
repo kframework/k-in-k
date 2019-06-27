@@ -16,12 +16,12 @@ Running
 
 First, build K-in-K with `./build kink`. Then: 
 
-* to kompile an ekore definition, use `./kink kompile -- foo.ekore`
-* to parse a program, use `./kink kast program.foo -- foo.k`
+* to kompile an ekore definition, use `./bin/kink kompile -- foo.ekore`
+* to parse a program, use `./bin/kink kast program.foo -- foo.k`
 
 Note that the `foo.k/ekore` files are arguments to KRun, whereas `kompile` and
 `kast program.foo` are arguments to the K-in-K definition. See
-[src/command-line.md](src/command-line.md) and [./kink](./kink) for details.
+[src/command-line.md](src/command-line.md) and [./bin/kink](./bin/kink) for details.
 
 Testing
 =======
