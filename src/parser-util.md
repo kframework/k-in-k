@@ -61,7 +61,7 @@ module PARSER-UTIL
                  | "parseHelper2" "(" KItem ")" [function]
   rule parseHelper(module = MOD, grammarFile = GRAMMAR, start = START, input = INPUT:String, output = OUTPUT)
     => parseHelper1( module = MOD, grammarFile = GRAMMAR
-                   , start = START, inputFile = saveToTempFile(INPUT, "", "")
+                   , start = START, inputFile = saveToTempFile(INPUT, "k-in-k", "")
                    , output = OUTPUT
                    )
   rule parseHelper1(module = _, grammarFile = _, start = _, inputFile = E:IOError, output = _)
