@@ -107,15 +107,6 @@ module PARSER-UTIL
                  +String OptionalAttributesToString(ATTRS)
        +String "\n"
        +String grammarToString(DECLS)
-  rule grammarToString(SetItem(kSyntaxProduction(S, TAG:Tag(KSORTLIST:KSortList) ATTRS))
-                        DECLS
-                      )
-    => "syntax " +String tokenToString(S) +String " ::= "
-                 +String tokenToString(TAG)
-                 +String "(" +String KSortListToString(KSORTLIST) +String ")" +String " "
-                 +String OptionalAttributesToString(ATTRS)
-       +String "\n"
-       +String grammarToString(DECLS)
 
   syntax String ::= KSortListToString(KSortList) [function]
   rule KSortListToString(S:KSort) => tokenToString(S)
@@ -126,6 +117,8 @@ module PARSER-UTIL
     => KProductionItemToString(PI)
   rule KProductionToString(kProduction(PI, PIs))
     => KProductionItemToString(PI) +String "\n" +String KProductionToString(PIs)
+  rule KProductionToString(TAG:Tag(KSORTLIST:KSortList))
+    => tokenToString(TAG) +String "(" +String KSortListToString(KSORTLIST) +String ")"
 
   syntax String ::= KProductionItemToString(KProductionItem) [function]
   rule KProductionItemToString(nonTerminal(N)) => tokenToString(N)

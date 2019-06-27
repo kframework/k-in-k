@@ -120,9 +120,7 @@ module K-PRODUCTION-COMMON
   syntax KSortList ::= KSortList "," KSort [klabel(kSortList)]
                      | KSort
   syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
-                            | Tag "(" KSortList ")" OptionalAttributes [klabel(kFuncProductionWAttr)]
-                            |     "(" KSortList ")" OptionalAttributes [klabel(kTupleProductionWAttr)]
-  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
+  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet         [klabel(kPrioritySeq)]
                         | KNeTagSet
   syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock), format(%1%n%2 %3)]
                      | KProductionWAttr
@@ -132,6 +130,8 @@ module K-PRODUCTION-COMMON
   syntax KProductionItem
   syntax KProduction ::= KProductionItem
                        | KProductionItem KProduction [klabel(kProduction), unit(emptyKProduction)]
+                       | Tag "(" KSortList ")"       [klabel(kFuncProduction)]
+                       |     "(" KSortList ")"       [klabel(kTupleProduction)]
 
   syntax SyntaxDeclaration
     ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
