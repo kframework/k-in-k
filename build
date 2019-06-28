@@ -53,10 +53,13 @@ ekore  = 'src/ekore.md'
 kore   = 'src/kore.md'
 parser = 'src/parser-util.md'
 file   = 'src/file-util.md'
+inner  = 'src/inner.md'
+configinner = 'src/config-inner.md'
+ruleinner   = 'src/rule-inner.md'
 
 kink = proj.definition( backend   = 'ocaml'
                       , main      = 'src/kink.md'
-                      , other     = [kore, ekore, parser, file, 'src/command-line.md', k_light]
+                      , other     = [kore, ekore, parser, file, 'src/command-line.md', k_light, inner, configinner, ruleinner]
                       , directory = proj.builddir('kink')
                       , flags     = '--syntax-module KINK-SYNTAX'
                       , alias     = 'kink'

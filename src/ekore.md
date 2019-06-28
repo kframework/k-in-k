@@ -239,7 +239,7 @@ module ATTRIBUTES-COMMON
 
   syntax TagContent ::= UpperName | LowerName | Numbers | EKoreKString
   syntax TagContents
-  syntax KEY ::= LowerName
+  syntax KEY ::= LowerName [token]
 
 endmodule
 
@@ -350,9 +350,9 @@ module K-DEFINITION-ABSTRACT
   imports ATTRIBUTES-ABSTRACT
 
   syntax KImportList   ::= ".KImportList" [klabel(emptyKImportList)]
-                         | KImportList KImport  [klabel(kImportList), format(%1%2%n%3)]
+                         | KImportList KImport  [klabel(kImportList), format(%1%2%n)]
   syntax KRequireList  ::= ".KRequireList" [klabel(emptyKRequireList)]
-                         | KRequireList KRequire [klabel(KRequireList), format(%1%2%n%3)]
+                         | KRequireList KRequire [klabel(KRequireList), format(%1%2%n)]
 
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%3%n%n%5)]
   syntax Definition    ::= KDefinition

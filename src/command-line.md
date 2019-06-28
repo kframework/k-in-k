@@ -1,4 +1,6 @@
 ```k
+require "file-util.k"
+
 module COMMAND-LINE-SYNTAX
   imports STRING-SYNTAX
   syntax KItem ::= "#parseCommandLine" "(" CommandLine "," Pgm ")"
@@ -8,6 +10,7 @@ module COMMAND-LINE-SYNTAX
   syntax String ::= token2String(KItem) [function, functional, hook(STRING.token2string)]
   syntax CommandLine ::= "kompile"
                        | "kast" Path
+                       | "frontend-to-ekore"
                        | "ekore-to-kore"
 endmodule
 ```
@@ -28,6 +31,7 @@ module COMMAND-LINE
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
+  imports FILE-UTIL
 ```
 
 Command line options
@@ -51,6 +55,21 @@ the `PATH`:
         => PGM ~> #kastPipeline(token2String(PATH))
            ...
        </k>
+```
+
+`frontend-to-ekore`: gets a full K definition and:
+
+ - parses into bubbles
+ - sanity checks
+ - parse config
+ - parse rules
+
+```k
+  rule <k> #parseCommandLine(frontend-to-ekore, PGM)
+        => PGM ~> #frontendPipeline
+           ...
+       </k>
+
 ```
 
 `ekore-to-kore`: Convert the EKore definition specified in `$PGM`

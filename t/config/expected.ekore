@@ -1,0 +1,38 @@
+[  ]
+
+module A-BASIC-K
+  sort K {  } [  ]
+  sort KItem {  } [  ]
+endmodule [  ]
+
+module B-KSEQ
+  axiom { R } \equals { K {  } , R } ( append {  } ( dotk {  } (  ) , K2 : K {  } ) , K2 : K {  } ) [  ]
+  axiom { R } \equals { K {  } , R } ( append {  } ( kseq {  } ( K1 : KItem {  } , K2 : K {  } ) , K3 : K {  } ) , kseq {  } ( K1 : KItem {  } , append {  } ( K2 : K {  } , K3 : K {  } ) ) ) [  ]
+  import A-BASIC-K [  ]
+  symbol append {  } ( K {  } , K {  } ) : K {  } [ function {  } (  ) ]
+  symbol dotk {  } (  ) : K {  } [  ]
+  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [  ]
+endmodule [  ]
+
+module C-INJ
+  axiom { S1 , S2 , S3 , R } \equals { S3 , R } ( inj { S2 , S3 } ( inj { S1 , S2 } ( T : S1 ) ) , inj { S1 , S3 } ( T : S1 ) ) [  ]
+  symbol inj { From , To } ( From ) : To [  ]
+endmodule [  ]
+
+module D-K
+  import B-KSEQ [  ]
+  import C-INJ [  ]
+endmodule [  ]
+
+module FOOBAR
+  axiom { R } \equals { Foo {  } , R } ( bar {  } (  ) , buzz2 {  } (  ) ) [  ]
+  import D-K [  ]
+  sort Fizz {  } [  ]
+  sort Foo {  } [  ]
+  symbol bar {  } (  ) : Foo {  } [ function {  } (  ) ]
+  symbol buzz2 {  } (  ) : Foo {  } [  ]
+  symbol foobar {  } (  ) : Fizz {  } [  ]
+  syntax Fizz ::= "foobar" [ klabel ( foobar  ) ]
+  syntax Foo ::= "bar" [ klabel ( bar  ) , function ]
+  syntax Foo ::= "buzz" [ klabel ( buzz2  ) ]
+endmodule [  ]
