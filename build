@@ -19,12 +19,12 @@ proj = KProject()
 
 kore_from_config = proj.rule( 'kore-from-config'
                             , description = 'kore-from-config: $in'
-                            , command = 'lib/kore-from-config "$in" "$out"'
+                            , command = 'lib/kore-from-config "$in" "$out" || (cat "$in" ; false)'
                             , ext = 'kore'
                             )
 k_from_config = proj.rule( 'k-from-config'
                          , description = 'k-from-config'
-                         , command = 'lib/k-from-config "$in" "$out"'
+                         , command = 'lib/k-from-config "$in" "$out" || (cat "$in" ; false)'
                          , ext = 'kore'
                          )
 def kore_exec(kore, ext = 'kore-exec'):
