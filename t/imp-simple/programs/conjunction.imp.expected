@@ -1,1 +1,1 @@
-kCell { } ( kseq { }(inj{BExp{}, KItem{}}(False{}()), dotk{}()))
+kCell { } ( kseq { }(inj{BExpResult{}, KItem{}}(False{}()), dotk{}()))

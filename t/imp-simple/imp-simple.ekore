@@ -42,13 +42,16 @@ endmodule
 module IMP-SIMPLE
   import D-K []
 
-  syntax BExp ::= "True"             [klabel(True)]
-                | "False"            [klabel(False)]
-                | BExp "&&" BExp     [klabel(And)]
-  syntax KCell ::= "kCell" "(" K ")" [klabel(kCell)]
+  syntax KCell ::= "kCell" "(" K ")"  [klabel(kCell)]
 
-  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(True{}(),VarB:BExp{})),DOTVAR:K{}))
+  syntax BExpResult ::= "True"        [klabel(True)]
+                      | "False"       [klabel(False)]
+                      | "#hole"       [klabel(HOLE)]
+  syntax BExp ::= BExpResult          [klabel(inj)]
+                | BExp "&&" BExp      [klabel(And)]
+
+  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(True{}()),VarB:BExp{})),DOTVAR:K{}))
     => kCell{}(kseq{}(inj{BExp{}, KItem{}}(VarB:BExp{}),DOTVAR:K{}))
-  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(False{}(),VarB:BExp{})),DOTVAR:K{}))
-    => kCell{}(kseq{}(inj{BExp{}, KItem{}}(False{}()),DOTVAR:K{}))
+  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(False{}()),VarB:BExp{})),DOTVAR:K{}))
+    => kCell{}(kseq{}(inj{BExpResult{}, KItem{}}(False{}()),DOTVAR:K{}))
 endmodule

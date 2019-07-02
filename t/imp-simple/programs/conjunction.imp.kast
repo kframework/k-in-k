@@ -1,1 +1,1 @@
-kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( True {  } (  ) , False {  } (  ) ) ) , dotk {  } (  ) ) )
+kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( inj { BExpResult {  } , BExp {  } } ( True {  } (  ) ) , inj { BExpResult {  } , BExp {  } } ( False {  } (  ) ) ) ) , dotk {  } (  ) ) )
