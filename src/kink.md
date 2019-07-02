@@ -97,6 +97,19 @@ module META-ACCESSORS
   imports BOOL
   imports SET
 
+  syntax Set ::= #getImportedModules(ModuleName)      [function]
+  syntax Set ::= #getImportedModulesSet(ModuleName, Set) [function]
+  rule #getImportedModules(MNAME) => #getImportedModulesSet(MNAME, SetItem(MNAME))
+  rule [[ #getImportedModulesSet(MNAME, MODS)
+       => #getImportedModulesSet(MNAME, MODS SetItem(IMPORTED) #getImportedModules(IMPORTED))
+       ]]
+       <name> MNAME </name>
+       <decl> koreImport(IMPORTED, _) </decl>
+    requires notBool IMPORTED in MODS
+  rule #getImportedModulesSet(MNAME, MODS) => MODS [owise]
+```
+
+```k
   syntax Bool ::= #isSortDeclared(ModuleName, SortName) [function, withConfig]
   rule [[ #isSortDeclared(MNAME:ModuleName, SORT:SortName) => true ]]
        <name> MNAME </name>
@@ -105,11 +118,19 @@ module META-ACCESSORS
 ```
 
 ```k
-  syntax Bool ::= #isSymbolDeclared(ModuleName, SymbolName) [function, withConfig]
-  rule [[ #isSymbolDeclared(MNAME, SYMBOL) => true ]]
+  syntax Bool ::= #isSymbolDeclaredSingleModule(ModuleName, SymbolName) [function]
+  rule [[ #isSymbolDeclaredSingleModule(MNAME, SYMBOL) => true ]]
        <name> MNAME </name>
        <decl> (symbol SYMBOL { _ } ( _ ) : _ ATTRS) </decl>
-  rule #isSymbolDeclared(_, _) => false [owise]
+  rule #isSymbolDeclaredSingleModule(_, _) => false [owise]
+
+  syntax Bool ::= #isSymbolDeclared(ModuleName, SymbolName) [function]
+  syntax Bool ::= #isSymbolDeclaredSet(Set, SymbolName)     [function]
+  rule #isSymbolDeclared(MNAME, SNAME)
+    => #isSymbolDeclaredSet(#getImportedModules(MNAME), SNAME)
+  rule #isSymbolDeclaredSet(SetItem(M) Ms, SNAME)
+    => #isSymbolDeclaredSingleModule(M, SNAME) orBool #isSymbolDeclaredSet(Ms, SNAME)
+  rule #isSymbolDeclaredSet(.Set, SNAME) => false
 ```
 
 ```k
