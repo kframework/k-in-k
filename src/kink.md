@@ -47,6 +47,7 @@ module KINK-CONFIGURATION
                        <grammar> .Set </grammar>
                      </mod>
                    </modules>
+                   <configGrammar> .Set </configGrammar>
                 </definition>
                 <exit-code exit=""> 1 </exit-code>
                 initSCell(.Map)
@@ -243,6 +244,42 @@ module PARSE-PROGRAM
     requires notBool(SYNTAXDECL in REST)
   rule <k> #collectGrammar => .K ... </k>
        <s> #STUCK() => .K ... </s>
+endmodule
+```
+
+Parse Config
+-------------
+
+```k
+module PARSE-CONFIG
+  imports RULES-WITH-BUBBLES-COMMON
+  imports KINK-CONFIGURATION
+  imports K-PRODUCTION-ABSTRACT
+  imports EKORE-KSTRING-ABSTRACT
+  imports KORE-HELPERS
+  imports STRING
+  imports FILE-UTIL
+  imports PARSER-UTIL
+
+  syntax KItem ::= "#parseConfigBubble"
+                 | "#collectConfigGrammar"
+
+  rule <k> #parseConfigBubble ... </k>
+       <decl> kConfiguration(C:Bubble) => kConfiguration(parseWithProductions(GRAMMAR, "K", tokenToString(C))) </decl>
+       <configGrammar> GRAMMAR </configGrammar>
+  
+  rule <k> #parseConfigBubble => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+  
+  rule <k> #collectConfigGrammar ... </k>
+       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
+       <configGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </configGrammar>
+    requires notBool(SYNTAXDECL in REST)
+  rule <k> #collectConfigGrammar => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+       
+  rule collectCellNames(K) => 
+  
 endmodule
 ```
 

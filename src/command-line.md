@@ -21,6 +21,7 @@ module COMMAND-LINE
 
   imports PARSE-OUTER
   imports PARSE-PROGRAM
+  imports PARSE-CONFIG
   imports PARSE-TO-EKORE
 
   imports FRONTEND-MODULES-TO-KORE-MODULES
