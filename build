@@ -19,12 +19,12 @@ proj = KProject()
 
 kore_from_config = proj.rule( 'kore-from-config'
                             , description = 'kore-from-config: $in'
-                            , command = 'lib/kore-from-config "$in" "$out"'
+                            , command = 'lib/kore-from-config "$in" "$out" || (cat "$in" ; false)'
                             , ext = 'kore'
                             )
 k_from_config = proj.rule( 'k-from-config'
                          , description = 'k-from-config'
-                         , command = 'lib/k-from-config "$in" "$out"'
+                         , command = 'lib/k-from-config "$in" "$out" || (cat "$in" ; false)'
                          , ext = 'kore'
                          )
 def kore_exec(kore, ext = 'kore-exec'):
@@ -64,7 +64,7 @@ kink = proj.definition( backend   = 'ocaml'
                       )
 
 def pipeline(commandline, extension):
-    return kink.krun().variables(
+    return kink.krun().ext(extension).variables(
                 flags = "-cCOMMANDLINE='%s' -cKINKDEPLOYEDDIR=%s"
                       % (commandline, kink.directory()))
 
@@ -126,5 +126,13 @@ peano_tests += [ ekore_test('t/peano', 'expected.ekore') ]
 peano_tests += [ lang_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
 peano_tests += [ parse_test('t/peano', 'peano.k', 'two-plus-two.peano') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
+
+# Imp
+imp_tests = []
+imp_tests += [ ekore_test('t/imp-simple', 'imp-simple.ekore') ]
+imp_tests += [ ekore_test('t/imp-simple', 'expected.ekore') ]
+imp_tests += [ lang_test('t/imp-simple', 'IMP-SIMPLE', 'conjunction.imp') ]
+imp_tests += [ parse_test('t/imp-simple', 'imp-simple.k', 'conjunction.imp') ]
+proj.build('t/imp', 'phony', inputs = Target.to_paths(imp_tests))
 
 proj.main()

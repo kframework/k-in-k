@@ -6,9 +6,9 @@ endmodule [ ]
 module B-KSEQ
   import A-BASIC-K []
 
-  symbol kseq{}(KItem{}, K{}) : K{} [functional{}(), constructor{}(), injective{}()]
+  symbol kseq{}(KItem{}, K{}) : K{} []
   symbol append{}(K{}, K{}) : K{} [function{}()]
-  symbol dotk{}() : K{} [functional{}(), constructor{}(), injective{}()]
+  symbol dotk{}() : K{} []
 
   axiom{ R }
     \equals{K{},R}(
@@ -38,12 +38,16 @@ module D-K
   import C-INJ []
 endmodule
 
-module FOOBAR
+module IMP-SIMPLE
   import D-K []
-  syntax Foo ::=
-      "bar" [ klabel ( bar   ) , function ]
-    | "buzz" [ klabel ( buzz2   ) ]
-  rule bar {  } (  ) => buzz2 {  } (  )
-  syntax Fizz ::=
-    "foobar" [ klabel ( foobar  ) ]
+
+  syntax BExp ::= "True"             [klabel(True)]
+                | "False"            [klabel(False)]
+                | BExp "&&" BExp     [klabel(And)]
+  syntax KCell ::= "kCell" "(" K ")" [klabel(kCell)]
+
+  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(True{}(),VarB:BExp{})),dotk{}()))
+    => kCell{}(kseq{}(inj{BExp{}, KItem{}}(VarB:BExp{}),dotk{}()))
+  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(False{}(),VarB:BExp{})),dotk{}()))
+    => kCell{}(kseq{}(inj{BExp{}, KItem{}}(False{}()),dotk{}()))
 endmodule

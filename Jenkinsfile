@@ -4,6 +4,9 @@ pipeline {
       additionalBuildArgs '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)'
     }
   }
+  options {
+    ansiColor('xterm')
+  }
   stages {
     stage("Init title") {
       when { changeRequest() }
@@ -17,37 +20,16 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh '''#!/bin/bash
-            (cd ext/k-light/ && mvn package -DskipTests) && ./build kink
+            (cd ext/k-light/ && mvn package -DskipTests) && ./build kink .build/kbackend-haskell
           '''
         }
       }
     }
-    stage('t/foobar') {
-      steps {
-        ansiColor('xterm') {
-          sh '''#!/bin/bash
-            ./build t/foobar
-          '''
-        }
-      }
-    }
-    stage('t/peano') {
-      steps {
-        ansiColor('xterm') {
-          sh '''#!/bin/bash
-            ./build t/foobar
-          '''
-        }
-      }
-    }
-    stage('t/*') {
-      steps {
-        ansiColor('xterm') {
-          sh '''#!/bin/bash
-            ./build
-          '''
-        }
-      }
-    }
+    stage('t/foobar') { steps {  sh '''./build t/foobar''' } }
+    stage('t/peano')  { steps {  sh '''./build t/peano'''  } }
+    stage('t/imp')    { steps {  sh '''./build t/imp'''    } }
+
+    // Catch-all for anything left out
+    stage('t/*')      { steps {  sh '''./build'''          } }
   }
 }

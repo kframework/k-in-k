@@ -145,7 +145,22 @@ module META-ACCESSORS
        <decl> symbol SNAME { .Sorts } ( _ ) : SORT [ ATTRS ]
        </decl>
        [owise]
-  syntax LowerName ::= "function" [token]
+```
+
+```k
+  syntax Bool ::= #keyInAttributes(KEY, AttrList) [function]
+  rule #keyInAttributes(_, .AttrList) => false
+  rule #keyInAttributes(KEY, (tagSimple(KEY), _)) => true
+  rule #keyInAttributes(KEY, (tagContent(KEY, _), _)) => true
+  rule #keyInAttributes(KEY, (_ , REST))
+    => #keyInAttributes(KEY, REST) [owise]
+
+  syntax TagContents ::= #getAttributeContent(KEY, AttrList) [function]
+//  rule #getAttributeContent(_, .AttrList) => undefined
+//  rule #getAttributeContent(KEY, (tagSimple(KEY)    , _)) => undefined
+  rule #getAttributeContent(KEY, (tagContent(KEY, CONTENT), _)) => CONTENT
+  rule #getAttributeContent(KEY, (_ , REST))
+    => #getAttributeContent(KEY, REST) [owise]
 ```
 
 ```k
@@ -194,9 +209,9 @@ module PARSE-PROGRAM
        <grammar> GRAMMAR </grammar>
 
   rule <k> #collectGrammar ... </k>
-       <decl> kSyntaxProduction(SORT, PROD) </decl>
-       <grammar> (.Set => SetItem(kSyntaxProduction(SORT, PROD))) REST </grammar>
-    requires notBool(kSyntaxProduction(SORT, PROD) in REST)
+       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
+       <grammar> ( .Set => SetItem(SYNTAXDECL) ) REST </grammar>
+    requires notBool(SYNTAXDECL in REST)
   rule <k> #collectGrammar => .K ... </k>
        <s> #STUCK() => .K ... </s>
 endmodule
@@ -407,6 +422,36 @@ endmodule
 Once this module is defined, we import it into the main `KINK` module and
 add it to the pipeline.
 
+Make non function productions constructors
+------------------------------------------
+
+If productions are not marked as functions, we consider them constructors.
+
+```k
+module NON-FUNCTIONAL-PRODUCTIONS-TO-CONSTRUCTORS
+  imports META-ACCESSORS
+  syntax KItem ::= "#nonFunctionProductionsToConstructors"
+  rule <k> #nonFunctionProductionsToConstructors ... </k>
+       <name> MNAME </name>
+       <declarations>
+         <decl> kSyntaxProduction(SORT, kProductionWAttr(PROD, [ ATTRS
+                                                              => (tagSimple(functional)
+                                                                 , tagSimple(constructor)
+                                                                 , tagSimple(injective)
+                                                                 , ATTRS
+                                                                 )
+                                                               ]
+                                                        ))
+         </decl>
+         ...
+       </declarations>
+    requires notBool #keyInAttributes(constructor, ATTRS)
+     andBool notBool #keyInAttributes(function, ATTRS)
+  rule <k> #nonFunctionProductionsToConstructors => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+endmodule
+```
+
 Extract symbols from productions
 --------------------------------
 
@@ -422,7 +467,7 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports ID
   imports PARSER-UTIL
 
-  syntax MapTransform ::= "#productionsToSymbolDeclarations"
+  syntax KItem ::= "#productionsToSymbolDeclarations"
   rule <k>  #productionsToSymbolDeclarations ... </k>
        <name> MNAME </name>
        <declarations>
@@ -436,25 +481,16 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
          ...
        </declarations>
     requires notBool #isSymbolDeclared(MNAME, #symbolNameFromAttrList(ATTRS))
-  rule <k>  #productionsToSymbolDeclarations => .K ... </k>
+  rule <k> #productionsToSymbolDeclarations => .K ... </k>
        <s> #STUCK() => .K ... </s>
 ```
 
 `#symbolNameFromAttrList` extracts the Name to be used for a symbol from the
 
 ```k
-  syntax LowerName ::= "klabel" [token]
   syntax SymbolName ::= #symbolNameFromAttrList(AttrList) [function]
-  rule #symbolNameFromAttrList
-           ( consAttrList
-                 ( tagContent(klabel, SNAME:TagContents)
-                 , ATTRS
-                 )
-           )
-    // TODO: We need to handle errors
-    => {parseSymbolName(tokenToString(SNAME))}:>SymbolName
-  rule #symbolNameFromAttrList(consAttrList(_, ATTRS))
-    => #symbolNameFromAttrList(ATTRS) [owise]
+  rule #symbolNameFromAttrList(ATTRS)
+    => {parseSymbolName(tokenToString(#getAttributeContent(klabel, ATTRS)))}:>SymbolName
 
   syntax Patterns ::= #removeKlabelAttr(AttrList) [function]
   rule #removeKlabelAttr(consAttrList(tagContent(klabel, _), ATTRS))
@@ -468,13 +504,10 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 
 ```k
   syntax Pattern ::= #attr2Pattern(Attr) [function]
-
   rule #attr2Pattern(tagSimple(KEY:LowerName))
     => KEY { .Sorts } ( .Patterns )
 
   syntax Patterns ::= #attrList2Patterns(AttrList) [function]
-
-  // TODO: This reverses the pattern list
   rule #attrList2Patterns(ATTR, ATTRS) => #attr2Pattern(ATTR), #attrList2Patterns(ATTRS)
   rule #attrList2Patterns(.AttrList) => .Patterns
 ```
@@ -501,27 +534,41 @@ endmodule
 Translate Function Rules
 ------------------------
 
-`#translateFunctionRules` generates new kore axioms for rewrite rules over
-function symbols. Rules whose LHS is not a kore symbol with the function
-attribute should be ignored. Since the rewrite rule carries no additional
-information over the kore axiom, it can be discarded.
+`#translateRules` generates new kore axioms for rules. When the left-hand-side
+of the rule is a function symbol, we generate an axiom that uses equalities.
+Otherwise, if it has a constructor attribute, we generate one with rewrites. We
+do not handle `requires` and `ensures` clauses yet.
 
 ```k
 module TRANSLATE-FUNCTION-RULES
   imports KINK-CONFIGURATION
   imports META-ACCESSORS
 
-  syntax KItem ::= "#translateFunctionRules"
-  rule <k> #translateFunctionRules ... </k>
+  syntax KItem ::= "#translateRules"
+  rule <k> #translateRules ... </k>
        <name> MNAME </name>
-       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) , RHS)))
+       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS, RHS)))
            => axiom { #token("R", "UpperName") , .Sorts }
                 \equals { #getReturnSort(MNAME, SYMBOL), #token("R", "UpperName") }
-                ( SYMBOL { .Sorts } ( ARG_PATTERNS ) , RHS )
+                ( LHS , RHS )
          [ .Patterns ]
        </decl>
     requires #isFunctionSymbol(MNAME, SYMBOL)
-  rule <k> #translateFunctionRules => .K ... </k>
+
+  rule <k> #translateRules ... </k>
+       <name> MNAME </name>
+       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS , RHS)))
+           => #fun( RETSORT
+                 => axiom { .Sorts } \rewrites { RETSORT }
+                        ( \and { RETSORT } (\top{ RETSORT }(), LHS)
+                        , \and { RETSORT } (\top{ RETSORT }(), RHS)
+                        )
+                    [ .Patterns ]
+                  ) (#getReturnSort(MNAME, SYMBOL))
+       </decl>
+    requires notBool #isFunctionSymbol(MNAME, SYMBOL)
+
+  rule <k> #translateRules => .K ... </k>
        <s> #STUCK() => .K ... </s>
 endmodule
 ```

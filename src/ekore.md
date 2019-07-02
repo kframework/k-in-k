@@ -120,9 +120,7 @@ module K-PRODUCTION-COMMON
   syntax KSortList ::= KSortList "," KSort [klabel(kSortList)]
                      | KSort
   syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
-                            | Tag "(" KSortList ")" OptionalAttributes [klabel(kFuncProductionWAttr)]
-                            |     "(" KSortList ")" OptionalAttributes [klabel(kTupleProductionWAttr)]
-  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet   [klabel(kPrioritySeq)]
+  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet         [klabel(kPrioritySeq)]
                         | KNeTagSet
   syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock), format(%1%n%2 %3)]
                      | KProductionWAttr
@@ -132,6 +130,8 @@ module K-PRODUCTION-COMMON
   syntax KProductionItem
   syntax KProduction ::= KProductionItem
                        | KProductionItem KProduction [klabel(kProduction), unit(emptyKProduction)]
+                       | Tag "(" KSortList ")"       [klabel(kFuncProduction)]
+                       |     "(" KSortList ")"       [klabel(kTupleProduction)]
 
   syntax SyntaxDeclaration
     ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
@@ -237,7 +237,7 @@ module ATTRIBUTES-COMMON
   syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
   syntax OptionalAttributes ::= KAttributesDeclaration
 
-  syntax TagContent ::= UpperName | LowerName | Numbers
+  syntax TagContent ::= UpperName | LowerName | Numbers | EKoreKString
   syntax TagContents
   syntax KEY ::= LowerName
 
@@ -247,7 +247,6 @@ module ATTRIBUTES-ABSTRACT
   imports ATTRIBUTES-COMMON
   syntax Attr ::= tagSimple(KEY)           [klabel(tagSimple), format(%3)]
                 | KEY "(" TagContents ")"  [klabel(tagContent)]
-                | KEY "(" EKoreKString ")" [klabel(tagString)]
   syntax AttrList ::= Attr "," AttrList    [klabel(consAttrList), format(%1 %2 %3)]
                     | ".AttrList"          [klabel(dotAttrList)]
 
@@ -263,7 +262,6 @@ module ATTRIBUTES-SYNTAX
 
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
-                | KEY "(" EKoreKString ")"     [klabel(tagString)]
   syntax EmptyAttrList ::= ""             [klabel(dotAttrList )]
   syntax NeAttrList    ::=  Attr "," NeAttrList [klabel(consAttrList)]
                          | Attr EmptyAttrList  [klabel(consAttrList)]

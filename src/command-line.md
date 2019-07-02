@@ -23,6 +23,7 @@ module COMMAND-LINE
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports FLATTEN-PRODUCTIONS
   imports OUTER-ABSTRACT
+  imports NON-FUNCTIONAL-PRODUCTIONS-TO-CONSTRUCTORS
   imports PRODUCTIONS-TO-SORT-DECLARATIONS
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports TRANSLATE-FUNCTION-RULES
@@ -81,9 +82,10 @@ High-level pipeline steps
     => #parseToEKore
     ~> #defnToConfig
     ~> #flattenProductions
+    ~> #nonFunctionProductionsToConstructors
     ~> #productionsToSortDeclarations
     ~> #productionsToSymbolDeclarations
-    ~> #translateFunctionRules
+    ~> #translateRules
 ```
 
 ```k
