@@ -37,11 +37,10 @@ module KINK-CONFIGURATION
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
                    <modules format="%2%n">
-                     <mod format="module %2%i%n%4%n%5%n%6%d%n %i%dendmodule %3%n%n"
+                     <mod format="module %2%i%n%4%n%5%n%d%n %i%dendmodule %3%n%n"
                           multiplicity="*" type="Set">
                        <name format="%2"> #token("UNNAMED", "ModuleName"):ModuleName </name>
                        <attributes format="[ %2 ]"> .Patterns </attributes>
-                       <imp format="%2"> .Declarations </imp>
                        <declarations format="%2">
                          <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
                        </declarations>
