@@ -34,8 +34,8 @@ endmodule [  ]
 
 module IMP-SIMPLE
 
-  axiom {  } \rewrites { KCell {  } } ( \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( False {  } (  ) , VarB : BExp {  } ) ) , dotk {  } (  ) ) ) ) , \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( False {  } (  ) ) , dotk {  } (  ) ) ) ) ) [  ]
-  axiom {  } \rewrites { KCell {  } } ( \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( True {  } (  ) , VarB : BExp {  } ) ) , dotk {  } (  ) ) ) ) , \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , dotk {  } (  ) ) ) ) ) [  ]
+  axiom {  } \rewrites { KCell {  } } ( \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( False {  } (  ) , VarB : BExp {  } ) ) , DOTVAR : K { } ) ) ) , \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( False {  } (  ) ) , DOTVAR : K { } ) ) ) ) [  ]
+  axiom {  } \rewrites { KCell {  } } ( \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( True {  } (  ) , VarB : BExp {  } ) ) , DOTVAR : K { } ) ) ) , \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , DOTVAR : K { } ) ) ) ) [  ]
   import D-K [  ]
   sort BExp {  } [  ]
   sort KCell {  } [  ]
