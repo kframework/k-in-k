@@ -13,8 +13,10 @@ module B-KSEQ
   axiom { R } \equals { K {  } , R } ( append {  } ( kseq {  } ( K1 : KItem {  } , K2 : K {  } ) , K3 : K {  } ) , kseq {  } ( K1 : KItem {  } , append {  } ( K2 : K {  } , K3 : K {  } ) ) ) [  ]
   import A-BASIC-K [  ]
   symbol append {  } ( K {  } , K {  } ) : K {  } [ function {  } (  ) ]
-  symbol dotk {  } (  ) : K {  } [  ]
-  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [  ]
+  symbol dotk {  } (  ) : K {  } [ functional {  } (  ) , constructor {  } (  ) , injective { } ( ) ]
+  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [ functional {  } (  ) , constructor {  } (  ) , injective { } ( ) ]
+  syntax K ::= ".K" [ functional , constructor , injective , klabel ( dotk ) ]
+  syntax K ::= KItem "~>" K [ functional , constructor , injective , klabel ( kseq ) ]
 
 endmodule [  ]
 

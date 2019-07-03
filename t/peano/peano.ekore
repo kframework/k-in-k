@@ -5,11 +5,23 @@ endmodule [ ]
 
 module B-KSEQ
   import A-BASIC-K []
+
+  syntax K ::= KItem "~>" K [klabel(kseq)]
+  syntax K ::= ".K" [klabel(dotk)]
+
   symbol append{}(K{}, K{}) : K{} [function{}()]
-  symbol dotk {  } (  ) : K {  } [ functional { } ( ), constructor { } ( ), injective { } ( )  ]
-  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [ functional { } ( ), constructor { } ( ), injective { } ( )  ]
-  axiom { R } \equals { K { }, R } ( append { } ( dotk { } ( ) , K2:K { } ) , K2 : K { } ) [ ]
-  axiom { R } \equals { K { }, R } ( append { } ( kseq { } ( K1 : KItem { } , K2 : K { } ) , K3 : K { } ) , kseq { } ( K1 : KItem { } , append { } (K2 : K { } , K3 : K { } ) ) ) [ ]
+
+  axiom{ R }
+    \equals{K{},R}(
+      append{}(dotk{}(),K2:K{}),
+      K2:K{})
+  []
+
+  axiom{R}
+    \equals{K{},R}(
+      append{}(kseq{}(K1:KItem{},K2:K{}),K3:K{}),
+      kseq{}(K1:KItem{},append{}(K2:K{},K3:K{})))
+  []
 endmodule [ ]
 
 module C-INJ

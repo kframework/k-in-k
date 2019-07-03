@@ -6,9 +6,10 @@ endmodule [ ]
 module B-KSEQ
   import A-BASIC-K []
 
-  symbol kseq{}(KItem{}, K{}) : K{} []
+  syntax K ::= KItem "~>" K [klabel(kseq)]
+  syntax K ::= ".K" [klabel(dotk)]
+
   symbol append{}(K{}, K{}) : K{} [function{}()]
-  symbol dotk{}() : K{} []
 
   axiom{ R }
     \equals{K{},R}(
