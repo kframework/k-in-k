@@ -110,26 +110,34 @@ module META-ACCESSORS
 ```
 
 ```k
-  syntax Bool ::= #isSortDeclared(ModuleName, SortName) [function, withConfig]
-  rule [[ #isSortDeclared(MNAME:ModuleName, SORT:SortName) => true ]]
+  syntax Bool ::= #isSortDeclaredMod(ModuleName, SortName) [function]
+  rule [[ #isSortDeclaredMod(MNAME:ModuleName, SORT:SortName) => true ]]
        <name> MNAME </name>
        <decl> sort SORT { PARAMS } ATTRS </decl>
-  rule #isSortDeclared(_, _) => false [owise]
+  rule #isSortDeclaredMod(_, _) => false [owise]
+
+  syntax Bool ::= #isSortDeclared(ModuleName, SortName) [function]
+  syntax Bool ::= #isSortDeclaredSet(Set, SortName)     [function]
+  rule #isSortDeclared(MNAME, SNAME)
+    => #isSortDeclaredSet(#getImportedModules(MNAME), SNAME)
+  rule #isSortDeclaredSet(SetItem(M) Ms, SNAME)
+    => #isSortDeclaredMod(M, SNAME) orBool #isSortDeclaredSet(Ms, SNAME)
+  rule #isSortDeclaredSet(.Set, SNAME) => false
 ```
 
 ```k
-  syntax Bool ::= #isSymbolDeclaredSingleModule(ModuleName, SymbolName) [function]
-  rule [[ #isSymbolDeclaredSingleModule(MNAME, SYMBOL) => true ]]
+  syntax Bool ::= #isSymbolDeclaredMod(ModuleName, SymbolName) [function]
+  rule [[ #isSymbolDeclaredMod(MNAME, SYMBOL) => true ]]
        <name> MNAME </name>
        <decl> (symbol SYMBOL { _ } ( _ ) : _ ATTRS) </decl>
-  rule #isSymbolDeclaredSingleModule(_, _) => false [owise]
+  rule #isSymbolDeclaredMod(_, _) => false [owise]
 
   syntax Bool ::= #isSymbolDeclared(ModuleName, SymbolName) [function]
   syntax Bool ::= #isSymbolDeclaredSet(Set, SymbolName)     [function]
   rule #isSymbolDeclared(MNAME, SNAME)
     => #isSymbolDeclaredSet(#getImportedModules(MNAME), SNAME)
   rule #isSymbolDeclaredSet(SetItem(M) Ms, SNAME)
-    => #isSymbolDeclaredSingleModule(M, SNAME) orBool #isSymbolDeclaredSet(Ms, SNAME)
+    => #isSymbolDeclaredMod(M, SNAME) orBool #isSymbolDeclaredSet(Ms, SNAME)
   rule #isSymbolDeclaredSet(.Set, SNAME) => false
 ```
 
