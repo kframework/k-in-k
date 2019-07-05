@@ -48,6 +48,7 @@ module KINK-CONFIGURATION
                      </mod>
                    </modules>
                 </definition>
+                <exit-code exit=""> 1 </exit-code>
                 <s> $STRATEGY:K </s>
                 <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
 endmodule
