@@ -239,7 +239,7 @@ module ATTRIBUTES-COMMON
 
   syntax TagContent ::= UpperName | LowerName | Numbers | EKoreKString
   syntax TagContents
-  syntax KEY ::= LowerName [token]
+  syntax KEY ::= LowerName //[token] // TODO: this token attribute causes a lot of weird ambiguities
 
 endmodule
 

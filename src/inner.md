@@ -68,8 +68,6 @@ module KCELLS
                | ".Bag"   [klabel(cells)]
                | Cell
   syntax Bag ::= "(" Bag ")" [bracket]
-  syntax K ::= Bag
-  syntax Bag ::= KBott
 endmodule
 
 module K-SORT-LATTICE

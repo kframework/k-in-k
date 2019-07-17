@@ -33,6 +33,8 @@ module KINK-CONFIGURATION
   syntax Declaration ::= "nullDecl"
   syntax DeclCellSet
   syntax DeclarationsCellFragment
+  syntax UpperName ::= String2UpperName (String) [function, functional, hook(STRING.string2token)]
+
   configuration <k> #parseCommandLine($COMMANDLINE:CommandLine, $PGM:Any) </k>
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
@@ -47,11 +49,43 @@ module KINK-CONFIGURATION
                        <grammar> .Set </grammar>
                      </mod>
                    </modules>
-                   <configGrammar> .Set </configGrammar>
+                   <parserGenerator>
+                     <noCastSorts> noCastSortsInit </noCastSorts> // sorts excepted from casts
+                     <noLatticeSorts> noLatticeSortsInit </noLatticeSorts>
+                     <configGrammar> .Set </configGrammar> // place to collect the grammar used to parse configurations
+                   </parserGenerator>
                 </definition>
                 <exit-code exit=""> 1 </exit-code>
                 initSCell(.Map)
                 <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
+            
+  syntax Set ::= "noCastSortsInit" [function]
+  rule noCastSortsInit => // sorts from this list do not receive productions for casting
+        SetItem(String2UpperName("Cell"))
+        SetItem(String2UpperName("CellName"))
+        SetItem(String2UpperName("CellProperties"))
+        SetItem(String2UpperName("CellProperty"))
+        SetItem(String2UpperName("KConfigVar"))
+        SetItem(String2UpperName("KLabel"))
+        SetItem(String2UpperName("KList"))
+        SetItem(String2UpperName("KString"))
+        SetItem(String2UpperName("KVariable"))
+        SetItem(String2UpperName("Layout"))
+  syntax Set ::= "noLatticeSortsInit" [function]
+  rule noLatticeSortsInit => // sorts from this list are not included in the automatic subsorts lattice
+        SetItem(String2UpperName("Cell"))
+        SetItem(String2UpperName("CellName"))
+        SetItem(String2UpperName("CellProperties"))
+        SetItem(String2UpperName("CellProperty"))
+        SetItem(String2UpperName("K"))
+        SetItem(String2UpperName("KBott"))
+        SetItem(String2UpperName("KConfigVar"))
+        SetItem(String2UpperName("KLabel"))
+        SetItem(String2UpperName("KList"))
+        SetItem(String2UpperName("KString"))
+        SetItem(String2UpperName("KVariable"))
+        SetItem(String2UpperName("Layout"))
+      
 endmodule
 ```
 
@@ -277,9 +311,46 @@ module PARSE-CONFIG
     requires notBool(SYNTAXDECL in REST)
   rule <k> #collectConfigGrammar => .K ... </k>
        <s> #STUCK() => .K ... </s>
-       
-  rule collectCellNames(K) => 
   
+  syntax EKoreKString ::= String2EKoreKString (String) [function, functional, hook(STRING.string2token)]
+  syntax TagContents  ::= String2TagContents  (String) [function, functional, hook(STRING.string2token)]
+  // Add config parsing syntax
+  // casts: Sort ::= Sort ":Sort"
+  syntax KItem ::= "#addCasts"
+  rule <k> #addCasts ... </k>
+       <decl> kSyntaxProduction(SORT, PROD) </decl>
+       <noCastSorts> NOCASTSORTS (.Set => SetItem(SORT))</noCastSorts>
+       <configGrammar> .Set => SetItem(
+          kSyntaxProduction(SORT, 
+              kProductionWAttr(kProduction(nonTerminal(SORT), 
+                                           terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
+                               kAttributesDeclaration(consAttrList(
+                                  tagContent(#token("klabel","LowerName"),
+                                             String2TagContents("#SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList))))))
+          ...
+       </configGrammar>
+     requires notBool(SORT in NOCASTSORTS)
+  
+  rule <k> #addCasts => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+  
+  // subsorts: K ::= Sort, Sort ::= KBott
+  syntax KItem ::= "#addSubsorts"
+  rule <k> #addSubsorts ... </k>
+       <decl> kSyntaxProduction(SORT, PROD) </decl>
+       <noLatticeSorts> NOCASTSORTS (.Set => SetItem(SORT))</noLatticeSorts>
+       <configGrammar> .Set => 
+              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT)), noAtt))
+              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott"))), noAtt))
+          ...
+       </configGrammar>
+     requires notBool(SORT in NOCASTSORTS)
+  
+  rule <k> #addSubsorts => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+
+
 endmodule
 ```
 
