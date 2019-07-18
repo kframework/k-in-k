@@ -340,8 +340,8 @@ module PARSE-CONFIG
        <decl> kSyntaxProduction(SORT, PROD) </decl>
        <noLatticeSorts> NOCASTSORTS (.Set => SetItem(SORT))</noLatticeSorts>
        <configGrammar> .Set => 
-              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT)), noAtt))
-              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott"))), noAtt))
+              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
+              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt)))
           ...
        </configGrammar>
      requires notBool(SORT in NOCASTSORTS)

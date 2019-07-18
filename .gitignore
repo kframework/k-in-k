@@ -4,3 +4,4 @@
 
 /.build/
 /.stack-work/
+.krun*
