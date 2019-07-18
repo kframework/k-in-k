@@ -136,7 +136,10 @@ High-level pipeline steps
     ~> #addSubsorts
     ~> #collectConfigGrammar
     ~> #parseConfigBubble
-    // parse config bubbles
+    ~> #extractConfigInfo
+    // TODO:
+    // do another parseOuter with rule-inner.k
+    // parse rule bubbles
     </k>
     <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```

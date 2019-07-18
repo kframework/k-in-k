@@ -115,10 +115,12 @@ endmodule
 module KORE-ABSTRACT
   imports KORE-COMMON
 
-  syntax Sorts ::= Sort "," Sorts        [klabel(consSorts)]
+  syntax Sorts ::= Sort
+                 | Sort "," Sorts        [klabel(consSorts)]
                  | ".Sorts"              [klabel(dotSorts )]
 
-  syntax Patterns ::= Pattern "," Patterns [klabel(consPatterns)]
+  syntax Patterns ::= Pattern
+                    | Pattern "," Patterns [klabel(consPatterns)]
                     | ".Patterns"          [klabel(dotPatterns )]
 
   syntax Declarations ::= Declaration Declarations [klabel(consDeclarations), format(%1%n%2)]
