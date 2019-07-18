@@ -37,11 +37,10 @@ module KINK-CONFIGURATION
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
                    <modules format="%2%n">
-                     <mod format="module %2%i%n%4%n%5%n%6%d%n %i%dendmodule %3%n%n"
+                     <mod format="module %2%i%n%4%n%5%n%d%n %i%dendmodule %3%n%n"
                           multiplicity="*" type="Set">
                        <name format="%2"> #token("UNNAMED", "ModuleName"):ModuleName </name>
                        <attributes format="[ %2 ]"> .Patterns </attributes>
-                       <imp format="%2"> .Declarations </imp>
                        <declarations format="%2">
                          <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
                        </declarations>
@@ -49,7 +48,8 @@ module KINK-CONFIGURATION
                      </mod>
                    </modules>
                 </definition>
-                <s> $STRATEGY:K </s>
+                <exit-code exit=""> 1 </exit-code>
+                initSCell(.Map)
                 <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
 endmodule
 ```
@@ -98,19 +98,48 @@ module META-ACCESSORS
   imports BOOL
   imports SET
 
-  syntax Bool ::= #isSortDeclared(ModuleName, SortName) [function, withConfig]
-  rule [[ #isSortDeclared(MNAME:ModuleName, SORT:SortName) => true ]]
+  syntax Set ::= #getImportedModules(ModuleName)      [function]
+  syntax Set ::= #getImportedModulesSet(ModuleName, Set) [function]
+  rule #getImportedModules(MNAME) => #getImportedModulesSet(MNAME, SetItem(MNAME))
+  rule [[ #getImportedModulesSet(MNAME, MODS)
+       => #getImportedModulesSet(MNAME, MODS SetItem(IMPORTED) #getImportedModules(IMPORTED))
+       ]]
        <name> MNAME </name>
-       <decl> sort SORT { PARAMS } ATTRS </decl>
-  rule #isSortDeclared(_, _) => false [owise]
+       <decl> koreImport(IMPORTED, _) </decl>
+    requires notBool IMPORTED in MODS
+  rule #getImportedModulesSet(MNAME, MODS) => MODS [owise]
 ```
 
 ```k
-  syntax Bool ::= #isSymbolDeclared(ModuleName, SymbolName) [function, withConfig]
-  rule [[ #isSymbolDeclared(MNAME, SYMBOL) => true ]]
+  syntax Bool ::= #isSortDeclaredMod(ModuleName, SortName) [function]
+  rule [[ #isSortDeclaredMod(MNAME:ModuleName, SORT:SortName) => true ]]
+       <name> MNAME </name>
+       <decl> sort SORT { PARAMS } ATTRS </decl>
+  rule #isSortDeclaredMod(_, _) => false [owise]
+
+  syntax Bool ::= #isSortDeclared(ModuleName, SortName) [function]
+  syntax Bool ::= #isSortDeclaredSet(Set, SortName)     [function]
+  rule #isSortDeclared(MNAME, SNAME)
+    => #isSortDeclaredSet(#getImportedModules(MNAME), SNAME)
+  rule #isSortDeclaredSet(SetItem(M) Ms, SNAME)
+    => #isSortDeclaredMod(M, SNAME) orBool #isSortDeclaredSet(Ms, SNAME)
+  rule #isSortDeclaredSet(.Set, SNAME) => false
+```
+
+```k
+  syntax Bool ::= #isSymbolDeclaredMod(ModuleName, SymbolName) [function]
+  rule [[ #isSymbolDeclaredMod(MNAME, SYMBOL) => true ]]
        <name> MNAME </name>
        <decl> (symbol SYMBOL { _ } ( _ ) : _ ATTRS) </decl>
-  rule #isSymbolDeclared(_, _) => false [owise]
+  rule #isSymbolDeclaredMod(_, _) => false [owise]
+
+  syntax Bool ::= #isSymbolDeclared(ModuleName, SymbolName) [function]
+  syntax Bool ::= #isSymbolDeclaredSet(Set, SymbolName)     [function]
+  rule #isSymbolDeclared(MNAME, SNAME)
+    => #isSymbolDeclaredSet(#getImportedModules(MNAME), SNAME)
+  rule #isSymbolDeclaredSet(SetItem(M) Ms, SNAME)
+    => #isSymbolDeclaredMod(M, SNAME) orBool #isSymbolDeclaredSet(Ms, SNAME)
+  rule #isSymbolDeclaredSet(.Set, SNAME) => false
 ```
 
 ```k

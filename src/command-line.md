@@ -62,7 +62,14 @@ the kore definition are kept.
         => PGM ~> #ekorePipeline
            ...
        </k>
+```
 
+```k
+  syntax KItem ::= "#success"
+  rule <k> P:Pattern ~> (#success => .K) ... </k>
+       <exit-code> _ => 0 </exit-code>
+  rule <k> #success => .K ... </k>
+       <exit-code> _ => 0 </exit-code>
 ```
 
 High-level pipeline steps
@@ -76,6 +83,7 @@ High-level pipeline steps
     ~> #flattenProductions
     ~> #collectGrammar
     ~> #parseProgramPath(PATH)
+    ~> #success
 
   syntax K ::= "#ekorePipeline" [function]
   rule #ekorePipeline
@@ -86,6 +94,7 @@ High-level pipeline steps
     ~> #productionsToSortDeclarations
     ~> #productionsToSymbolDeclarations
     ~> #translateRules
+    ~> #success
 ```
 
 ```k

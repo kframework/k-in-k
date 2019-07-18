@@ -20,7 +20,7 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh '''#!/bin/bash
-            (cd ext/k-light/ && mvn package -DskipTests) && ./build kink .build/kbackend-haskell
+            ./build kink .build/kbackend-haskell
           '''
         }
       }

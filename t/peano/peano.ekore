@@ -5,15 +5,27 @@ endmodule [ ]
 
 module B-KSEQ
   import A-BASIC-K []
+
+  syntax K ::= KItem "~>" K [klabel(kseq)]
+  syntax K ::= ".K" [klabel(dotk)]
+
   symbol append{}(K{}, K{}) : K{} [function{}()]
-  symbol dotk {  } (  ) : K {  } [ functional { } ( ), constructor { } ( ), injective { } ( )  ]
-  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [ functional { } ( ), constructor { } ( ), injective { } ( )  ]
-  axiom { R } \equals { K { }, R } ( append { } ( dotk { } ( ) , K2:K { } ) , K2 : K { } ) [ ]
-  axiom { R } \equals { K { }, R } ( append { } ( kseq { } ( K1 : KItem { } , K2 : K { } ) , K3 : K { } ) , kseq { } ( K1 : KItem { } , append { } (K2 : K { } , K3 : K { } ) ) ) [ ]
+
+  axiom{ R }
+    \equals{K{},R}(
+      append{}(dotk{}(),K2:K{}),
+      K2:K{})
+  []
+
+  axiom{R}
+    \equals{K{},R}(
+      append{}(kseq{}(K1:KItem{},K2:K{}),K3:K{}),
+      kseq{}(K1:KItem{},append{}(K2:K{},K3:K{})))
+  []
 endmodule [ ]
 
 module C-INJ
-  symbol inj{From,To}(From) : To []
+  symbol inj{From,To}(From) : To [ sortInjection{}() ]
   axiom{S1,S2,S3,R} \equals{S3,R}( inj{S2,S3}(inj{S1,S2}(T:S1)), inj{S1,S3}(T:S1)) []
 endmodule [ ]
 
