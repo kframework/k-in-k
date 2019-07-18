@@ -49,7 +49,7 @@ module KINK-CONFIGURATION
                    </modules>
                 </definition>
                 <exit-code exit=""> 1 </exit-code>
-                <s> $STRATEGY:K </s>
+                initSCell(.Map)
                 <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
 endmodule
 ```
