@@ -326,7 +326,7 @@ module PARSE-CONFIG
                                            terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
                                kAttributesDeclaration(consAttrList(
                                   tagContent(#token("klabel","LowerName"),
-                                             String2TagContents("#SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList))))))
+                                             String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList))))))
           ...
        </configGrammar>
      requires notBool(SORT in NOCASTSORTS)
