@@ -115,6 +115,30 @@ High-level pipeline steps
     ~> #productionsToSymbolDeclarations
     ~> #translateRules
     ~> #success
+    
+  syntax K ::= "#frontendPipeline" //[function]
+  rule <k> PGM:Any ~> #frontendPipeline
+    =>  parseOuter(
+      {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
+      +String
+      {readFile(DEPLOY_DIR +String "/src/config-inner.k")}:>String
+      +String
+      tokenToString(PGM)
+      ) // add config-inner.k
+    // create the common module
+    // create linkage and extras
+    // parse bubbles
+    // discard config parser
+    ~> #defnToConfig
+    ~> #flattenProductions
+    // import config parsing syntax
+    ~> #addCasts
+    ~> #addSubsorts
+    ~> #collectConfigGrammar
+    ~> #parseConfigBubble
+    // parse config bubbles
+    </k>
+    <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```
 
 ```k
