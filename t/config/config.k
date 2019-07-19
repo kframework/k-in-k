@@ -5,4 +5,6 @@ module FOOBAR
   syntax Foo ::= "bar" [klabel(bar), function]
                | "buzz" [klabel(buzz)]
   configuration <T> <k> $PGM:Pgm </k> <env> .K </env> </T>
+  
+  rule A:Foo => .K
 endmodule

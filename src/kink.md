@@ -378,10 +378,58 @@ module PARSE-CONFIG
   rule <k> collectCellName( .Patterns ) => .K ... </k>
 
   rule <k> collectCellName(\dv { Srt { .Sorts } } ( CellName )) => .K ... </k>
-       <configInfo> .Map => CellName |-> Srt ... </configInfo>
+       <configInfo> .Map => substrString(token2String(CellName), 1, lengthString(token2String(CellName)) -Int 1) |-> token2String(Srt) ... </configInfo>
 
   rule <k> #extractConfigInfo => .K ... </k>
        <s> #STUCK() => .K ... </s>
+
+  // remove modules to prepare for second stage
+  // TODO: find a better way with better modularity
+  syntax KItem ::= "#clearModules"
+  rule <k> #clearModules ... </k>
+       <modules> (<mod> _ </mod> => .Bag) ... </modules>
+
+  rule <k> #clearModules => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+  // collect rule grammar - important to be after config so it doesn't taint the grammar
+  syntax KItem ::= "#collectRuleGrammar"
+  rule <k> #collectRuleGrammar ... </k>
+       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
+       <ruleGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </ruleGrammar>
+    requires notBool(SYNTAXDECL in REST)
+  rule <k> #collectRuleGrammar => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+  // add rule cells
+  syntax KItem ::= "#addRuleCells"
+  rule <k> #addRuleCells ... </k>
+       <configInfo> CellName |-> "CellName" => .Map ... </configInfo>
+       <ruleGrammar> .Set => SetItem(
+          kSyntaxProduction(#token("Cell","UpperName"), 
+              kProductionWAttr(kProduction(
+                  terminal(String2EKoreKString("\"<" +String CellName +String ">\"")), kProduction(
+                  nonTerminal(#token("OptionalDots","UpperName")), kProduction(
+                  nonTerminal(#token("K","UpperName")), kProduction(
+                  nonTerminal(#token("OptionalDots","UpperName")),
+                  terminal(String2EKoreKString("\"</" +String CellName +String ">\"")))))),
+                kAttributesDeclaration(consAttrList(
+                   tagContent(#token("cellName","LowerName"), String2TagContents(CellName)),consAttrList(
+                   tagSimple(#token("cell","LowerName")), dotAttrList(.KList)))))))
+          ...
+       </ruleGrammar>
+  rule <k> #addRuleCells => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+  // parse rule bubbles
+  syntax KItem ::= "#parseRuleBubble"
+  rule <k> #parseRuleBubble ... </k>
+       <decl> kRule(C:Bubble) => kRule(parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))) </decl>
+       <ruleGrammar> GRAMMAR </ruleGrammar>
+
+  rule <k> #parseRuleBubble => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+       
 
 endmodule
 ```

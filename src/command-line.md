@@ -137,9 +137,23 @@ High-level pipeline steps
     ~> #collectConfigGrammar
     ~> #parseConfigBubble
     ~> #extractConfigInfo
-    // TODO:
     // do another parseOuter with rule-inner.k
+    ~> #clearModules
+    ~> parseOuter(
+      {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
+      +String
+      {readFile(DEPLOY_DIR +String "/src/rule-inner.k")}:>String
+      +String
+      tokenToString(PGM)
+      ) // add config-inner.k
+    ~> #defnToConfig
+    ~> #flattenProductions
+    ~> #collectRuleGrammar
+    // TODO: add rule cells
+    ~> #addRuleCells
+    ~> #parseConfigBubble // again since I destroyed it when I built <configInfo>
     // parse rule bubbles
+    ~> #parseRuleBubble
     </k>
     <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```
