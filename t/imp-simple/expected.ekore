@@ -1,63 +1,57 @@
 [  ]
 
 module A-BASIC-K
-
   sort K {  } [  ]
   sort KItem {  } [  ]
-
 endmodule [  ]
 
 module B-KSEQ
-
   axiom { R } \equals { K {  } , R } ( append {  } ( dotk {  } (  ) , K2 : K {  } ) , K2 : K {  } ) [  ]
   axiom { R } \equals { K {  } , R } ( append {  } ( kseq {  } ( K1 : KItem {  } , K2 : K {  } ) , K3 : K {  } ) , kseq {  } ( K1 : KItem {  } , append {  } ( K2 : K {  } , K3 : K {  } ) ) ) [  ]
   import A-BASIC-K [  ]
   symbol append {  } ( K {  } , K {  } ) : K {  } [ function {  } (  ) ]
-  symbol dotk {  } (  ) : K {  } [ functional {  } (  ) , constructor {  } (  ) , injective { } ( ) ]
-  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [ functional {  } (  ) , constructor {  } (  ) , injective { } ( ) ]
-  syntax K ::= ".K" [ functional , constructor , injective , klabel ( dotk ) ]
-  syntax K ::= KItem "~>" K [ functional , constructor , injective , klabel ( kseq ) ]
-
+  symbol dotk {  } (  ) : K {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
+  symbol kseq {  } ( KItem {  } , K {  } ) : K {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
+  syntax K ::= ".K" [ functional , constructor , injective , klabel ( dotk  ) ]
+  syntax K ::= KItem "~>" K [ functional , constructor , injective , klabel ( kseq  ) ]
 endmodule [  ]
 
 module C-INJ
-
   axiom { S1 , S2 , S3 , R } \equals { S3 , R } ( inj { S2 , S3 } ( inj { S1 , S2 } ( T : S1 ) ) , inj { S1 , S3 } ( T : S1 ) ) [  ]
-  symbol inj { From , To } ( From ) : To [ sortInjection{}() ]
-
+  symbol inj { From , To } ( From ) : To [ sortInjection {  } (  ) ]
 endmodule [  ]
 
 module D-K
-
   import B-KSEQ [  ]
   import C-INJ [  ]
-
 endmodule [  ]
 
 module IMP-SIMPLE
-
-  axiom {  } \rewrites { KCell {  } } ( \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( inj { BExpResult { } , BExp { } } ( False {  } (  ) ) , VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) ) , \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExpResult {  } , KItem {  } } ( False {  } (  ) ) , DOTVAR : K {  } ) ) ) ) [  ]
-  axiom {  } \rewrites { KCell {  } } ( \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( inj { BExpResult { } , BExp { } } ( True {  } (  ) ) , VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) ) , \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , DOTVAR : K {  } ) ) ) ) [  ]
-  axiom {  } \rewrites { KCell {  } } ( \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( Bracket {  } ( VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) ) , \and { KCell {  } } ( \top { KCell {  } } ( ) , kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , DOTVAR : K {  } ) ) ) ) [  ]
+  axiom {  } \rewrites { ImpCell {  } } ( \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( inj { BExpResult {  } , BExp {  } } ( False {  } (  ) ) , VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) , \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExpResult {  } , KItem {  } } ( False {  } (  ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) ) [  ]
+  axiom {  } \rewrites { ImpCell {  } } ( \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( inj { BExpResult {  } , BExp {  } } ( True {  } (  ) ) , VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) , \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) ) [  ]
+  axiom {  } \rewrites { ImpCell {  } } ( \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( Bracket {  } ( VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) , \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) ) [  ]
   import D-K [  ]
+  sort ACell {  } [  ]
   sort BExp {  } [  ]
   sort BExpResult {  } [  ]
+  sort ImpCell {  } [  ]
   sort KCell {  } [  ]
   symbol And {  } ( BExp {  } , BExp {  } ) : BExp {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
   symbol Bracket {  } ( BExp {  } ) : BExp {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
   symbol False {  } (  ) : BExpResult {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
   symbol HOLE {  } (  ) : BExpResult {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
   symbol True {  } (  ) : BExpResult {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
+  symbol aCell {  } ( BExpResult {  } ) : ACell {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
+  symbol impCell {  } ( KCell {  } , ACell {  } ) : ImpCell {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
   symbol kCell {  } ( K {  } ) : KCell {  } [ functional {  } (  ) , constructor {  } (  ) , injective {  } (  ) ]
-  syntax BExp ::= "(" BExp ")" [ functional , constructor , injective , klabel ( Bracket ) ]
-  syntax BExp ::= BExp "&&" BExp [ functional , constructor , injective , klabel ( And ) ]
-  syntax BExp ::= BExpResult [ functional , constructor , injective , klabel ( inj ) ]
-  syntax BExpResult ::= "#hole" [ functional , constructor , injective , klabel ( HOLE ) ]
-  syntax BExpResult ::= "False" [ functional , constructor , injective , klabel ( False ) ]
-  syntax BExpResult ::= "True" [ functional , constructor , injective , klabel ( True ) ]
-  syntax KCell ::= "kCell" "(" K ")" [ functional , constructor , injective , klabel ( kCell ) ]
-
+  syntax ACell ::= "<a>" BExpResult "</a>" [ functional , constructor , injective , klabel ( aCell ) ]
+  syntax BExp ::= "(" BExp ")" [ functional , constructor , injective , klabel ( Bracket  ) ]
+  syntax BExp ::= BExp "&&" BExp [ functional , constructor , injective , klabel ( And  ) ]
+  syntax BExp ::= BExpResult [ functional , constructor , injective , klabel ( inj  ) ]
+  syntax BExpResult ::= "#hole" [ functional , constructor , injective , klabel ( HOLE  ) ]
+  syntax BExpResult ::= "False" [ functional , constructor , injective , klabel ( False  ) ]
+  syntax BExpResult ::= "True" [ functional , constructor , injective , klabel ( True  ) ]
+  syntax ImpCell ::= "<imp>" KCell ACell "</imp>" [ functional , constructor , injective , klabel ( impCell ) ]
+  syntax KCell ::= "<k>" K "</k>" [ functional , constructor , injective , klabel ( kCell ) ]
 endmodule [  ]
-
-
 

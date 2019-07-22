@@ -42,7 +42,9 @@ endmodule
 module IMP-SIMPLE
   import D-K []
 
-  syntax KCell ::= "kCell" "(" K ")"  [klabel(kCell)]
+  syntax ImpCell ::= "<imp>" KCell ACell "</imp>"  [klabel(impCell)]
+  syntax KCell ::= "<k>" K "</k>"                  [klabel(kCell)]
+  syntax ACell ::= "<a>" BExpResult  "</a>"        [klabel(aCell)]
 
   syntax BExpResult ::= "True"        [klabel(True)]
                       | "False"       [klabel(False)]
@@ -51,10 +53,10 @@ module IMP-SIMPLE
                 | "(" BExp ")"        [klabel(Bracket)]
                 | BExp "&&" BExp      [klabel(And)]
 
-  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(True{}()),VarB:BExp{})),DOTVAR:K{}))
-    => kCell{}(kseq{}(inj{BExp{}, KItem{}}(VarB:BExp{}),DOTVAR:K{}))
-  rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(False{}()),VarB:BExp{})),DOTVAR:K{}))
-    => kCell{}(kseq{}(inj{BExpResult{}, KItem{}}(False{}()),DOTVAR:K{}))
-  rule kCell{}(kseq{}(inj{BExp{}, KItem{}} (Bracket{}(VarB:BExp{})), DOTVAR:K {}))
-    => kCell{}(kseq{}(inj{BExp{}, KItem{}} (VarB:BExp{}), DOTVAR:K {}))
+  rule impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(True{}()),VarB:BExp{})),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+    => impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(VarB:BExp{}),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+  rule impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(False{}()),VarB:BExp{})),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+    => impCell{}(kCell{}(kseq{}(inj{BExpResult{}, KItem{}}(False{}()),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+  rule impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}} (Bracket{}(VarB:BExp{})), DOTVAR:K {})), aCell {} ( AVal:BExpResult {}))
+    => impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}} (VarB:BExp{}), DOTVAR:K {})), aCell {} ( AVal:BExpResult {}))
 endmodule

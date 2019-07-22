@@ -1,1 +1,4 @@
-<k> True && ( False && True ) ~> .K </k>
+<imp>
+  <k> True && ( False && True ) ~> .K </k>
+  <a> False </a>
+</imp>
