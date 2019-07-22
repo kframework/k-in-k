@@ -48,10 +48,13 @@ module IMP-SIMPLE
                       | "False"       [klabel(False)]
                       | "#hole"       [klabel(HOLE)]
   syntax BExp ::= BExpResult          [klabel(inj)]
+                | "(" BExp ")"        [klabel(Bracket)]
                 | BExp "&&" BExp      [klabel(And)]
 
   rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(True{}()),VarB:BExp{})),DOTVAR:K{}))
     => kCell{}(kseq{}(inj{BExp{}, KItem{}}(VarB:BExp{}),DOTVAR:K{}))
   rule kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(False{}()),VarB:BExp{})),DOTVAR:K{}))
     => kCell{}(kseq{}(inj{BExpResult{}, KItem{}}(False{}()),DOTVAR:K{}))
+  rule kCell{}(kseq{}(inj{BExp{}, KItem{}} (Bracket{}(VarB:BExp{})), DOTVAR:K {}))
+    => kCell{}(kseq{}(inj{BExp{}, KItem{}} (VarB:BExp{}), DOTVAR:K {}))
 endmodule

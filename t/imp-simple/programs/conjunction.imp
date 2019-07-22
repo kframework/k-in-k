@@ -1,1 +1,1 @@
-<k> True && False ~> .K </k>
+<k> True && ( False && True ) ~> .K </k>
