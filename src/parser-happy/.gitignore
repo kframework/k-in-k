@@ -1,0 +1,11 @@
+.stack-work/
+sharpparse.cabal
+*~
+*.hi
+parser/Grammar2.hs
+parser/Grammar2.info
+parser/Grammar2.o
+parser/Grammar2.y
+parser/Main.hi
+parser/Main.o
+parse

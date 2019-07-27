@@ -1,0 +1,25 @@
+% ./sharpparse.sh test-data/test4.k test-data/test4-1.in Foo
+unused rules: 3
+shift/reduce conflicts:  1
+[1 of 3] Compiling Grammar2Data     ( Grammar2Data.hs, Grammar2Data.o )
+
+parser/Grammar2Data.hs:428:1: warning: [-Woverlapping-patterns]
+    Pattern match is redundant
+    In an equation for ‘output’:
+        output [[b1@(_, _, HappyTok TokenPeriod)]] m = ...
+[2 of 3] Compiling Grammar2         ( Grammar2.hs, Grammar2.o )
+[3 of 3] Compiling Main             ( Main.hs, Main.o ) [Grammar2 changed]
+Linking ../parse ...
+Ok (0,15,G_Grm)
+
+Testing...
+fooplus(foosucc(foosucc(zero)),foosucc(foosucc(zero)))
+
+% echo "s(.) + . + . + ." | ./parse
+Ok (0,10,G_Grm)
+
+Testing...
+amb(fooplus(fooplus(foosucc(zero),zero),fooplus(zero,zero)),amb(fooplus(foosucc(zero),amb(fooplus(zero,fooplus(z
+ero,zero)),fooplus(fooplus(zero,zero),zero))),fooplus(amb(fooplus(foosucc(zero),fooplus(zero,zero)),fooplus(foop
+lus(foosucc(zero),zero),zero)),zero)))
+
