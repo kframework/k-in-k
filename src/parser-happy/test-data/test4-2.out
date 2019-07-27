@@ -1,0 +1,1 @@
+amb(fooplus(fooplus(foosucc(zero),zero),fooplus(foosucc(foosucc(zero)),zero)),amb(fooplus(foosucc(zero),amb(fooplus(zero,fooplus(foosucc(foosucc(zero)),zero)),fooplus(fooplus(zero,foosucc(foosucc(zero))),zero))),fooplus(amb(fooplus(foosucc(zero),fooplus(zero,foosucc(foosucc(zero)))),fooplus(fooplus(foosucc(zero),zero),foosucc(foosucc(zero)))),zero)))
