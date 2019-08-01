@@ -302,7 +302,7 @@ module PARSE-CONFIG
                  | "#collectConfigGrammar"
 
   rule <k> #parseConfigBubble ... </k>
-       <decl> kConfiguration(C:Bubble) => kConfiguration(parseWithProductions(GRAMMAR, "K", tokenToString(C))) </decl>
+       <decl> kConfiguration(noAttrs(C:Bubble)) => kConfiguration(noAttrs({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
        <configGrammar> GRAMMAR </configGrammar>
   
   rule <k> #parseConfigBubble => .K ... </k>
@@ -371,7 +371,7 @@ module PARSE-CONFIG
   syntax KItem ::= "#extractConfigInfo"
   syntax KItem ::= collectCellName(Patterns)
   rule <k> #extractConfigInfo => collectCellName(P) ~> #extractConfigInfo ... </k>
-       (<decl> kConfiguration(P) </decl> => .Bag)
+       (<decl> kConfiguration(noAttrs(P)) </decl> => .Bag)
 
   rule <k> collectCellName( _ { _ } (A)) => collectCellName(A) ... </k>
   rule <k> collectCellName(A, B) => collectCellName(A) ~> collectCellName(B) ... </k>
@@ -414,8 +414,9 @@ module PARSE-CONFIG
                   nonTerminal(#token("OptionalDots","UpperName")),
                   terminal(String2EKoreKString("\"</" +String CellName +String ">\"")))))),
                 kAttributesDeclaration(consAttrList(
+                   tagContent(#token("klabel","LowerName"), String2TagContents(CellName +String "cell")),consAttrList(
                    tagContent(#token("cellName","LowerName"), String2TagContents(CellName)),consAttrList(
-                   tagSimple(#token("cell","LowerName")), dotAttrList(.KList)))))))
+                   tagSimple(#token("cell","LowerName")), dotAttrList(.KList))))))))
           ...
        </ruleGrammar>
   rule <k> #addRuleCells => .K ... </k>
@@ -424,7 +425,10 @@ module PARSE-CONFIG
   // parse rule bubbles
   syntax KItem ::= "#parseRuleBubble"
   rule <k> #parseRuleBubble ... </k>
-       <decl> kRule(C:Bubble) => kRule(parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))) </decl>
+       <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern)) </decl>
+       <ruleGrammar> GRAMMAR </ruleGrammar>
+  rule <k> #parseRuleBubble ... </k>
+       <decl> kRule(attrs(C:Bubble, At)) => kRule(attrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, At)) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
 
   rule <k> #parseRuleBubble => .K ... </k>
@@ -579,7 +583,7 @@ module FLATTEN-PRODUCTIONS
   rule <k> #flattenProductions ... </k>
        <mod>
        <declarations>
-          <decl> kSyntaxProduction(SORT, P1 > P2) </decl>
+          <decl> kSyntaxProduction(SORT, P1 > _:AssocAttribute P2) </decl>
        => <decl> kSyntaxProduction(SORT, P1) </decl>
           <decl> kSyntaxProduction(SORT, P2) </decl>
           ...

@@ -145,7 +145,7 @@ High-level pipeline steps
       {readFile(DEPLOY_DIR +String "/src/rule-inner.k")}:>String
       +String
       tokenToString(PGM)
-      ) // add config-inner.k
+      ) // add rule-inner.k
     ~> #defnToConfig
     ~> #flattenProductions
     ~> #collectRuleGrammar

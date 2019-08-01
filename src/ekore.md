@@ -70,7 +70,8 @@ module RULES-WITH-BUBBLES-COMMON
   imports CONFIG-RULE-CONTEXT-COMMON
   syntax BubbleItem
   syntax Bubble
-  syntax RuleContents ::= Bubble
+  syntax BubbleWithAttr
+  syntax RuleContents ::= BubbleWithAttr
 endmodule
 
 module RULES-WITH-BUBBLES-ABSTRACT
@@ -81,6 +82,8 @@ endmodule
 module RULES-WITH-BUBBLES-SYNTAX
   imports RULES-WITH-BUBBLES-COMMON
   imports CONFIG-RULE-CONTEXT-SYNTAX
+  syntax BubbleWithAttr ::= Bubble                        [klabel(noAttrs)]
+                          | Bubble KAttributesDeclaration [klabel(attrs), prefer]
   syntax BubbleItem ::= r"[^ \t\n\r]+" [token, reject2("rule|syntax|endmodule|configuration|context")]
   syntax Bubble ::= Bubble BubbleItem  [token]
                   | BubbleItem         [token]
@@ -187,9 +190,12 @@ endmodule
 
 module CONFIG-RULE-CONTEXT-ABSTRACT
   imports CONFIG-RULE-CONTEXT-COMMON
+  imports RULES-WITH-BUBBLES-COMMON
   imports KORE-ABSTRACT
   syntax RuleContents ::= noAttrs(Pattern)                   [klabel(noAttrs), format(%3)]
-                    | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
+                        | attrs(Pattern, KAttributesDeclaration) [klabel(attrs)]
+                        | noAttrs(Bubble)                   [klabel(noAttrs), format(%3)]
+                        | attrs(Bubble, KAttributesDeclaration) [klabel(attrs)]
 endmodule
 
 module CONFIG-RULE-CONTEXT-SYNTAX
