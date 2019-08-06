@@ -21,7 +21,7 @@ module DOMAINS-SYNTAX
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*"
 endmodule
 
-module IMP-TYPED-SYNTAX
+module IMP-SYNTAX
   imports DOMAINS-SYNTAX
 
   syntax AExp  ::= Int | Id
@@ -43,15 +43,15 @@ module IMP-TYPED-SYNTAX
                  | "while" "(" BExp ")" Block [klabel(while)]
                  > Stmt Stmt                  [klabel(stmts), left]
   syntax Pgm ::= "int" Ids ";" Stmt           [klabel(start)]
-  syntax Ids ::= Id
+  syntax Ids ::= Id // List{Id,","}
                | Id "," Ids  [klabel(consIds)]
                // | ""      [klabel(emptyIds)]
                | ".Ids"     [klabel(emptyIds)]
 endmodule
 
 
-module IMP-TYPED
-  imports IMP-TYPED-SYNTAX
+module IMP
+  imports IMP-SYNTAX
   syntax KResult ::= Int | Bool
 
   configuration <T color="yellow">
@@ -70,7 +70,7 @@ module IMP-TYPED
   rule true && B => B
   rule false && _ => false
 // Block
-  rule {} => .K   [structural]
+  rule {} => .K  [structural]
   rule {S} => S  [structural]
 // Stmt
   rule <k> X = I:Int; => .K ...</k> <state>... X |-> (_ => I) ...</state>
