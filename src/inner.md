@@ -118,3 +118,67 @@ module K-TERM
   imports AUTO-FOLLOW
 endmodule
 ```
+
+```k
+module CONFIG-CELLS
+  imports KCELLS
+  imports RULE-LISTS
+  syntax CellName ::= r"[a-zA-Z][A-Za-z0-9'_]*"   [token]
+
+  syntax Cell ::= "<" CellName CellProperties ">" K "</" CellName ">" [klabel(configCell)]
+  syntax Cell ::= "<" CellName "/>" [klabel(externalCell)]
+
+  syntax CellProperties ::= CellProperty CellProperties [klabel(cellPropertyList)]
+                          | ""                          [klabel(cellPropertyListTerminator)]
+  syntax CellProperty ::= CellName "=" KString          [klabel(cellProperty)]
+
+endmodule
+
+module CONFIG-INNER // main parsing module for configuration, start symbol: K
+  imports K-TERM
+  imports CONFIG-CELLS
+  imports DEFAULT-LAYOUT
+endmodule
+```
+
+```k
+module RULE-CELLS
+  imports KCELLS
+  imports RULE-LISTS
+  // if this module is imported, the parser automatically
+  // generates, for all productions that have the attribute 'cell' or 'maincell',
+  // a production like below:
+  //syntax Cell ::= "<top>" OptionalDots K OptionalDots "</top>" [klabel(<top>)]
+
+  syntax OptionalDots ::= "..." [klabel(dots)]
+                        | ""    [klabel(noDots)]
+endmodule
+
+module REQUIRES-ENSURES
+  imports BASIC-K
+
+  syntax RuleBody ::= K
+
+  syntax RuleContent ::= RuleBody                                 [klabel("ruleNoConditions")]
+                       | RuleBody "requires" K                    [klabel("ruleRequires")]
+                       | RuleBody "ensures"  K                    [klabel("ruleEnsures")]
+                       | RuleBody "requires" K "ensures" K        [klabel("ruleRequiresEnsures")]
+endmodule
+
+// To be used to parse semantic rules
+module K
+  imports KSEQ-SYMBOLIC
+  imports REQUIRES-ENSURES
+  imports K-SORT-LATTICE
+  imports AUTO-CASTS
+  imports AUTO-FOLLOW
+
+  syntax KBott ::= K "=>" K [klabel(KRewrite)]
+endmodule
+
+module RULE-INNER // main parsing module for rules, start symbol: RuleContent
+  imports K
+  imports RULE-CELLS
+  imports DEFAULT-LAYOUT
+endmodule
+```

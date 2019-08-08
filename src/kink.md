@@ -39,7 +39,7 @@ module KINK-CONFIGURATION
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
                    <modules format="%2%n">
-                     <mod format="module %2%i%n%4%n%5%n%d%n %i%dendmodule %3%n%n"
+                     <mod format="module %2%i%n%4%n%5%n%6%n%d%n %i%dendmodule %3%n%n"
                           multiplicity="*" type="Set">
                        <name format="%2"> #token("UNNAMED", "ModuleName"):ModuleName </name>
                        <attributes format="[ %2 ]"> .Patterns </attributes>
@@ -47,15 +47,15 @@ module KINK-CONFIGURATION
                          <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
                        </declarations>
                        <grammar> .Set </grammar>
+                       <parserGenerator>
+                         <noCastSorts> noCastSortsInit </noCastSorts> // sorts excepted from casts
+                         <noLatticeSorts> noLatticeSortsInit </noLatticeSorts>
+                         <configGrammar> .Set </configGrammar> // place to collect the grammar used to parse configurations
+                         <ruleGrammar> .Set </ruleGrammar> // place to collect the grammar used to parse rules
+                       </parserGenerator>
                      </mod>
                    </modules>
                    <configInfo> .Map </configInfo>
-                   <parserGenerator>
-                     <noCastSorts> noCastSortsInit </noCastSorts> // sorts excepted from casts
-                     <noLatticeSorts> noLatticeSortsInit </noLatticeSorts>
-                     <configGrammar> .Set </configGrammar> // place to collect the grammar used to parse configurations
-                     <ruleGrammar> .Set </ruleGrammar> // place to collect the grammar used to parse rules
-                   </parserGenerator>
                 </definition>
                 <exit-code exit=""> 1 </exit-code>
                 initSCell(.Map)
@@ -297,73 +297,84 @@ module PARSE-CONFIG
   imports FILE-UTIL
   imports PARSER-UTIL
   imports KORE-ABSTRACT
+  imports META-ACCESSORS
 
   syntax KItem ::= "#parseConfigBubble"
-                 | "#collectConfigGrammar"
+                 | "#collectConfigGrammar" "(" ModuleName "," Set ")"
+
+  rule <k> #parseConfigBubble
+        => #collectConfigGrammar(MName, #getImportedModules(MName) #getImportedModules(#token("CONFIG-INNER", "UpperName")))
+        ~> #addConfigCasts
+        ~> #addConfigSubsorts
+        ~> #parseConfigBubble
+       ... </k>
+       <name> MName </name>
+       <decl> kConfiguration(noAttrs(_:Bubble)) </decl>
+       <configGrammar> .Set </configGrammar>
 
   rule <k> #parseConfigBubble ... </k>
        <decl> kConfiguration(noAttrs(C:Bubble)) => kConfiguration(noAttrs({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
        <configGrammar> GRAMMAR </configGrammar>
+     requires GRAMMAR =/=K .Set
   
   rule <k> #parseConfigBubble => .K ... </k>
        <s> #STUCK() => .K ... </s>
   
-  rule <k> #collectConfigGrammar ... </k>
+  rule <k> #collectConfigGrammar(MainMod, SetItem(MName:ModuleName) _:Set) ... </k>
+       <mod>
+          <name> MName </name>
+          <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
+          ...
+       </mod>
+       <mod>
+          <name> MainMod </name>
+          <configGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </configGrammar>
+          ...
+       </mod>
+    requires notBool(SYNTAXDECL in REST)
+  rule <k> #collectConfigGrammar(MainMod, SetItem(MName:ModuleName) _:Set) ... </k> // same as above but for the seed module
        <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
+       <name> MainMod </name>
        <configGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </configGrammar>
     requires notBool(SYNTAXDECL in REST)
-  rule <k> #collectConfigGrammar => .K ... </k>
+  rule <k> #collectConfigGrammar(_, _) => .K ... </k>
        <s> #STUCK() => .K ... </s>
   
   syntax EKoreKString ::= String2EKoreKString (String) [function, functional, hook(STRING.string2token)]
   syntax TagContents  ::= String2TagContents  (String) [function, functional, hook(STRING.string2token)]
   // Add config parsing syntax
   // casts: Sort ::= Sort ":Sort"
-  syntax KItem ::= "#addCasts"
-  rule <k> #addCasts ... </k>
-       <decl> kSyntaxProduction(SORT, PROD) </decl>
-       <noCastSorts> NOCASTSORTS (.Set => SetItem(SORT))</noCastSorts>
-       <configGrammar> .Set => SetItem(
+  syntax KItem ::= "#addConfigCasts"
+  rule <k> #addConfigCasts ... </k>
+       <noCastSorts> NOCASTSORTS (.Set => SetItem(SORT)) </noCastSorts>
+       <configGrammar> SetItem(kSyntaxProduction(SORT, PROD))
+         (.Set => SetItem(
           kSyntaxProduction(SORT, 
               kProductionWAttr(kProduction(nonTerminal(SORT), 
                                            terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
                                kAttributesDeclaration(consAttrList(
                                   tagContent(#token("klabel","LowerName"),
-                                             String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList))))))
+                                             String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList)))))))
           ...
        </configGrammar>
-       <ruleGrammar> .Set => SetItem(
-          kSyntaxProduction(SORT, 
-              kProductionWAttr(kProduction(nonTerminal(SORT), 
-                                           terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
-                               kAttributesDeclaration(consAttrList(
-                                  tagContent(#token("klabel","LowerName"),
-                                             String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList))))))
-          ...
-       </ruleGrammar>
      requires notBool(SORT in NOCASTSORTS)
   
-  rule <k> #addCasts => .K ... </k>
+  rule <k> #addConfigCasts => .K ... </k>
        <s> #STUCK() => .K ... </s>
   
   // subsorts: K ::= Sort, Sort ::= KBott
-  syntax KItem ::= "#addSubsorts"
-  rule <k> #addSubsorts ... </k>
-       <decl> kSyntaxProduction(SORT, PROD) </decl>
-       <noLatticeSorts> NOCASTSORTS (.Set => SetItem(SORT))</noLatticeSorts>
-       <configGrammar> .Set => 
+  syntax KItem ::= "#addConfigSubsorts"
+  rule <k> #addConfigSubsorts ... </k>
+       <noLatticeSorts> NOCASTSORTS (.Set => SetItem(SORT)) </noLatticeSorts>
+       <configGrammar> SetItem(kSyntaxProduction(SORT, PROD))
+              (.Set => 
               SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
-              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt)))
+              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt))))
           ...
        </configGrammar>
-       <ruleGrammar> .Set => 
-              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
-              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt)))
-          ...
-       </ruleGrammar>
      requires notBool(SORT in NOCASTSORTS)
-  
-  rule <k> #addSubsorts => .K ... </k>
+
+  rule <k> #addConfigSubsorts => .K ... </k>
        <s> #STUCK() => .K ... </s>
 
   // collect config info - destructure the configuration and populate <configInfo>

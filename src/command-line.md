@@ -121,8 +121,6 @@ High-level pipeline steps
     =>  parseOuter(
       {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
       +String
-      {readFile(DEPLOY_DIR +String "/src/config-inner.k")}:>String
-      +String
       tokenToString(PGM)
       ) // add config-inner.k
     // create the common module
@@ -132,17 +130,14 @@ High-level pipeline steps
     ~> #defnToConfig
     ~> #flattenProductions
     // import config parsing syntax
-    ~> #addCasts
-    ~> #addSubsorts
-    ~> #collectConfigGrammar
     ~> #parseConfigBubble
+    /*~> #addCasts
+    ~> #addSubsorts
     ~> #extractConfigInfo
     // do another parseOuter with rule-inner.k
     ~> #clearModules
     ~> parseOuter(
       {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
-      +String
-      {readFile(DEPLOY_DIR +String "/src/rule-inner.k")}:>String
       +String
       tokenToString(PGM)
       ) // add rule-inner.k
@@ -153,7 +148,7 @@ High-level pipeline steps
     ~> #addRuleCells
     ~> #parseConfigBubble // again since I destroyed it when I built <configInfo>
     // parse rule bubbles
-    ~> #parseRuleBubble
+    ~> #parseRuleBubble*/
     </k>
     <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```
