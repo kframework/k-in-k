@@ -22,6 +22,7 @@ module COMMAND-LINE
   imports PARSE-OUTER
   imports PARSE-PROGRAM
   imports PARSE-CONFIG
+  imports PARSE-RULE
   imports PARSE-TO-EKORE
 
   imports FRONTEND-MODULES-TO-KORE-MODULES
@@ -123,32 +124,12 @@ High-level pipeline steps
       +String
       tokenToString(PGM)
       ) // add config-inner.k
-    // create the common module
-    // create linkage and extras
     // parse bubbles
-    // discard config parser
     ~> #defnToConfig
     ~> #flattenProductions
-    // import config parsing syntax
     ~> #parseConfigBubble
-    /*~> #addCasts
-    ~> #addSubsorts
     ~> #extractConfigInfo
-    // do another parseOuter with rule-inner.k
-    ~> #clearModules
-    ~> parseOuter(
-      {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
-      +String
-      tokenToString(PGM)
-      ) // add rule-inner.k
-    ~> #defnToConfig
-    ~> #flattenProductions
-    ~> #collectRuleGrammar
-    // TODO: add rule cells
-    ~> #addRuleCells
-    ~> #parseConfigBubble // again since I destroyed it when I built <configInfo>
-    // parse rule bubbles
-    ~> #parseRuleBubble*/
+    ~> #parseRuleBubble
     </k>
     <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```
