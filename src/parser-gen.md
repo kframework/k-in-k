@@ -225,7 +225,7 @@ module PARSE-RULE
         ~> #parseRuleBubble
        ... </k>
        <name> MName </name>
-       <decl> kRule(noAttrs(_:Bubble)) </decl>
+       <decl> kRule(_) </decl>
        <ruleGrammar> .Set </ruleGrammar>
   
   rule <k> #parseRuleBubble ... </k>
@@ -242,8 +242,7 @@ module PARSE-RULE
 
   // add rule cells
   syntax KItem ::= "#addRuleCells" "(" ModuleName "," Set ")" // collector for already inserted cell productions
-  rule <k> #addRuleCells(Mname, Cells => Cells SetItem(CellName)) ... </k>
-       <mod>
+  rule <k> #addRuleCells(MName, Cells => Cells SetItem(CellName)) ... </k>
        <name> MName </name>
        <grammar> .Set => SetItem(
           kSyntaxProduction(#token("Cell","UpperName"), 
@@ -259,7 +258,6 @@ module PARSE-RULE
                    tagSimple(#token("cell","LowerName")), dotAttrList(.KList))))))))
           ...
        </grammar>
-       ...</mod>
        <cellName> CellName |-> "CellName" ... </cellName>
      requires notBool CellName in Cells
   rule <k> #addRuleCells(_, _) => .K ... </k>
