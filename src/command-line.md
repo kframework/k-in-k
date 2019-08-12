@@ -34,6 +34,7 @@ module COMMAND-LINE
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
   imports FILE-UTIL
+  imports CONFIG-INFO
 ```
 
 Command line options

@@ -123,6 +123,18 @@ module META-ACCESSORS
        <decl> koreImport(IMPORTED, _) </decl>
     requires notBool IMPORTED in MODS
   rule #getImportedModulesSet(MNAME, MODS) => MODS [owise]
+  
+  syntax Set ::= #getLocalProds(ModuleName)      [function]
+  syntax Set ::= #getLocalProdsSet(ModuleName, Set) [function]
+  rule #getLocalProds(MNAME) => #getLocalProdsSet(MNAME, .Set)
+  rule [[ #getLocalProdsSet(MNAME, PRODS)
+       => #getLocalProdsSet(MNAME, PRODS SetItem(PRD))
+       ]]
+       <name> MNAME </name>
+       <decl> kSyntaxProduction(_, _) #as PRD </decl>
+    requires notBool PRD in PRODS
+  rule #getLocalProdsSet(MNAME, PRODS) => PRODS [owise]
+  
 ```
 
 ```k
