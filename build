@@ -52,12 +52,13 @@ k_light = proj.dotTarget().then(build_k_light())
 ekore  = 'src/ekore.md'
 kore   = 'src/kore.md'
 parser = 'src/parser-util.md'
+pgen   = 'src/parser-gen.md'
 file   = 'src/file-util.md'
 inner  = 'src/inner.md'
 
 kink = proj.definition( backend   = 'ocaml'
                       , main      = 'src/kink.md'
-                      , other     = [kore, ekore, parser, file, 'src/command-line.md', k_light, inner]
+                      , other     = [kore, ekore, parser, file, pgen, 'src/command-line.md', k_light, inner]
                       , directory = proj.builddir('kink')
                       , flags     = '--syntax-module KINK-SYNTAX'
                       , alias     = 'kink'
