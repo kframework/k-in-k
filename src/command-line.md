@@ -1,5 +1,6 @@
 ```k
 require "file-util.k"
+require "parser-gen.k"
 
 module COMMAND-LINE-SYNTAX
   imports STRING-SYNTAX

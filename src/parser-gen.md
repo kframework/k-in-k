@@ -1,0 +1,251 @@
+```k
+module PARSER-GEN-HELPERS
+  imports SET
+  imports STRING-SYNTAX
+  imports KINK-CONFIGURATION
+  imports KORE-HELPERS
+  imports META-ACCESSORS
+  
+  syntax UpperName ::= String2UpperName (String) [function, functional, hook(STRING.string2token)]
+  syntax Set ::= "noCastSortsInit" [function]
+  rule noCastSortsInit => // sorts from this list do not receive productions for casting
+        SetItem(String2UpperName("Cell"))
+        SetItem(String2UpperName("CellName"))
+        SetItem(String2UpperName("CellProperties"))
+        SetItem(String2UpperName("CellProperty"))
+        SetItem(String2UpperName("KConfigVar"))
+        SetItem(String2UpperName("KLabel"))
+        SetItem(String2UpperName("KList"))
+        SetItem(String2UpperName("KString"))
+        SetItem(String2UpperName("KVariable"))
+        SetItem(String2UpperName("Layout"))
+        SetItem(String2UpperName("RuleBody"))
+        SetItem(String2UpperName("RuleContent"))
+        SetItem(String2UpperName("OptionalDots"))
+  syntax Set ::= "noLatticeSortsInit" [function]
+  rule noLatticeSortsInit => // sorts from this list are not included in the automatic subsorts lattice
+        SetItem(String2UpperName("Cell"))
+        SetItem(String2UpperName("CellName"))
+        SetItem(String2UpperName("CellProperties"))
+        SetItem(String2UpperName("CellProperty"))
+        SetItem(String2UpperName("K"))
+        SetItem(String2UpperName("KBott"))
+        SetItem(String2UpperName("KConfigVar"))
+        SetItem(String2UpperName("KLabel"))
+        SetItem(String2UpperName("KList"))
+        SetItem(String2UpperName("KString"))
+        SetItem(String2UpperName("KVariable"))
+        SetItem(String2UpperName("Layout"))
+        SetItem(String2UpperName("RuleBody"))
+        SetItem(String2UpperName("RuleContent"))
+        SetItem(String2UpperName("OptionalDots"))
+           
+  // Add parsing syntax
+  // casts: Sort ::= Sort ":Sort"
+  syntax Set ::= "#addCasts" "(" Set ")" [function]
+  syntax Set ::= "#addCasts2" "(" Set "," Set ")" [function]
+  rule #addCasts(Prds) => #addCasts2(Prds, noCastSortsInit)
+  rule #addCasts2(
+          SetItem(kSyntaxProduction(SORT, PROD))
+          _:Set
+          (.Set => SetItem(
+            kSyntaxProduction(SORT,
+                kProductionWAttr(kProduction(nonTerminal(SORT),
+                                             terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
+                                 kAttributesDeclaration(consAttrList(
+                                    tagContent(#token("klabel","LowerName"),
+                                               String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList)))))))
+          , SORTS (.Set => SetItem(SORT)))
+     requires notBool SORT in SORTS
+  rule #addCasts2(Prds, _) => Prds [owise]
+  
+  // subsorts: K ::= Sort, Sort ::= KBott
+  syntax Set ::= "#addSubsorts" "(" Set ")" [function]
+  syntax Set ::= "#addSubsorts2" "(" Set "," Set ")" [function]
+  rule #addSubsorts(Prds) => #addSubsorts2(Prds, noLatticeSortsInit)
+  rule #addSubsorts2(
+          SetItem(kSyntaxProduction(SORT, PROD))
+          _:Set
+          (.Set => 
+              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
+              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt))))
+          , SORTS (.Set => SetItem(SORT)))
+     requires notBool SORT in SORTS
+  rule #addSubsorts2(Prds, _) => Prds [owise]
+
+endmodule
+```
+
+Parse Outer
+-----------
+
+```k
+module PARSE-OUTER
+  imports KINK-CONFIGURATION
+  imports PARSER-UTIL
+
+  // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
+  syntax KItem ::= "#parseOuter"
+  rule <k> PGM:Any ~> #parseOuter => parseOuter(tokenToString(PGM)) ... </k>
+endmodule
+```
+
+Parse Program
+-------------
+
+```k
+module PARSE-PROGRAM
+  imports KINK-CONFIGURATION
+  imports K-PRODUCTION-ABSTRACT
+  imports EKORE-KSTRING-ABSTRACT
+  imports KORE-HELPERS
+  imports STRING
+  imports FILE-UTIL
+  imports PARSER-UTIL
+
+  syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
+                 | "#parseProgram" "(" IOString ")" // Program content
+                 | "#collectGrammar"
+  rule <k> #parseProgramPath(PGM_FILENAME) => #parseProgram(readFile(PGM_FILENAME)) ... </k>
+
+  rule <k> #parseProgram(PGM)
+        => parseWithProductions(GRAMMAR, "Pgm", PGM)
+           ...
+       </k>
+       <grammar> GRAMMAR </grammar>
+
+  rule <k> #collectGrammar ... </k>
+       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
+       <grammar> ( .Set => SetItem(SYNTAXDECL) ) REST </grammar>
+    requires notBool(SYNTAXDECL in REST)
+  rule <k> #collectGrammar => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+endmodule
+```
+
+Parse Config
+-------------
+
+```k
+module PARSE-CONFIG
+  imports RULES-WITH-BUBBLES-COMMON
+  imports KINK-CONFIGURATION
+  imports K-PRODUCTION-ABSTRACT
+  imports EKORE-KSTRING-ABSTRACT
+  imports KORE-HELPERS
+  imports STRING
+  imports FILE-UTIL
+  imports PARSER-UTIL
+  imports KORE-ABSTRACT
+  imports META-ACCESSORS
+  imports PARSER-GEN-HELPERS
+
+  syntax KItem ::= "#parseConfigBubble"
+
+  rule <k> #parseConfigBubble ... </k>
+       <name> MName </name>
+       <decl> kConfiguration(noAttrs(_:Bubble)) </decl>
+       <configGrammar> .Set => #addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("CONFIG-INNER", "UpperName")))) </configGrammar>
+
+  rule <k> #parseConfigBubble ... </k>
+       <decl> kConfiguration(noAttrs(C:Bubble)) => kConfiguration(noAttrs({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
+       <configGrammar> GRAMMAR </configGrammar>
+     requires GRAMMAR =/=K .Set
+  
+  rule <k> #parseConfigBubble => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+  
+  // collect config info - destructure the configuration and populate <configInfo>
+  // with \dv key -> type (CellInfo or KConfigVar)
+  syntax KItem ::= "#extractConfigInfo"
+  syntax KItem ::= collectCellName(Patterns)
+  rule <k> #extractConfigInfo => collectCellName(P) ~> #extractConfigInfo ... </k>
+       <decl> kConfiguration(noAttrs(P)) </decl>
+       <collected> Configs => Configs SetItem(P) </collected>
+     requires notBool P in Configs
+
+  rule <k> collectCellName( _ { _ } (A)) => collectCellName(A) ... </k>
+  rule <k> collectCellName(A, B) => collectCellName(A) ~> collectCellName(B) ... </k>
+  rule <k> collectCellName( .Patterns ) => .K ... </k>
+
+  rule <k> collectCellName(\dv { Srt { .Sorts } } ( CellName )) => .K ... </k>
+       <cellName> .Map => substrString(token2String(CellName), 1, lengthString(token2String(CellName)) -Int 1) |-> token2String(Srt) ... </cellName>
+
+  rule <k> #extractConfigInfo => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+endmodule
+
+module PARSE-RULE
+  imports RULES-WITH-BUBBLES-COMMON
+  imports KINK-CONFIGURATION
+  imports K-PRODUCTION-ABSTRACT
+  imports EKORE-KSTRING-ABSTRACT
+  imports KORE-HELPERS
+  imports STRING
+  imports FILE-UTIL
+  imports PARSER-UTIL
+  imports KORE-ABSTRACT
+  imports META-ACCESSORS
+  imports PARSER-GEN-HELPERS
+
+  // parse rule bubbles
+  syntax KItem ::= "#parseRuleBubble"
+  rule <k> #parseRuleBubble ... </k>
+       <name> MName </name>
+       <decl> kRule(noAttrs(_:Bubble)) </decl>
+       <ruleGrammar> .Set => #addRuleCells(#addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName"))))) </ruleGrammar>
+  
+  rule <k> #parseRuleBubble ... </k>
+       <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern)) </decl>
+       <ruleGrammar> GRAMMAR </ruleGrammar>
+     requires GRAMMAR =/=K .Set
+  rule <k> #parseRuleBubble ... </k>
+       <decl> kRule(attrs(C:Bubble, At)) => kRule(attrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, At)) </decl>
+       <ruleGrammar> GRAMMAR </ruleGrammar>
+     requires GRAMMAR =/=K .Set
+
+  rule <k> #parseRuleBubble => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+  // add rule cells
+  syntax Set ::= "#addRuleCells" "(" Set ")" [function]
+  syntax Set ::= "#addRuleCells2" "(" Set "," Set ")" [function]
+  rule #addRuleCells(Prds) => #addRuleCells2(Prds, .Set)
+  rule [[ #addRuleCells2(
+        Prds:Set
+        (.Set => SetItem(
+          kSyntaxProduction(#token("Cell","UpperName"), 
+              kProductionWAttr(kProduction(
+                  terminal(String2EKoreKString("\"<" +String CellName +String ">\"")), kProduction(
+                  nonTerminal(#token("OptionalDots","UpperName")), kProduction(
+                  nonTerminal(#token("K","UpperName")), kProduction(
+                  nonTerminal(#token("OptionalDots","UpperName")),
+                  terminal(String2EKoreKString("\"</" +String CellName +String ">\"")))))),
+                kAttributesDeclaration(consAttrList(
+                   tagContent(#token("klabel","LowerName"), String2TagContents(CellName +String "cell")),consAttrList(
+                   tagContent(#token("cellName","LowerName"), String2TagContents(CellName)),consAttrList(
+                   tagSimple(#token("cell","LowerName")), dotAttrList(.KList)))))))))
+        , Cells (.Set => SetItem(CellName)))
+        ]]
+       <cellName> CellName |-> "CellName" ... </cellName>
+     requires notBool CellName in Cells
+  rule #addRuleCells2(Prods, _) => Prods [owise]
+
+endmodule
+```
+
+Parse into EKore
+----------------
+
+```k
+module PARSE-TO-EKORE
+  imports EKORE-ABSTRACT
+  imports KINK-CONFIGURATION
+  imports PARSER-UTIL
+
+  syntax KItem ::= "#parseToEKore"
+  rule <k> PGM:Any ~> #parseToEKore => parseEKore(tokenToString(PGM)) ... </k>
+endmodule
+```
