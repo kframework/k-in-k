@@ -48,12 +48,7 @@ module KINK-CONFIGURATION
                        </declarations>
                        <grammar> .Set </grammar>
                        <parserGenerator>
-                         <noConfigCastSorts> noCastSortsInit </noConfigCastSorts> // sorts excepted from casts
-                         <noConfigLatticeSorts> noLatticeSortsInit </noConfigLatticeSorts>
                          <configGrammar> .Set </configGrammar> // place to collect the grammar used to parse configurations
-                         <noRuleCastSorts> noCastSortsInit </noRuleCastSorts> // sorts excepted from casts
-                         <noRuleLatticeSorts> noLatticeSortsInit </noRuleLatticeSorts>
-                         <cellProds> .Set </cellProds> // collector for already inserted cell productions
                          <ruleGrammar> .Set </ruleGrammar> // place to collect the grammar used to parse rules
                        </parserGenerator>
                      </mod>
@@ -334,14 +329,10 @@ module PARSE-CONFIG
 
   syntax KItem ::= "#parseConfigBubble"
 
-  rule <k> #parseConfigBubble
-        => #addConfigCasts
-        ~> #addConfigSubsorts
-        ~> #parseConfigBubble
-       ... </k>
+  rule <k> #parseConfigBubble ... </k>
        <name> MName </name>
        <decl> kConfiguration(noAttrs(_:Bubble)) </decl>
-       <configGrammar> .Set => #getAllProds(MName) #getAllProds(#token("CONFIG-INNER", "UpperName")) </configGrammar>
+       <configGrammar> .Set => #addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("CONFIG-INNER", "UpperName")))) </configGrammar>
 
   rule <k> #parseConfigBubble ... </k>
        <decl> kConfiguration(noAttrs(C:Bubble)) => kConfiguration(noAttrs({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
@@ -353,39 +344,37 @@ module PARSE-CONFIG
   
   // Add config parsing syntax
   // casts: Sort ::= Sort ":Sort"
-  syntax KItem ::= "#addConfigCasts"
-  rule <k> #addConfigCasts ... </k>
-       <noConfigCastSorts> NOCASTSORTS (.Set => SetItem(SORT)) </noConfigCastSorts>
-       <configGrammar> SetItem(kSyntaxProduction(SORT, PROD))
-         (.Set => SetItem(
-          kSyntaxProduction(SORT, 
-              kProductionWAttr(kProduction(nonTerminal(SORT), 
-                                           terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
-                               kAttributesDeclaration(consAttrList(
-                                  tagContent(#token("klabel","LowerName"),
-                                             String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList)))))))
-          ...
-       </configGrammar>
-     requires notBool(SORT in NOCASTSORTS)
-  
-  rule <k> #addConfigCasts => .K ... </k>
-       <s> #STUCK() => .K ... </s>
+  syntax Set ::= "#addCasts" "(" Set ")" [function]
+  syntax Set ::= "#addCasts2" "(" Set "," Set ")" [function]
+  rule #addCasts(Prds) => #addCasts2(Prds, noCastSortsInit)
+  rule #addCasts2(
+          SetItem(kSyntaxProduction(SORT, PROD))
+          _:Set
+          (.Set => SetItem(
+            kSyntaxProduction(SORT,
+                kProductionWAttr(kProduction(nonTerminal(SORT),
+                                             terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
+                                 kAttributesDeclaration(consAttrList(
+                                    tagContent(#token("klabel","LowerName"),
+                                               String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList)))))))
+          , SORTS (.Set => SetItem(SORT)))
+     requires notBool SORT in SORTS
+  rule #addCasts2(Prds, _) => Prds [owise]
   
   // subsorts: K ::= Sort, Sort ::= KBott
-  syntax KItem ::= "#addConfigSubsorts"
-  rule <k> #addConfigSubsorts ... </k>
-       <noConfigLatticeSorts> NOCASTSORTS (.Set => SetItem(SORT)) </noConfigLatticeSorts>
-       <configGrammar> SetItem(kSyntaxProduction(SORT, PROD))
-              (.Set => 
+  syntax Set ::= "#addSubsorts" "(" Set ")" [function]
+  syntax Set ::= "#addSubsorts2" "(" Set "," Set ")" [function]
+  rule #addSubsorts(Prds) => #addSubsorts2(Prds, noLatticeSortsInit)
+  rule #addSubsorts2(
+          SetItem(kSyntaxProduction(SORT, PROD))
+          _:Set
+          (.Set => 
               SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
               SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt))))
-          ...
-       </configGrammar>
-     requires notBool(SORT in NOCASTSORTS)
-
-  rule <k> #addConfigSubsorts => .K ... </k>
-       <s> #STUCK() => .K ... </s>
-
+          , SORTS (.Set => SetItem(SORT)))
+     requires notBool SORT in SORTS
+  rule #addSubsorts2(Prds, _) => Prds [owise]
+  
   // collect config info - destructure the configuration and populate <configInfo>
   // with \dv key -> type (CellInfo or KConfigVar)
   syntax KItem ::= "#extractConfigInfo"
@@ -418,18 +407,14 @@ module PARSE-RULE
   imports PARSER-UTIL
   imports KORE-ABSTRACT
   imports META-ACCESSORS
+  imports PARSE-CONFIG
 
   // parse rule bubbles
   syntax KItem ::= "#parseRuleBubble"
-  rule <k> #parseRuleBubble
-        => #addRuleCasts
-        ~> #addRuleSubsorts
-        ~> #addRuleCells
-        ~> #parseRuleBubble
-       ... </k>
+  rule <k> #parseRuleBubble ... </k>
        <name> MName </name>
        <decl> kRule(noAttrs(_:Bubble)) </decl>
-       <ruleGrammar> .Set => #getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName")) </ruleGrammar>
+       <ruleGrammar> .Set => #addRuleCells(#addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName"))))) </ruleGrammar>
   
   rule <k> #parseRuleBubble ... </k>
        <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern)) </decl>
@@ -443,45 +428,13 @@ module PARSE-RULE
   rule <k> #parseRuleBubble => .K ... </k>
        <s> #STUCK() => .K ... </s>
 
-  syntax KItem ::= "#addRuleCasts"
-  rule <k> #addRuleCasts ... </k>
-       <noRuleCastSorts> NOCASTSORTS (.Set => SetItem(SORT)) </noRuleCastSorts>
-       <ruleGrammar> SetItem(kSyntaxProduction(SORT, PROD))
-         (.Set => SetItem(
-          kSyntaxProduction(SORT, 
-              kProductionWAttr(kProduction(nonTerminal(SORT), 
-                                           terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
-                               kAttributesDeclaration(consAttrList(
-                                  tagContent(#token("klabel","LowerName"),
-                                             String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList)))))))
-          ...
-       </ruleGrammar>
-     requires notBool(SORT in NOCASTSORTS)
-  
-  rule <k> #addRuleCasts => .K ... </k>
-       <s> #STUCK() => .K ... </s>
-  
-  // subsorts: K ::= Sort, Sort ::= KBott
-  syntax KItem ::= "#addRuleSubsorts"
-  rule <k> #addRuleSubsorts ... </k>
-       <noRuleLatticeSorts> NOCASTSORTS (.Set => SetItem(SORT)) </noRuleLatticeSorts>
-       <ruleGrammar> SetItem(kSyntaxProduction(SORT, PROD))
-              (.Set => 
-              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
-              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt))))
-          ...
-       </ruleGrammar>
-     requires notBool(SORT in NOCASTSORTS)
-
-  rule <k> #addRuleSubsorts => .K ... </k>
-       <s> #STUCK() => .K ... </s>
-
   // add rule cells
-  syntax KItem ::= "#addRuleCells"
-  rule <k> #addRuleCells ... </k>
-       <cellName> CellName |-> "CellName" ... </cellName>
-       <cellProds> Cells => Cells SetItem(CellName) </cellProds>
-       <ruleGrammar> .Set => SetItem(
+  syntax Set ::= "#addRuleCells" "(" Set ")" [function]
+  syntax Set ::= "#addRuleCells2" "(" Set "," Set ")" [function]
+  rule #addRuleCells(Prds) => #addRuleCells2(Prds, .Set)
+  rule [[ #addRuleCells2(
+        Prds:Set
+        (.Set => SetItem(
           kSyntaxProduction(#token("Cell","UpperName"), 
               kProductionWAttr(kProduction(
                   terminal(String2EKoreKString("\"<" +String CellName +String ">\"")), kProduction(
@@ -492,12 +445,12 @@ module PARSE-RULE
                 kAttributesDeclaration(consAttrList(
                    tagContent(#token("klabel","LowerName"), String2TagContents(CellName +String "cell")),consAttrList(
                    tagContent(#token("cellName","LowerName"), String2TagContents(CellName)),consAttrList(
-                   tagSimple(#token("cell","LowerName")), dotAttrList(.KList))))))))
-          ...
-       </ruleGrammar>
+                   tagSimple(#token("cell","LowerName")), dotAttrList(.KList)))))))))
+        , Cells (.Set => SetItem(CellName)))
+        ]]
+       <cellName> CellName |-> "CellName" ... </cellName>
      requires notBool CellName in Cells
-  rule <k> #addRuleCells => .K ... </k>
-       <s> #STUCK() => .K ... </s>    
+  rule #addRuleCells2(Prods, _) => Prods [owise]
 
 endmodule
 ```
