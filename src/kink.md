@@ -161,6 +161,23 @@ module META-ACCESSORS
        <decl> koreImport(IMPORTED, _) </decl>
     requires notBool IMPORTED in MODS
   rule #getImportedModulesSet(MNAME, MODS) => MODS [owise]
+  
+  syntax Set ::= #getLocalProds(ModuleName)      [function]
+  syntax Set ::= #getLocalProdsSet(ModuleName, Set) [function]
+  rule #getLocalProds(MNAME) => #getLocalProdsSet(MNAME, .Set)
+  rule [[ #getLocalProdsSet(MNAME, PRODS)
+       => #getLocalProdsSet(MNAME, PRODS SetItem(PRD))
+       ]]
+       <name> MNAME </name>
+       <decl> kSyntaxProduction(_, _) #as PRD </decl>
+    requires notBool PRD in PRODS
+  rule #getLocalProdsSet(MNAME, PRODS) => PRODS [owise]
+  
+  syntax Set ::= #getAllProds(ModuleName)      [function]
+  syntax Set ::= #getAllProdsSet(Set) [function]
+  rule #getAllProds(MName) => #getAllProdsSet(#getImportedModules(MName))
+  rule #getAllProdsSet(SetItem(MName) Rest) => #getLocalProds(MName) #getAllProdsSet(Rest)
+  rule #getAllProdsSet(.Set) => .Set
 ```
 
 ```k
@@ -316,17 +333,15 @@ module PARSE-CONFIG
   imports META-ACCESSORS
 
   syntax KItem ::= "#parseConfigBubble"
-                 | "#collectConfigGrammar" "(" ModuleName "," Set ")"
 
   rule <k> #parseConfigBubble
-        => #collectConfigGrammar(MName, #getImportedModules(MName) #getImportedModules(#token("CONFIG-INNER", "UpperName")))
-        ~> #addConfigCasts
+        => #addConfigCasts
         ~> #addConfigSubsorts
         ~> #parseConfigBubble
        ... </k>
        <name> MName </name>
        <decl> kConfiguration(noAttrs(_:Bubble)) </decl>
-       <configGrammar> .Set </configGrammar>
+       <configGrammar> .Set => #getAllProds(MName) #getAllProds(#token("CONFIG-INNER", "UpperName")) </configGrammar>
 
   rule <k> #parseConfigBubble ... </k>
        <decl> kConfiguration(noAttrs(C:Bubble)) => kConfiguration(noAttrs({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
@@ -334,26 +349,6 @@ module PARSE-CONFIG
      requires GRAMMAR =/=K .Set
   
   rule <k> #parseConfigBubble => .K ... </k>
-       <s> #STUCK() => .K ... </s>
-  
-  rule <k> #collectConfigGrammar(MainMod, SetItem(MName:ModuleName) _:Set) ... </k>
-       <mod>
-          <name> MName </name>
-          <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
-          ...
-       </mod>
-       <mod>
-          <name> MainMod </name>
-          <configGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </configGrammar>
-          ...
-       </mod>
-    requires notBool(SYNTAXDECL in REST)
-  rule <k> #collectConfigGrammar(MainMod, SetItem(MName:ModuleName) _:Set) ... </k> // same as above but for the seed module
-       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
-       <name> MainMod </name>
-       <configGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </configGrammar>
-    requires notBool(SYNTAXDECL in REST)
-  rule <k> #collectConfigGrammar(_, _) => .K ... </k>
        <s> #STUCK() => .K ... </s>
   
   // Add config parsing syntax
@@ -426,17 +421,15 @@ module PARSE-RULE
 
   // parse rule bubbles
   syntax KItem ::= "#parseRuleBubble"
-                 | "#collectRuleGrammar" "(" ModuleName "," Set ")"
   rule <k> #parseRuleBubble
-        => #collectRuleGrammar(MName, #getImportedModules(MName) #getImportedModules(#token("RULE-INNER", "UpperName")))
-        ~> #addRuleCasts
+        => #addRuleCasts
         ~> #addRuleSubsorts
         ~> #addRuleCells
         ~> #parseRuleBubble
        ... </k>
        <name> MName </name>
        <decl> kRule(noAttrs(_:Bubble)) </decl>
-       <ruleGrammar> .Set </ruleGrammar>
+       <ruleGrammar> .Set => #getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName")) </ruleGrammar>
   
   rule <k> #parseRuleBubble ... </k>
        <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern)) </decl>
@@ -448,27 +441,6 @@ module PARSE-RULE
      requires GRAMMAR =/=K .Set
 
   rule <k> #parseRuleBubble => .K ... </k>
-       <s> #STUCK() => .K ... </s>
-
-  syntax KItem ::= "#collectRuleGrammar"
-  rule <k> #collectRuleGrammar(MainMod, SetItem(MName:ModuleName) _:Set) ... </k>
-       <mod>
-          <name> MName </name>
-          <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
-          ...
-       </mod>
-       <mod>
-          <name> MainMod </name>
-          <ruleGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </ruleGrammar>
-          ...
-       </mod>
-    requires notBool(SYNTAXDECL in REST)
-  rule <k> #collectRuleGrammar(MainMod, SetItem(MName:ModuleName) _:Set) ... </k> // same as above but for the seed module
-       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
-       <name> MainMod </name>
-       <ruleGrammar> ( .Set => SetItem(SYNTAXDECL) ) REST </ruleGrammar>
-    requires notBool(SYNTAXDECL in REST)
-  rule <k> #collectRuleGrammar(_, _) => .K ... </k>
        <s> #STUCK() => .K ... </s>
 
   syntax KItem ::= "#addRuleCasts"
