@@ -42,7 +42,7 @@ endmodule
 module EXPRESSIONS
   import D-K []
 
-  syntax ImpCell ::= "<imp>" KCell ACell "</imp>"  [klabel(impCell)]
+  syntax ExpCell ::= "<exp>" KCell ACell "</exp>"  [klabel(expCell)]
   syntax KCell ::= "<k>" K "</k>"                  [klabel(kCell)]
   syntax ACell ::= "<a>" BExpResult  "</a>"        [klabel(aCell)]
 
@@ -53,10 +53,10 @@ module EXPRESSIONS
                 | "(" BExp ")"        [klabel(Bracket)]
                 | BExp "&&" BExp      [klabel(And)]
 
-  rule impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(True{}()),VarB:BExp{})),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
-    => impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(VarB:BExp{}),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
-  rule impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(False{}()),VarB:BExp{})),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
-    => impCell{}(kCell{}(kseq{}(inj{BExpResult{}, KItem{}}(False{}()),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
-  rule impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}} (Bracket{}(VarB:BExp{})), DOTVAR:K {})), aCell {} ( AVal:BExpResult {}))
-    => impCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}} (VarB:BExp{}), DOTVAR:K {})), aCell {} ( AVal:BExpResult {}))
+  rule expCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(True{}()),VarB:BExp{})),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+    => expCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(VarB:BExp{}),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+  rule expCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}}(And{}(inj{BExpResult{},BExp{}}(False{}()),VarB:BExp{})),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+    => expCell{}(kCell{}(kseq{}(inj{BExpResult{}, KItem{}}(False{}()),DOTVAR:K{})), aCell {} ( AVal:BExpResult {}))
+  rule expCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}} (Bracket{}(VarB:BExp{})), DOTVAR:K {})), aCell {} ( AVal:BExpResult {}))
+    => expCell{}(kCell{}(kseq{}(inj{BExp{}, KItem{}} (VarB:BExp{}), DOTVAR:K {})), aCell {} ( AVal:BExpResult {}))
 endmodule
