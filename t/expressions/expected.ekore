@@ -26,7 +26,7 @@ module D-K
   import C-INJ [  ]
 endmodule [  ]
 
-module IMP-SIMPLE
+module EXPRESSIONS
   axiom {  } \rewrites { ImpCell {  } } ( \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( inj { BExpResult {  } , BExp {  } } ( False {  } (  ) ) , VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) , \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExpResult {  } , KItem {  } } ( False {  } (  ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) ) [  ]
   axiom {  } \rewrites { ImpCell {  } } ( \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( And {  } ( inj { BExpResult {  } , BExp {  } } ( True {  } (  ) ) , VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) , \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) ) [  ]
   axiom {  } \rewrites { ImpCell {  } } ( \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( Bracket {  } ( VarB : BExp {  } ) ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) , \and { ImpCell {  } } ( \top { ImpCell {  } } ( ) , impCell {  } ( kCell {  } ( kseq {  } ( inj { BExp {  } , KItem {  } } ( VarB : BExp {  } ) , DOTVAR : K {  } ) ) , aCell {  } ( AVal : BExpResult { } ) ) ) ) [  ]

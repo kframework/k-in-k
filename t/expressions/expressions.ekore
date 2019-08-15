@@ -39,7 +39,7 @@ module D-K
   import C-INJ []
 endmodule
 
-module IMP-SIMPLE
+module EXPRESSIONS
   import D-K []
 
   syntax ImpCell ::= "<imp>" KCell ACell "</imp>"  [klabel(impCell)]

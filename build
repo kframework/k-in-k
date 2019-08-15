@@ -127,12 +127,12 @@ peano_tests += [ exec_test('t/peano', 'PEANO', 'two-plus-two.peano') ]
 peano_tests += [ parse_test('t/peano', 'peano.k', 'two-plus-two.peano') ]
 proj.build('t/peano', 'phony', inputs = Target.to_paths(peano_tests))
 
-# Imp
-imp_tests = []
-imp_tests += [ ekore_test('t/imp-simple', 'imp-simple.ekore') ]
-imp_tests += [ ekore_test('t/imp-simple', 'expected.ekore') ]
-imp_tests += [ exec_test('t/imp-simple', 'IMP-SIMPLE', 'conjunction.imp') ]
-imp_tests += [ parse_test('t/imp-simple', 'imp-simple.k', 'conjunction.imp') ]
-proj.build('t/imp-simple', 'phony', inputs = Target.to_paths(imp_tests))
+# Expressions
+exp_tests = []
+exp_tests += [ ekore_test('t/expressions', 'expressions.ekore') ]
+exp_tests += [ ekore_test('t/expressions', 'expected.ekore') ]
+exp_tests += [ exec_test('t/expressions', 'EXPRESSIONS', 'conjunction.exp') ]
+exp_tests += [ parse_test('t/expressions', 'expressions.k', 'conjunction.exp') ]
+proj.build('t/expressions', 'phony', inputs = Target.to_paths(exp_tests))
 
 proj.main()

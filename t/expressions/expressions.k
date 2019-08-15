@@ -1,4 +1,4 @@
-module IMP-SIMPLE
+module EXPRESSIONS
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
   syntax Pgm ::= ImpCell
  
