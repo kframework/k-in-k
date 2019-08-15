@@ -35,14 +35,14 @@ module KINK-CONFIGURATION
   syntax DeclarationsCellFragment
   configuration <k> #parseCommandLine($COMMANDLINE:CommandLine, $PGM:Any) </k>
                 <definition>
-                   <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
-                   <modules format="%2%n">
-                     <mod format="module %2%i%n%4%n%5%n%d%n %i%dendmodule %3%n%n"
+                   <defnAttrs format="[ %2 ]"> .Patterns </defnAttrs>
+                   <modules format="%2">
+                     <mod format="%nmodule %2%i%4%5%n%d%nendmodule %3%n"
                           multiplicity="*" type="Set">
                        <name format="%2"> #token("UNNAMED", "ModuleName"):ModuleName </name>
                        <attributes format="[ %2 ]"> .Patterns </attributes>
                        <declarations format="%2">
-                         <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
+                         <decl format="%n%2" multiplicity="*" type="Set"> nullDecl </decl>
                        </declarations>
                        <grammar> .Set </grammar>
                      </mod>
