@@ -5,7 +5,7 @@ module PARSER-GEN-HELPERS
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
   imports META-ACCESSORS
-  
+
   syntax UpperName ::= String2UpperName (String) [function, functional, hook(STRING.string2token)]
   syntax Set ::= "noCastSortsInit" [function]
   rule noCastSortsInit => // sorts from this list do not receive productions for casting
@@ -39,9 +39,11 @@ module PARSER-GEN-HELPERS
         SetItem(String2UpperName("RuleBody"))
         SetItem(String2UpperName("RuleContent"))
         SetItem(String2UpperName("OptionalDots"))
-           
+
   // Add parsing syntax
   // casts: Sort ::= Sort ":Sort"
+  // expecting a list of productions as argument and returns a new list with added cast for each sort found
+  // except for `noCastSortsInit`
   syntax Set ::= "#addCasts" "(" Set ")" [function]
   syntax Set ::= "#addCasts2" "(" Set "," Set ")" [function]
   rule #addCasts(Prds) => #addCasts2(Prds, noCastSortsInit)
@@ -58,7 +60,7 @@ module PARSER-GEN-HELPERS
           , SORTS (.Set => SetItem(SORT)))
      requires notBool SORT in SORTS
   rule #addCasts2(Prds, _) => Prds [owise]
-  
+
   // subsorts: K ::= Sort, Sort ::= KBott
   syntax Set ::= "#addSubsorts" "(" Set ")" [function]
   syntax Set ::= "#addSubsorts2" "(" Set "," Set ")" [function]
@@ -140,19 +142,25 @@ module PARSE-CONFIG
   imports META-ACCESSORS
   imports PARSER-GEN-HELPERS
 
-  syntax KItem ::= "#parseConfigBubble"
+  syntax KItem ::= "#parseConfigBubbles"
+                 | "#createConfigGrammar"
 
-  rule <k> #parseConfigBubble ... </k>
+  // create config grammar in modules where we find configs as bubbles
+  rule <k> #createConfigGrammar ... </k> 
        <name> MName </name>
        <decl> kConfiguration(noAttrs(_:Bubble)) </decl>
        <configGrammar> .Set => #addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("CONFIG-INNER", "UpperName")))) </configGrammar>
 
-  rule <k> #parseConfigBubble ... </k>
+  rule <k> #createConfigGrammar => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+  // actually parsing the configuration once we have the grammar
+  rule <k> #parseConfigBubbles ... </k>
        <decl> kConfiguration(noAttrs(C:Bubble)) => kConfiguration(noAttrs({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
        <configGrammar> GRAMMAR </configGrammar>
      requires GRAMMAR =/=K .Set
   
-  rule <k> #parseConfigBubble => .K ... </k>
+  rule <k> #parseConfigBubbles => .K ... </k>
        <s> #STUCK() => .K ... </s>
 
   
@@ -191,22 +199,31 @@ module PARSE-RULE
   imports PARSER-GEN-HELPERS
 
   // parse rule bubbles
-  syntax KItem ::= "#parseRuleBubble"
-  rule <k> #parseRuleBubble ... </k>
+  syntax KItem ::= "#parseRuleBubbles"
+                 | "#createRuleGrammar"
+
+  rule <k> #createRuleGrammar ... </k> // create rule grammar
        <name> MName </name>
        <decl> kRule(noAttrs(_:Bubble)) </decl>
        <ruleGrammar> .Set => #addRuleCells(#addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName"))))) </ruleGrammar>
-  
-  rule <k> #parseRuleBubble ... </k>
+  rule <k> #createRuleGrammar ... </k> // create rule grammar for rules with attributes
+       <name> MName </name>
+       <decl> kRule(attrs(_:Bubble, _)) </decl>
+       <ruleGrammar> .Set => #addRuleCells(#addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName"))))) </ruleGrammar>
+
+  rule <k> #createRuleGrammar => .K ... </k>
+       <s> #STUCK() => .K ... </s>
+
+  rule <k> #parseRuleBubbles ... </k>
        <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern)) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
-  rule <k> #parseRuleBubble ... </k>
+  rule <k> #parseRuleBubbles ... </k>
        <decl> kRule(attrs(C:Bubble, At)) => kRule(attrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, At)) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
 
-  rule <k> #parseRuleBubble => .K ... </k>
+  rule <k> #parseRuleBubbles => .K ... </k>
        <s> #STUCK() => .K ... </s>
 
   // add rule cells

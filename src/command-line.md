@@ -124,13 +124,15 @@ High-level pipeline steps
       {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
       +String
       tokenToString(PGM)
-      ) // add config-inner.k
-    // parse bubbles
+      ) // collect required files - hardcoded for now
     ~> #defnToConfig
     ~> #flattenProductions
-    ~> #parseConfigBubble
+    // parse bubbles
+    ~> #createConfigGrammar
+    ~> #parseConfigBubbles
     ~> #extractConfigInfo
-    ~> #parseRuleBubble
+    ~> #createRuleGrammar
+    ~> #parseRuleBubbles
     </k>
     <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```
