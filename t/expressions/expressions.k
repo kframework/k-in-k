@@ -30,4 +30,15 @@ module EXPRESSIONS
 //    => <exp>
 //         <k> REST </k>
 //       </exp>
+
+//      context HOLE:BExp && B:BExp
+//  =>  context <exp> <k> HOLE:BExp && B:BExp ... </k> </exp>
+//  =>  context <exp> <k> HOLE:BExp && B:BExp ... </k> </exp>
+//  =>  context <exp> <k> (HOLE:BExp => HOLE:BExp) && B:BExp ... </k> </exp>
+//  =>  context <exp> <k> (HOLE:BExp => HOLE:BExp) && B:BExp ... </k> </exp>
+//  =>  context <exp> <k> (HOLE:BExp => HOLE:BExp) && B:BExp ... </k> </exp>
+//  =>  context cooled = <exp> <k> HOLE:BExp && B:BExp ... </k> </exp>
+                frozen = FREEZER1&& B:BExp
+                heated = <exp> <k> HOLE:BExp ~> FREEZER1&& B:BExp ... </k> </exp>
+//              =>  <exp> <k> HOLE:BExp && B:BExp ... </k> </exp>
 endmodule
