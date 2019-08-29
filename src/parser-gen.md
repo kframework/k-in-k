@@ -104,23 +104,25 @@ module PARSE-PROGRAM
   imports STRING
   imports FILE-UTIL
   imports PARSER-UTIL
+  imports META-ACCESSORS
 
   syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
                  | "#parseProgram" "(" IOString ")" // Program content
-                 | "#collectGrammar"
+                 | "#collectPgmGrammar"
   rule <k> #parseProgramPath(PGM_FILENAME) => #parseProgram(readFile(PGM_FILENAME)) ... </k>
 
   rule <k> #parseProgram(PGM)
         => parseWithProductions(GRAMMAR, "Pgm", PGM)
            ...
        </k>
-       <grammar> GRAMMAR </grammar>
+       <prgGrammar> GRAMMAR </prgGrammar>
+     requires GRAMMAR =/=K .Set
 
-  rule <k> #collectGrammar ... </k>
-       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
-       <grammar> ( .Set => SetItem(SYNTAXDECL) ) REST </grammar>
-    requires notBool(SYNTAXDECL in REST)
-  rule <k> #collectGrammar => .K ... </k>
+  rule <k> #collectPgmGrammar ... </k>
+       <name> MName </name>
+       <prgGrammar> .Set => #getAllProds(MName) </prgGrammar>
+    requires findString(tokenToString(MName), "-SYNTAX", 0) =/=Int -1
+  rule <k> #collectPgmGrammar => .K ... </k>
        <s> #STUCK() => .K ... </s>
 endmodule
 ```

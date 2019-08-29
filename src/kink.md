@@ -45,8 +45,8 @@ module KINK-CONFIGURATION
                        <declarations format="%2">
                          <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
                        </declarations>
-                       <grammar> .Set </grammar>
                        <parserGenerator>
+                         <prgGrammar> .Set </prgGrammar> // place to collect the grammar used to parse programs
                          <configGrammar> .Set </configGrammar> // place to collect the grammar used to parse configurations
                          <ruleGrammar> .Set </ruleGrammar> // place to collect the grammar used to parse rules
                        </parserGenerator>

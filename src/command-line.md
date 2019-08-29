@@ -98,12 +98,12 @@ High-level pipeline steps
 =========================
 
 ```k
-  syntax K ::= "#kastPipeline" "(" String ")" [function]
-  rule #kastPipeline(PATH)
-    => #parseOuter
+  syntax K ::= "#kastPipeline" "(" String ")" //[function]
+  rule PGM:Any ~> #kastPipeline(PATH:String)
+    => parseOuter(tokenToString(PGM))
     ~> #defnToConfig
     ~> #flattenProductions
-    ~> #collectGrammar
+    ~> #collectPgmGrammar
     ~> #parseProgramPath(PATH)
     ~> #success
 
