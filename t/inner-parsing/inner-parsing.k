@@ -1,4 +1,4 @@
-module FOOBAR
+module INNER-PARSING
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
 
   syntax Pgm ::= Foo

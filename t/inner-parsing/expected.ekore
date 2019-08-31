@@ -1,0 +1,658 @@
+<generatedTop>
+  <k>
+    .
+  </k>
+  <definition>
+    [ .Patterns ]
+
+    module AUTO-CASTS
+      .DeclCellSet
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module AUTO-FOLLOW
+      .DeclCellSet
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module BASIC-K
+      import SORT-K [ .Patterns ]
+       syntax KConfigVar [ token , .AttrList ]
+       syntax KItem noAtt
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module CONFIG-CELLS
+      import KCELLS [ .Patterns ]
+       import RULE-LISTS [ .Patterns ]
+       syntax Cell ::= "<" CellName "/>" [ klabel ( externalCell ) , .AttrList ]
+       syntax Cell ::= "<" CellName CellProperties ">" K "</" CellName ">" [ klabel ( configCell ) , .AttrList ]
+       syntax CellName ::= regexTerminal ( "[a-zA-Z][A-Za-z0-9'_]*" ) [ token , .AttrList ]
+       syntax CellProperties ::= "" [ klabel ( cellPropertyListTerminator ) , .AttrList ]
+       syntax CellProperties ::= CellProperty CellProperties [ klabel ( cellPropertyList ) , .AttrList ]
+       syntax CellProperty ::= CellName "=" KString [ klabel ( cellProperty ) , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module CONFIG-INNER
+      import CONFIG-CELLS [ .Patterns ]
+       import DEFAULT-LAYOUT [ .Patterns ]
+       import K-TERM [ .Patterns ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module DEFAULT-CONFIGURATION
+      configuration configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "k" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , SemanticCastToK { .Sorts } ( \dv { KConfigVar { .Sorts } } ( "$PGM" ) , .Patterns ) , \dv { CellName { .Sorts } } ( "k" ) , .Patterns ) )
+       import BASIC-K [ .Patterns ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          SetItem ( syntax Bag ::= "(" Bag ")" [ bracket , .AttrList ] )
+          SetItem ( syntax Bag ::= ".Bag" [ klabel ( cells ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Bag ":Bag" [ klabel ( SemanticCastToBag ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Bag Bag [ left , assoc , klabel ( cells ) , unit ( cells ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Cell noAtt )
+          SetItem ( syntax Bag ::= KBott noAtt )
+          SetItem ( syntax Cell ::= "<" CellName "/>" [ klabel ( externalCell ) , .AttrList ] )
+          SetItem ( syntax Cell ::= "<" CellName CellProperties ">" K "</" CellName ">" [ klabel ( configCell ) , .AttrList ] )
+          SetItem ( syntax CellName ::= regexTerminal ( "[a-zA-Z][A-Za-z0-9'_]*" ) [ token , .AttrList ] )
+          SetItem ( syntax CellProperties ::= "" [ klabel ( cellPropertyListTerminator ) , .AttrList ] )
+          SetItem ( syntax CellProperties ::= CellProperty CellProperties [ klabel ( cellPropertyList ) , .AttrList ] )
+          SetItem ( syntax CellProperty ::= CellName "=" KString [ klabel ( cellProperty ) , .AttrList ] )
+          SetItem ( syntax K ::= Bag noAtt )
+          SetItem ( syntax K ::= K ":K" [ klabel ( SemanticCastToK ) , .AttrList ] )
+          SetItem ( syntax K ::= KItem noAtt )
+          SetItem ( syntax KBott ::= "#klabel" "(" KLabel ")" [ klabel ( wrappedKLabel ) , .AttrList ] )
+          SetItem ( syntax KBott ::= "#token" "(" KString "," KString ")" [ klabel ( kToken ) , .AttrList ] )
+          SetItem ( syntax KBott ::= "(" K ")" [ bracket , .AttrList ] )
+          SetItem ( syntax KBott ::= ".K" [ klabel ( emptyK ) , unparseAvoid , .AttrList ] )
+          SetItem ( syntax KBott ::= K "~>" K [ klabel ( kSequence ) , left , assoc , unit ( emptyK ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KBott ":KBott" [ klabel ( SemanticCastToKBott ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KConfigVar noAtt )
+          SetItem ( syntax KBott ::= KLabel "(" KList ")" [ klabel ( kApply ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KVariable noAtt )
+          SetItem ( syntax KConfigVar ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax KItem ::= KBott noAtt )
+          SetItem ( syntax KItem ::= KItem ":KItem" [ klabel ( SemanticCastToKItem ) , .AttrList ] )
+          SetItem ( syntax KLabel ::= KVariable noAtt )
+          SetItem ( syntax KLabel ::= regexTerminal ( "(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax KLabel ::= regexTerminal ( "`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" ) [ token , .AttrList ] )
+          SetItem ( syntax KList ::= ".KList" [ klabel ( emptyKList ) , .AttrList ] )
+          SetItem ( syntax KList ::= K noAtt )
+          SetItem ( syntax KList ::= KList "," KList [ klabel ( kList ) , left , assoc , unit ( emptyKList ) , prefer , .AttrList ] )
+          SetItem ( syntax KString ::= regexTerminal ( "[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]" ) [ token , .AttrList ] )
+          SetItem ( syntax KVariable ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax Layout ::= regexTerminal ( "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" ) [ klabel ( layout ) , .AttrList ] )
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module DEFAULT-LAYOUT
+      syntax Layout ::= regexTerminal ( "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" ) [ klabel ( layout ) , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module INNER-PARSING
+      configuration configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "T" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , cells { .Sorts } ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "k" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , SemanticCastToPgm { .Sorts } ( \dv { KConfigVar { .Sorts } } ( "$PGM" ) , .Patterns ) , \dv { CellName { .Sorts } } ( "k" ) , .Patterns ) ) , ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "env" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , emptyK { .Sorts } ( .Patterns ) , \dv { CellName { .Sorts } } ( "env" ) , .Patterns ) ) , .Patterns ) ) , \dv { CellName { .Sorts } } ( "T" ) , .Patterns ) )
+       rule ruleNoConditions { .Sorts } ( KRewrite { .Sorts } ( SemanticCastToFoo { .Sorts } ( \dv { KVariable { .Sorts } } ( "A" ) , .Patterns ) , ( emptyK { .Sorts } ( .Patterns ) , .Patterns ) ) , .Patterns )
+       syntax Foo ::= "bar" [ klabel ( bar ) , function , .AttrList ]
+       syntax Foo ::= "buzz" [ klabel ( buzz ) , .AttrList ]
+       syntax Layout ::= regexTerminal ( "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" ) [ klabel ( layout ) , .AttrList ]
+       syntax Pgm ::= Foo noAtt
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          SetItem ( syntax Bag ::= "(" Bag ")" [ bracket , .AttrList ] )
+          SetItem ( syntax Bag ::= ".Bag" [ klabel ( cells ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Bag ":Bag" [ klabel ( SemanticCastToBag ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Bag Bag [ left , assoc , klabel ( cells ) , unit ( cells ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Cell noAtt )
+          SetItem ( syntax Bag ::= KBott noAtt )
+          SetItem ( syntax Cell ::= "<" CellName "/>" [ klabel ( externalCell ) , .AttrList ] )
+          SetItem ( syntax Cell ::= "<" CellName CellProperties ">" K "</" CellName ">" [ klabel ( configCell ) , .AttrList ] )
+          SetItem ( syntax CellName ::= regexTerminal ( "[a-zA-Z][A-Za-z0-9'_]*" ) [ token , .AttrList ] )
+          SetItem ( syntax CellProperties ::= "" [ klabel ( cellPropertyListTerminator ) , .AttrList ] )
+          SetItem ( syntax CellProperties ::= CellProperty CellProperties [ klabel ( cellPropertyList ) , .AttrList ] )
+          SetItem ( syntax CellProperty ::= CellName "=" KString [ klabel ( cellProperty ) , .AttrList ] )
+          SetItem ( syntax Foo ::= "bar" [ klabel ( bar ) , function , .AttrList ] )
+          SetItem ( syntax Foo ::= "buzz" [ klabel ( buzz ) , .AttrList ] )
+          SetItem ( syntax Foo ::= Foo ":Foo" [ klabel ( SemanticCastToFoo ) , .AttrList ] )
+          SetItem ( syntax Foo ::= KBott noAtt )
+          SetItem ( syntax K ::= Bag noAtt )
+          SetItem ( syntax K ::= Foo noAtt )
+          SetItem ( syntax K ::= K ":K" [ klabel ( SemanticCastToK ) , .AttrList ] )
+          SetItem ( syntax K ::= KItem noAtt )
+          SetItem ( syntax K ::= Pgm noAtt )
+          SetItem ( syntax KBott ::= "#klabel" "(" KLabel ")" [ klabel ( wrappedKLabel ) , .AttrList ] )
+          SetItem ( syntax KBott ::= "#token" "(" KString "," KString ")" [ klabel ( kToken ) , .AttrList ] )
+          SetItem ( syntax KBott ::= "(" K ")" [ bracket , .AttrList ] )
+          SetItem ( syntax KBott ::= ".K" [ klabel ( emptyK ) , unparseAvoid , .AttrList ] )
+          SetItem ( syntax KBott ::= K "~>" K [ klabel ( kSequence ) , left , assoc , unit ( emptyK ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KBott ":KBott" [ klabel ( SemanticCastToKBott ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KConfigVar noAtt )
+          SetItem ( syntax KBott ::= KLabel "(" KList ")" [ klabel ( kApply ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KVariable noAtt )
+          SetItem ( syntax KConfigVar ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax KItem ::= KBott noAtt )
+          SetItem ( syntax KItem ::= KItem ":KItem" [ klabel ( SemanticCastToKItem ) , .AttrList ] )
+          SetItem ( syntax KLabel ::= KVariable noAtt )
+          SetItem ( syntax KLabel ::= regexTerminal ( "(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax KLabel ::= regexTerminal ( "`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" ) [ token , .AttrList ] )
+          SetItem ( syntax KList ::= ".KList" [ klabel ( emptyKList ) , .AttrList ] )
+          SetItem ( syntax KList ::= K noAtt )
+          SetItem ( syntax KList ::= KList "," KList [ klabel ( kList ) , left , assoc , unit ( emptyKList ) , prefer , .AttrList ] )
+          SetItem ( syntax KString ::= regexTerminal ( "[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]" ) [ token , .AttrList ] )
+          SetItem ( syntax KVariable ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax Layout ::= regexTerminal ( "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" ) [ klabel ( layout ) , .AttrList ] )
+          SetItem ( syntax Pgm ::= Foo noAtt )
+          SetItem ( syntax Pgm ::= KBott noAtt )
+          SetItem ( syntax Pgm ::= Pgm ":Pgm" [ klabel ( SemanticCastToPgm ) , .AttrList ] )
+        </configGrammar>
+        <ruleGrammar>
+          SetItem ( syntax Bag ::= "(" Bag ")" [ bracket , .AttrList ] )
+          SetItem ( syntax Bag ::= ".Bag" [ klabel ( cells ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Bag ":Bag" [ klabel ( SemanticCastToBag ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Bag Bag [ left , assoc , klabel ( cells ) , unit ( cells ) , .AttrList ] )
+          SetItem ( syntax Bag ::= Cell noAtt )
+          SetItem ( syntax Bag ::= KBott noAtt )
+          SetItem ( syntax Cell ::= "<T>" OptionalDots K OptionalDots "</T>" [ klabel ( Tcell ) , cellName ( T ) , cell , .AttrList ] )
+          SetItem ( syntax Cell ::= "<env>" OptionalDots K OptionalDots "</env>" [ klabel ( envcell ) , cellName ( env ) , cell , .AttrList ] )
+          SetItem ( syntax Cell ::= "<k>" OptionalDots K OptionalDots "</k>" [ klabel ( kcell ) , cellName ( k ) , cell , .AttrList ] )
+          SetItem ( syntax Foo ::= "bar" [ klabel ( bar ) , function , .AttrList ] )
+          SetItem ( syntax Foo ::= "buzz" [ klabel ( buzz ) , .AttrList ] )
+          SetItem ( syntax Foo ::= Foo ":Foo" [ klabel ( SemanticCastToFoo ) , .AttrList ] )
+          SetItem ( syntax Foo ::= KBott noAtt )
+          SetItem ( syntax K ::= Bag noAtt )
+          SetItem ( syntax K ::= Foo noAtt )
+          SetItem ( syntax K ::= K ":K" [ klabel ( SemanticCastToK ) , .AttrList ] )
+          SetItem ( syntax K ::= KItem noAtt )
+          SetItem ( syntax K ::= Pgm noAtt )
+          SetItem ( syntax KBott ::= "#klabel" "(" KLabel ")" [ klabel ( wrappedKLabel ) , .AttrList ] )
+          SetItem ( syntax KBott ::= "#token" "(" KString "," KString ")" [ klabel ( kToken ) , .AttrList ] )
+          SetItem ( syntax KBott ::= "(" K ")" [ bracket , .AttrList ] )
+          SetItem ( syntax KBott ::= ".K" [ klabel ( emptyK ) , unparseAvoid , .AttrList ] )
+          SetItem ( syntax KBott ::= K "=>" K [ klabel ( KRewrite ) , .AttrList ] )
+          SetItem ( syntax KBott ::= K "~>" K [ klabel ( kSequence ) , left , assoc , unit ( emptyK ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KBott ":KBott" [ klabel ( SemanticCastToKBott ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KConfigVar noAtt )
+          SetItem ( syntax KBott ::= KLabel "(" KList ")" [ klabel ( kApply ) , .AttrList ] )
+          SetItem ( syntax KBott ::= KVariable noAtt )
+          SetItem ( syntax KConfigVar ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax KItem ::= KBott noAtt )
+          SetItem ( syntax KItem ::= KItem ":KItem" [ klabel ( SemanticCastToKItem ) , .AttrList ] )
+          SetItem ( syntax KLabel ::= KVariable noAtt )
+          SetItem ( syntax KLabel ::= regexTerminal ( "(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax KLabel ::= regexTerminal ( "`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" ) [ token , .AttrList ] )
+          SetItem ( syntax KList ::= ".KList" [ klabel ( emptyKList ) , .AttrList ] )
+          SetItem ( syntax KList ::= K noAtt )
+          SetItem ( syntax KList ::= KList "," KList [ klabel ( kList ) , left , assoc , unit ( emptyKList ) , prefer , .AttrList ] )
+          SetItem ( syntax KString ::= regexTerminal ( "[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]" ) [ token , .AttrList ] )
+          SetItem ( syntax KVariable ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)" ) [ token , autoReject , .AttrList ] )
+          SetItem ( syntax Layout ::= regexTerminal ( "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" ) [ klabel ( layout ) , .AttrList ] )
+          SetItem ( syntax OptionalDots ::= "" [ klabel ( noDots ) , .AttrList ] )
+          SetItem ( syntax OptionalDots ::= "..." [ klabel ( dots ) , .AttrList ] )
+          SetItem ( syntax Pgm ::= Foo noAtt )
+          SetItem ( syntax Pgm ::= KBott noAtt )
+          SetItem ( syntax Pgm ::= Pgm ":Pgm" [ klabel ( SemanticCastToPgm ) , .AttrList ] )
+          SetItem ( syntax RuleBody ::= K noAtt )
+          SetItem ( syntax RuleContent ::= RuleBody "ensures" K [ klabel ( "ruleEnsures" ) , .AttrList ] )
+          SetItem ( syntax RuleContent ::= RuleBody "requires" K "ensures" K [ klabel ( "ruleRequiresEnsures" ) , .AttrList ] )
+          SetItem ( syntax RuleContent ::= RuleBody "requires" K [ klabel ( "ruleRequires" ) , .AttrList ] )
+          SetItem ( syntax RuleContent ::= RuleBody [ klabel ( "ruleNoConditions" ) , .AttrList ] )
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module K
+      import AUTO-CASTS [ .Patterns ]
+       import AUTO-FOLLOW [ .Patterns ]
+       import K-SORT-LATTICE [ .Patterns ]
+       import KSEQ-SYMBOLIC [ .Patterns ]
+       import REQUIRES-ENSURES [ .Patterns ]
+       syntax KBott ::= K "=>" K [ klabel ( KRewrite ) , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module K-SORT-LATTICE
+      import SORT-KBOTT [ .Patterns ]
+       syntax K ::= KItem noAtt
+       syntax KItem ::= KBott noAtt
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module K-TERM
+      import AUTO-CASTS [ .Patterns ]
+       import AUTO-FOLLOW [ .Patterns ]
+       import K-SORT-LATTICE [ .Patterns ]
+       import KSEQ-SYMBOLIC [ .Patterns ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module KAST
+      import BASIC-K [ .Patterns ]
+       import KSTRING [ .Patterns ]
+       import SORT-KBOTT [ .Patterns ]
+       syntax KBott ::= "#klabel" "(" KLabel ")" [ klabel ( wrappedKLabel ) , .AttrList ]
+       syntax KBott ::= "#token" "(" KString "," KString ")" [ klabel ( kToken ) , .AttrList ]
+       syntax KBott ::= KLabel "(" KList ")" [ klabel ( kApply ) , .AttrList ]
+       syntax KLabel ::= regexTerminal ( "(?<![a-zA-Z0-9])[#a-z][a-zA-Z0-9]*" ) [ token , autoReject , .AttrList ]
+       syntax KLabel ::= regexTerminal ( "`(\\\\`|\\\\\\\\|[^`\\\\\n\r])+`" ) [ token , .AttrList ]
+       syntax KList ::= ".KList" [ klabel ( emptyKList ) , .AttrList ]
+       syntax KList ::= K noAtt
+       syntax KList ::= KList "," KList [ klabel ( kList ) , left , assoc , unit ( emptyKList ) , prefer , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module KCELLS
+      import KAST [ .Patterns ]
+       syntax Bag ::= "(" Bag ")" [ bracket , .AttrList ]
+       syntax Bag ::= ".Bag" [ klabel ( cells ) , .AttrList ]
+       syntax Bag ::= Bag Bag [ left , assoc , klabel ( cells ) , unit ( cells ) , .AttrList ]
+       syntax Bag ::= Cell noAtt
+       syntax Cell noAtt
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module KSEQ
+      import KAST [ .Patterns ]
+       syntax KBott ::= "(" K ")" [ bracket , .AttrList ]
+       syntax KBott ::= ".K" [ klabel ( emptyK ) , unparseAvoid , .AttrList ]
+       syntax KBott ::= K "~>" K [ klabel ( kSequence ) , left , assoc , unit ( emptyK ) , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module KSEQ-SYMBOLIC
+      import KSEQ [ .Patterns ]
+       syntax KBott ::= KConfigVar noAtt
+       syntax KBott ::= KVariable noAtt
+       syntax KConfigVar ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)" ) [ token , autoReject , .AttrList ]
+       syntax KLabel ::= KVariable noAtt
+       syntax KVariable ::= regexTerminal ( "(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)" ) [ token , autoReject , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module KSTRING
+      syntax KString ::= regexTerminal ( "[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]" ) [ token , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module REQUIRES-ENSURES
+      import BASIC-K [ .Patterns ]
+       syntax RuleBody ::= K noAtt
+       syntax RuleContent ::= RuleBody "ensures" K [ klabel ( "ruleEnsures" ) , .AttrList ]
+       syntax RuleContent ::= RuleBody "requires" K "ensures" K [ klabel ( "ruleRequiresEnsures" ) , .AttrList ]
+       syntax RuleContent ::= RuleBody "requires" K [ klabel ( "ruleRequires" ) , .AttrList ]
+       syntax RuleContent ::= RuleBody [ klabel ( "ruleNoConditions" ) , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module RULE-CELLS
+      import KCELLS [ .Patterns ]
+       import RULE-LISTS [ .Patterns ]
+       syntax OptionalDots ::= "" [ klabel ( noDots ) , .AttrList ]
+       syntax OptionalDots ::= "..." [ klabel ( dots ) , .AttrList ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module RULE-INNER
+      import DEFAULT-LAYOUT [ .Patterns ]
+       import K [ .Patterns ]
+       import RULE-CELLS [ .Patterns ]
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module RULE-LISTS
+      .DeclCellSet
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module SORT-K
+      syntax K noAtt
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+     module SORT-KBOTT
+      import SORT-K [ .Patterns ]
+       syntax KBott noAtt
+
+      /*
+        <parserGenerator>
+        <prgGrammar>
+          .Set
+        </prgGrammar>
+        <configGrammar>
+          .Set
+        </configGrammar>
+        <ruleGrammar>
+          .Set
+        </ruleGrammar>
+        </parserGenerator>
+      */
+      </mod>
+
+     endmodule [ .Patterns ]
+
+
+
+    <configInfo>
+      <cellName>
+        "$PGM" |-> "KConfigVar"
+        "T" |-> "CellName"
+        "env" |-> "CellName"
+        "k" |-> "CellName"
+      </cellName>
+      <collected>
+        SetItem ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "T" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , cells { .Sorts } ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "k" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , SemanticCastToPgm { .Sorts } ( \dv { KConfigVar { .Sorts } } ( "$PGM" ) , .Patterns ) , \dv { CellName { .Sorts } } ( "k" ) , .Patterns ) ) , ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "env" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , emptyK { .Sorts } ( .Patterns ) , \dv { CellName { .Sorts } } ( "env" ) , .Patterns ) ) , .Patterns ) ) , \dv { CellName { .Sorts } } ( "T" ) , .Patterns ) ) )
+        SetItem ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "k" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , SemanticCastToK { .Sorts } ( \dv { KConfigVar { .Sorts } } ( "$PGM" ) , .Patterns ) , \dv { CellName { .Sorts } } ( "k" ) , .Patterns ) ) )
+      </collected>
+    </configInfo>
+  </definition>
+  <exit-code>
+    1
+  </exit-code>
+  <s>
+    #STUCK ( ) ~> ^ regular
+  </s>
+  <kinkDeployedDir>
+    "/home/radu/work/k-in-k/.build/kink/"
+  </kinkDeployedDir>
+</generatedTop>

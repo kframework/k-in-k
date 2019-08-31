@@ -1,8 +1,0 @@
-module FOOBAR
-  configuration configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "T" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , cells { .Sorts } ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "k" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , SemanticCastToPgm { .Sorts } ( \dv { KConfigVar { .Sorts } } ( "$PGM" ) , .Patterns ) , \dv { CellName { .Sorts } } ( "k" ) , .Patterns ) ) , ( configCell { .Sorts } ( \dv { CellName { .Sorts } } ( "env" ) , ( cellPropertyListTerminator { .Sorts } ( .Patterns ) , emptyK { .Sorts } ( .Patterns ) , \dv { CellName { .Sorts } } ( "env" ) , .Patterns ) ) , .Patterns ) ) , \dv { CellName { .Sorts } } ( "T" ) , .Patterns ) )
-  rule ruleNoConditions { .Sorts } ( KRewrite { .Sorts } ( SemanticCastToFoo { .Sorts } ( \dv { KVariable { .Sorts } } ( "A" ) , .Patterns ) , ( emptyK { .Sorts } ( .Patterns ) , .Patterns ) ) , .Patterns )
-  syntax Foo ::= "bar" [ klabel ( bar ) , function , .AttrList ]
-  syntax Foo ::= "buzz" [ klabel ( buzz ) , .AttrList ]
-  syntax Layout ::= regexTerminal ( "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" ) [ klabel ( layout ) , .AttrList ]
-  syntax Pgm ::= Foo noAtt
-endmodule [ .Patterns ]

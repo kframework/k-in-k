@@ -165,6 +165,12 @@ module REQUIRES-ENSURES
                        | RuleBody "requires" K "ensures" K        [klabel("ruleRequiresEnsures")]
 endmodule
 
+module DEFAULT-CONFIGURATION
+  imports BASIC-K
+
+  configuration <k> $PGM:K </k>
+endmodule
+
 // To be used to parse semantic rules
 module K
   imports KSEQ-SYMBOLIC
