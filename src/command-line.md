@@ -98,7 +98,7 @@ High-level pipeline steps
 =========================
 
 ```k
-  syntax K ::= "#kastPipeline" "(" String ")" //[function]
+  syntax K ::= "#kastPipeline" "(" String ")"
   rule PGM:Any ~> #kastPipeline(PATH:String)
     => parseOuter(tokenToString(PGM))
     ~> #defnToConfig
@@ -107,7 +107,7 @@ High-level pipeline steps
     ~> #parseProgramPath(PATH)
     ~> #success
 
-  syntax K ::= "#ekorePipeline" [function]
+  syntax K ::= "#ekorePipeline"
   rule #ekorePipeline
     => #parseToEKore
     ~> #defnToConfig
@@ -118,7 +118,7 @@ High-level pipeline steps
     ~> #translateRules
     ~> #success
     
-  syntax K ::= "#frontendPipeline" //[function]
+  syntax K ::= "#frontendPipeline"
   rule <k> PGM:Any ~> #frontendPipeline
     =>  parseOuter(
       {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
@@ -133,6 +133,7 @@ High-level pipeline steps
     ~> #extractConfigInfo
     ~> #createRuleGrammar
     ~> #parseRuleBubbles
+    ~> #success
     </k>
     <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```

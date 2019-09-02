@@ -38,7 +38,7 @@ module KINK-CONFIGURATION
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
                    <modules format="%2%n">
-                     <mod format="module %2%i%n%4%n%5%n%6%n%d%n %i%dendmodule %3%n%n"
+                     <mod format="module %2%i%n%4%n%5%n%d%n %i%dendmodule %3%n%n"
                           multiplicity="*" type="Set">
                        <name format="%2"> #token("UNNAMED", "ModuleName"):ModuleName </name>
                        <attributes format="[ %2 ]"> .Patterns </attributes>
@@ -52,7 +52,7 @@ module KINK-CONFIGURATION
                        </parserGenerator>
                      </mod>
                    </modules>
-                   <configInfo>
+                   <configInfo format="/*%i%n%1%n%2%n%3%n%4%n%d%n*/">
                      <cellName> .Map </cellName>
                      <collected> .Set </collected>
                    </configInfo>
