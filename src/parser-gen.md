@@ -170,16 +170,17 @@ module PARSE-CONFIG
   // with \dv key -> type (CellInfo or KConfigVar)
   syntax KItem ::= "#extractConfigInfo"
   syntax KItem ::= collectCellName(Patterns)
-  rule <k> #extractConfigInfo => collectCellName(P) ~> #extractConfigInfo ... </k>
+  rule <k> #extractConfigInfo => collectCellName(P, .Patterns) ~> #extractConfigInfo ... </k>
        <decl> kConfiguration(noAttrs(P)) </decl>
        <collected> Configs => Configs SetItem(P) </collected>
      requires notBool P in Configs
 
-  rule <k> collectCellName( _ { _ } (A)) => collectCellName(A) ... </k>
-  rule <k> collectCellName(A, B) => collectCellName(A) ~> collectCellName(B) ... </k>
+  rule <k> collectCellName( _ { _ } (A), .Patterns) => collectCellName(A) ... </k>
+  rule <k> collectCellName(A, B) => collectCellName(A, .Patterns) ~> collectCellName(B) ... </k>
+    requires B =/=K .Patterns
   rule <k> collectCellName( .Patterns ) => .K ... </k>
 
-  rule <k> collectCellName(\dv { Srt { .Sorts } } ( CellName )) => .K ... </k>
+  rule <k> collectCellName(\dv { Srt { .Sorts } } ( CellName ), .Patterns) => .K ... </k>
        <cellName> .Map => substrString(token2String(CellName), 1, lengthString(token2String(CellName)) -Int 1) |-> token2String(Srt) ... </cellName>
 
   rule <k> #extractConfigInfo => .K ... </k>

@@ -119,8 +119,7 @@ module KORE-ABSTRACT
                  | Sort "," Sorts        [klabel(consSorts)]
                  | ".Sorts"              [klabel(dotSorts )]
 
-  syntax Patterns ::= Pattern
-                    | Pattern "," Patterns [klabel(consPatterns)]
+  syntax Patterns ::= Pattern "," Patterns [klabel(consPatterns)]
                     | ".Patterns"          [klabel(dotPatterns )]
 
   syntax Declarations ::= Declaration Declarations [klabel(consDeclarations), format(%1%n%2)]

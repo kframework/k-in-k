@@ -105,7 +105,7 @@
    endmodule [  ]
 
    module DEFAULT-CONFIGURATION
-    configuration configCell {  } ( \dv { CellName {  } } ( "k" ) , ( cellPropertyListTerminator {  } (  ) , SemanticCastToK {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) ) )
+    configuration configCell {  } ( \dv { CellName {  } } ( "k" ) , cellPropertyListTerminator {  } (  ) , SemanticCastToK {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) )
      import BASIC-K [  ]
 
     /*
@@ -179,8 +179,8 @@
    endmodule [  ]
 
    module INNER-PARSING
-    configuration configCell {  } ( \dv { CellName {  } } ( "T" ) , ( cellPropertyListTerminator {  } (  ) , cells {  } ( configCell {  } ( \dv { CellName {  } } ( "k" ) , ( cellPropertyListTerminator {  } (  ) , SemanticCastToPgm {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) ) ) , ( configCell {  } ( \dv { CellName {  } } ( "env" ) , ( cellPropertyListTerminator {  } (  ) , emptyK {  } (  ) , \dv { CellName {  } } ( "env" ) ) ) ) ) , \dv { CellName {  } } ( "T" ) ) )
-     rule ruleNoConditions {  } ( KRewrite {  } ( SemanticCastToFoo {  } ( \dv { KVariable {  } } ( "A" ) ) , ( emptyK {  } (  ) ) ) )
+    configuration configCell {  } ( \dv { CellName {  } } ( "T" ) , cellPropertyListTerminator {  } (  ) , cells {  } ( configCell {  } ( \dv { CellName {  } } ( "k" ) , cellPropertyListTerminator {  } (  ) , SemanticCastToPgm {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) ) , configCell {  } ( \dv { CellName {  } } ( "env" ) , cellPropertyListTerminator {  } (  ) , emptyK {  } (  ) , \dv { CellName {  } } ( "env" ) ) ) , \dv { CellName {  } } ( "T" ) )
+     rule ruleNoConditions {  } ( KRewrite {  } ( SemanticCastToFoo {  } ( \dv { KVariable {  } } ( "A" ) ) , emptyK {  } (  ) ) )
      syntax Foo ::= "bar" [ klabel ( bar ) , function ]
      syntax Foo ::= "buzz" [ klabel ( buzz ) ]
      syntax Layout ::= regexTerminal ( "(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" ) [ klabel ( layout ) ]
@@ -615,8 +615,8 @@
       "k" |-> "CellName"
     </cellName>
     <collected>
-      SetItem ( configCell {  } ( \dv { CellName {  } } ( "T" ) , ( cellPropertyListTerminator {  } (  ) , cells {  } ( configCell {  } ( \dv { CellName {  } } ( "k" ) , ( cellPropertyListTerminator {  } (  ) , SemanticCastToPgm {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) ) ) , ( configCell {  } ( \dv { CellName {  } } ( "env" ) , ( cellPropertyListTerminator {  } (  ) , emptyK {  } (  ) , \dv { CellName {  } } ( "env" ) ) ) ) ) , \dv { CellName {  } } ( "T" ) ) ) )
-      SetItem ( configCell {  } ( \dv { CellName {  } } ( "k" ) , ( cellPropertyListTerminator {  } (  ) , SemanticCastToK {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) ) ) )
+      SetItem ( configCell {  } ( \dv { CellName {  } } ( "T" ) , cellPropertyListTerminator {  } (  ) , cells {  } ( configCell {  } ( \dv { CellName {  } } ( "k" ) , cellPropertyListTerminator {  } (  ) , SemanticCastToPgm {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) ) , configCell {  } ( \dv { CellName {  } } ( "env" ) , cellPropertyListTerminator {  } (  ) , emptyK {  } (  ) , \dv { CellName {  } } ( "env" ) ) ) , \dv { CellName {  } } ( "T" ) ) )
+      SetItem ( configCell {  } ( \dv { CellName {  } } ( "k" ) , cellPropertyListTerminator {  } (  ) , SemanticCastToK {  } ( \dv { KConfigVar {  } } ( "$PGM" ) ) , \dv { CellName {  } } ( "k" ) ) )
     </collected>
     </configInfo>
 
