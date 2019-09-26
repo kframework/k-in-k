@@ -1,0 +1,3 @@
+// apply(f X Y)
+amb(apply(f X apply(f Y Z)), apply(f apply(f X Y) Z))
+
