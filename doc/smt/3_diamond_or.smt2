@@ -1,4 +1,4 @@
-; A < B < C < D
+; A < B C < D
 ; X:B \/ X:C
 
 (set-logic ALL)
