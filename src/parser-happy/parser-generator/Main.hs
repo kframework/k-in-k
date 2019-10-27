@@ -10,6 +10,7 @@ main = do
    c <- getContents
    let k = (kgrammar . lexer) c
    let tokens = getTokens k
+   let nonTerms = getNonterms k
 
    -- Print out header
    putStrLn happyHeader
@@ -53,7 +54,7 @@ main = do
    putStrLn ""
 
    -- Print out the output generator
-   putStrLn outputHeader
+   putStrLn (outputHeader nonTerms tokens)
 
    mapM putStrLn (map genOutputPattern k)
 

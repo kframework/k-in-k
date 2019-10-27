@@ -12,9 +12,11 @@ main = do
       case kinkgrammar $ map (:[]) $ lexer s of
         ParseOK r f -> do
                           let rr = head (head (blookup r f))
+                              roots = blookup rr f
+                              names = zipWith (\ _ i -> "root_" ++ show i) roots [1..]
                           putStrLn $ "Ok " ++ show r ++ "\n"
                           putStrLn "Testing..."
-                          putStrLn $ output (blookup rr f) f
+                          putStrLn $ concat $ zipWith (\name t -> output name rr t f) names roots
         ParseEOF f  -> do
                           putStrLn $ "Premature end of input:\n"
                                       ++ unlines (map show $ Map.toList f)

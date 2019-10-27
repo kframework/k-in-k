@@ -1,9 +1,8 @@
--- This is a hand generated parser to test the concepts out.
-
 {
 module Grammar2 where
 import Data.Char
 import qualified Data.Map as Map
+import Data.List (intercalate)
 }
 
 %name kinkgrammar
@@ -66,21 +65,59 @@ lexer xx = case lexId xx of
     ("END",xs) -> [] -- handles eof
     (s,xs) -> TokenId s : lexer xs
 
+test G_Grm = "Grm"
+
 blookup fid m = let Just x = Map.lookup fid m in fmap b_nodes x
 
-output [[ b1@(_,_,HappyTok Token_s)
-        , b2@(_,_,HappyTok TokenLeftParen)
-        , b3@(_,_,G_Foo)
-        , b4@(_,_,HappyTok TokenRightParen)]] m =
-  "foosucc(" ++ output (blookup b3 m) m ++ ")"
+varName (a,b,G_Nat) = "G_Nat_" ++ show a ++ "_" ++ show b
+varName (a,b,G_Foo) = "G_Nat_" ++ show a ++ "_" ++ show b
+varName (a,b,HappyTok TokenPlus) = "Tok_Plus" ++ show a ++ "_" ++ show b
+varName (a,b,HappyTok Token_s) = "Tok_s" ++ show a ++ "_" ++ show b
+varName (a,b,HappyTok TokenLeftParen) = "Tok_lp" ++ show a ++ "_" ++ show b
+varName (a,b,HappyTok TokenRightParen) = "Tok_rp" ++ show a ++ "_" ++ show b
+varName (a,b,HappyTok TokenPeriod) = "Tok_p" ++ show a ++ "_" ++ show b
 
-output [[ b1@(_,_,HappyTok TokenPeriod)]] m = "foozero"
+nodeVarName n i = varName n ++ "_" ++ show i
 
-output [[ b1@(_,_,G_Foo)]] m = output (blookup b1 m) m
-output [[b1@(_,_,G_Foo),b2@(_,_,HappyTok TokenPlus),b3@(_,_,G_Foo)]] m =
-  "fooplus(" ++ output (blookup b1 m) m ++ "," ++ output (blookup b3 m) m ++ ")"
+output name fid tree m =
+  let (this,kids) = outputTree fid [tree] m
+   in concat [output kidName undefined kidTree m | (kidName,kidTree) <- kids] 
+      ++ name ++ " = " ++ this ++ ";\n\n"
 
-output (x:y:ys) m = "amb(" ++ output [x] m ++ "," ++ output (y:ys) m ++ ")"
-output x m = error $ "Unrecognized productions: " ++ show x
+outputTreeLookup fid m = outputTree fid (blookup fid m) m
+
+outputTree _ [[b1@(_,_,G_Nat),b2@(_,_,HappyTok TokenPlus),b3@(_,_,G_Nat)]] m =
+    let (t1,k1) = outputTreeLookup b1 m
+        (t3,k3) = outputTreeLookup b3 m
+     in ("plus(" ++ t1 ++ "," ++ t3 ++ ")", k1 ++ k3)
+
+outputTree _ [[b1@(_,_,HappyTok Token_s),b2@(_,_,HappyTok TokenLeftParen),b3@(_,_,G_Nat),b4@(_,_,HappyTok TokenRightParen)]] m =
+    let (t3,k3) = outputTreeLookup b3 m
+     in ("succ(" ++ t3 ++ ")", k3)
+
+outputTree _ [[b1@(_,_,HappyTok TokenPeriod)]] m =
+    ("zero",[])
+
+outputTree _ [[b1@(_,_,G_Foo),b2@(_,_,HappyTok TokenPlus),b3@(_,_,G_Foo)]] m =
+    let (t1,k1) = outputTreeLookup b1 m
+        (t3,k3) = outputTreeLookup b3 m
+     in ("foo(" ++ t1 ++ "," ++ t3 ++ ")", k1 ++ k3)
+
+outputTree _ [[b1@(_,_,HappyTok Token_s),b2@(_,_,HappyTok TokenLeftParen),b3@(_,_,G_Foo),b4@(_,_,HappyTok TokenRightParen)]] m =
+    let (t3,k3) = outputTreeLookup b3 m
+     in ("foosucc(" ++ t3 ++ ")", k3)
+
+outputTree _ [[b1@(_,_,HappyTok TokenPeriod)]] m =
+    ("foozero",[])
+
+outputTree fid (r@(x:y:ys)) m = 
+   let vars = zipWith (\ _ i -> nodeVarName fid i) r [1..]
+    in ( "amb(" ++ intercalate "," vars ++ ")"
+       , zip vars r)
+
+outputTree x _ _ = error $ "Unrecognized productions: " ++ show x
+
+        
+
 }
 

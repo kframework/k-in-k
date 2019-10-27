@@ -98,12 +98,25 @@ genProduction p@(Production l symbols attributes) =
 --             , (genAction p kl)
              , " } "]
 
-outputHeader =
+outputHeader nonTerms terms =
   concat [ "blookup fid m = let Just x = Map.lookup fid m in fmap b_nodes x"
          , "\n"
+         , concatMap (\n -> "varName (a,b,G_" ++ n ++ ") = \"G_" ++ n ++ "_\" ++ show a ++\"_\" ++ show b\n") nonTerms
+         , concatMap (\n -> "varName (a,b,HappyTok " ++ tokenName n ++ ") = \"" ++ tokenName n ++ "_ \"++ show a ++\"_\" ++ show b\n") terms
+
+         , "nodeVarName n i = varName n ++ \"_\" ++ show i\n"
+         , "\n"
+         , "output name fid tree m =\n"
+         , "  let (this,kids) = outputTree fid [tree] m\n"
+         , "   in concat [output kidName undefined kidTree m | (kidName,kidTree) <- kids]\n"
+         , "      ++ name ++ \" = \" ++ this ++ \";\\n\\n\"\n"
+         , "\n"
+         , "outputTreeLookup fid m = outputTree fid (blookup fid m) m\n"
+
+
          ]
 
-genOutputPattern p@(Production nt symbols attrs) =
+oldGenOutputPattern p@(Production nt symbols attrs) =
   let kl = getKLabel p
    in concat [ "output [["
              , intercalate "," $ zipWith (\n t -> "b" ++ show n ++ "@(_,_," ++ t ++ ")")
@@ -125,10 +138,57 @@ genOutputPattern p@(Production nt symbols attrs) =
                       , "++ \")\""
                       ]
 
-outputFooter =
-  concat [ "output (x:y:ys) m = \"amb(\" ++ output [x] m ++ \",\" ++ output (y:ys) m ++ \")\"\n"
-         , "output x m = error $ \"Unrecognized productions: \" ++ show x"]
+genOutputPattern p@(Production nt symbols attrs) =
+  let kl = getKLabel p
+   in concat [ "outputTree _ [["
+             , intercalate "," $ zipWith (\n t -> "b" ++ show n ++ "@(_,_," ++ t ++ ")")
+                                         [1..] glrSymbols
+             , "]] m =\n"
+             , subtreeDefs
+             , "    (\"" ++ kl
+             , subtreeArgs
+             , ","
+             , subtrees
+             , ")\n"]
 
+  where getGLRsym (T x) = "HappyTok " ++ tokenName x
+        getGLRsym (NT x) = "G_" ++ x
+        glrSymbols = map getGLRsym symbols
+        -- the indices of things that will be arguments
+        treeIndices = map fst $ filter (\(a,b) -> isNonTerm b) $ zip [1..] symbols
+        subtreeDefs = case length treeIndices of
+          0 -> ""
+          _ -> concat [ "  let\n"
+                      , intercalate "\n" $
+                        map (\i -> "    (t" ++ show i ++ ",k" ++ show i ++ ") = outputTreeLookup b" ++ show i ++ " m") treeIndices
+                      , "   in\n"
+                      ]
+
+        subtreeArgs = case length treeIndices of
+          0 -> "\""
+          _ -> concat [ "(\" ++ "
+                      , intercalate " ++ \",\" ++ " $
+                        map (\i -> "t" ++ show i) treeIndices
+                      , "++ \")\""
+                      ]
+        subtrees = case length treeIndices of
+          0 -> "[]"
+          _ -> intercalate " ++ " $ map (\i -> "k" ++ show i) treeIndices
+
+-- sample output:
+-- outputTree _ [[b1@(_,_,G_Foo),b2@(_,_,HappyTok TokenPlus),b3@(_,_,G_Foo)]] m =
+--     let (t1,k1) = outputTreeLookup b1 m
+--         (t3,k3) = outputTreeLookup b3 m
+--      in ("foo(" ++ t1 ++ "," ++ t3 ++ ")", k1 ++ k3)
+
+outputFooter =
+  concat [ "outputTree fid (r@(x:y:ys)) m =\n"
+         , "  let vars = zipWith (\\ _ i -> nodeVarName fid i) r [1..]\n"
+         , "   in ( \"amb(\" ++ intercalate \",\" vars ++ \")\"\n"
+         , "      , zip vars r)\n\n"
+         ]
+
+-- old output format
 -- output [[ b1@(_,_,HappyTok Token_s)
 --         , b2@(_,_,HappyTok TokenLeftParen)
 --         , b3@(_,_,G_Foo)
@@ -140,6 +200,7 @@ happyHeader =
          , "module Grammar2 where\n"
          , "import Data.Char\n"
          , "import qualified Data.Map as Map\n"
+         , "import Data.List (intercalate)"
          , "}\n"
          , "\n"
          , "%name kinkgrammar\n"
