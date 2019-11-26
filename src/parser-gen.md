@@ -1,4 +1,6 @@
 ```k
+require "parser-disamb.k"
+
 module PARSER-GEN-HELPERS
   imports SET
   imports STRING-SYNTAX
@@ -200,6 +202,7 @@ module PARSE-RULE
   imports KORE-ABSTRACT
   imports META-ACCESSORS
   imports PARSER-GEN-HELPERS
+  imports DISAMBIGUATE
 
   // parse rule bubbles
   syntax KItem ::= "#parseRuleBubbles"
@@ -218,7 +221,7 @@ module PARSE-RULE
        <s> #STUCK() => .K ... </s>
 
   rule <k> #parseRuleBubbles ... </k>
-       <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern)) </decl>
+       <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs(disambiguate({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, GRAMMAR))) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
   rule <k> #parseRuleBubbles ... </k>

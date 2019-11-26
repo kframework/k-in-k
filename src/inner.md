@@ -159,10 +159,10 @@ module REQUIRES-ENSURES
 
   syntax RuleBody ::= K
 
-  syntax RuleContent ::= RuleBody                                 [klabel("ruleNoConditions")]
-                       | RuleBody "requires" K                    [klabel("ruleRequires")]
-                       | RuleBody "ensures"  K                    [klabel("ruleEnsures")]
-                       | RuleBody "requires" K "ensures" K        [klabel("ruleRequiresEnsures")]
+  syntax RuleContent ::= RuleBody                                 [klabel(ruleNoConditions)]
+                       | RuleBody "requires" K                    [klabel(ruleRequires)]
+                       | RuleBody "ensures"  K                    [klabel(ruleEnsures)]
+                       | RuleBody "requires" K "ensures" K        [klabel(ruleRequiresEnsures)]
 endmodule
 
 module DEFAULT-CONFIGURATION
