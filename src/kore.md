@@ -65,10 +65,10 @@ module KORE-COMMON
                    | "\\dv"       "{" Sort "}"          "(" KoreString ")"           [klabel(dv)]
   syntax Patterns
 
-  syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes)]
+  syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes), symbol(koreAttributes)]
 
   syntax KoreDeclaration ::=
-      "import" ModuleName Attribute [klabel(koreImport)]
+      "import" ModuleName Attribute [klabel(koreImport), symbol(koreImport)]
     | "hook-sort" Sort Attribute
     | "hook-symbol" Symbol "(" Sorts ")" ":" Sort Attribute
     | "sort" Sort Attribute [klabel(sortDeclaration)]
@@ -77,11 +77,11 @@ module KORE-COMMON
   syntax Declaration ::= KoreDeclaration
   syntax Declarations
 
-  syntax KoreModule ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModule), format(%1 %2%i%n%3%n%d%4 %5%n)]
+  syntax KoreModule ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModule), symbol(koreModule), format(%1 %2%i%n%3%n%d%4 %5%n)]
   syntax Module ::= KoreModule
   syntax Modules
 
-  syntax KoreDefinition ::= Attribute Modules [klabel(koreDefinition), format(%1%n%n%2)]
+  syntax KoreDefinition ::= Attribute Modules [klabel(koreDefinition), symbol(koreDefinition), format(%1%n%n%2)]
   syntax Definition ::= KoreDefinition
 endmodule
 

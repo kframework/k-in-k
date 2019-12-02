@@ -8,7 +8,7 @@ module DISAMBIGUATE
   imports PARSER-UTIL
 
 
-  syntax KItem ::= pair(K, K)
+  syntax KItem ::= pair(KItem, KItem)
   syntax Pattern ::= disambiguate(Pattern, Set) [function]
   syntax Pattern ::= applyTypeCheck(Pattern, Map, Set, Set)
   
@@ -62,8 +62,8 @@ module DISAMBIGUATE
   rule getKLabelFromArgs(consAttrList(_, A) => A) [owise]
   
   // isSubsorted
-  syntax Bool ::= isSubsorted  (Sort, Sort, Set)
-  syntax Bool ::= isSubsortedEq(Sort, Sort, Set)
+  syntax Bool ::= isSubsorted  (Sort, Sort, Set) [function]
+  syntax Bool ::= isSubsortedEq(Sort, Sort, Set) [function]
   rule isSubsorted(S1, S2, S) => pair(S1, S2) in S
   rule isSubsortedEq(S1, S2, S) => S1 ==K S2 orBool isSubsorted(S1, S2, S)
 

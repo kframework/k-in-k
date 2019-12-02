@@ -9,7 +9,7 @@ module PARSER-UTIL
 
   syntax String ::= tokenToString(K) [function, functional, hook(STRING.token2string)]
 
-  syntax KItem ::= parseOuter(String) [function, impure]
+  syntax KItem ::= parseOuter(String) [function]
   rule [[ parseOuter(S)
        => doParseKAST(parseHelper( module = "OUTER-SYNTAX"
                                , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
@@ -20,7 +20,7 @@ module PARSER-UTIL
        ]]
        <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 
-  syntax KItem ::= parseEKore(String) [function, impure]
+  syntax KItem ::= parseEKore(String) [function]
   rule [[ parseEKore(S)
        => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
                              , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
@@ -31,7 +31,7 @@ module PARSER-UTIL
        ]]
        <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 
-  syntax KItem ::= parseSymbolName(String) [function, impure]
+  syntax KItem ::= parseSymbolName(String) [function]
   rule [[ parseSymbolName(S)
        => doParseKAST(parseHelper( module = "EKORE-SYNTAX"
                                  , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
@@ -51,17 +51,17 @@ module PARSER-UTIL
                                   "," "start" "=" String
                                   "," "input" "=" KItem
                                   "," "output" "=" String
-                                  ")" [function, impure]
+                                  ")" [function]
                  | "parseHelper1" "(" "module" "=" String
                                   "," "grammarFile" "=" IOString
                                   "," "start" "=" String
                                   "," "inputFile" "=" IOString
                                   "," "output" "=" String
-                                  ")" [function, impure]
+                                  ")" [function]
                  | "parseHelper2" "(" KItem ")" [function]
   rule parseHelper(module = MOD, grammarFile = GRAMMAR, start = START, input = INPUT:String, output = OUTPUT)
     => parseHelper1( module = MOD, grammarFile = GRAMMAR
-                   , start = START, inputFile = saveToTempFile(INPUT, "k-in-k", "")
+                   , start = START, inputFile = saveToTempFile(INPUT, "k-in-kXXXXXX")
                    , output = OUTPUT
                    )
   rule parseHelper1(module = _, grammarFile = _, start = _, inputFile = E:IOError, output = _)
@@ -79,7 +79,7 @@ module PARSER-UTIL
   syntax KItem ::= parseWithProductions( Set   /* list of prods */
                                        , String /* start symbol */
                                        , String /* input */
-                                       ) [function, impure]
+                                       ) [function]
   rule [[ parseWithProductions(GRAMMAR, START, INPUT)
        => doParseKAST(parseHelper( module = "KORE-SYNTAX"
                                  , grammarFile = DEPLOY_DIR +String "/src/kore.k"
@@ -88,8 +88,7 @@ module PARSER-UTIL
                                                       , grammarFile = saveToTempFile("module LANGUAGE-GRAMMAR\n"
                                                                              +String grammarToString(GRAMMAR)
                                                                              +String "endmodule"
-                                                                                    , "", ""
-                                                                                    )
+                                                                                    , "")
                                                       , start = START
                                                       , input = INPUT
                                                       , output = "kore"
@@ -134,6 +133,7 @@ module PARSER-UTIL
   rule AttrListToString(.AttrList)       => "dummy"
   rule AttrListToString(ATTR, .AttrList) => AttrToString(ATTR)
   rule AttrListToString(ATTR, ATTRs)     => AttrToString(ATTR) +String "," +String AttrListToString(ATTRs)
+    requires notBool ATTRs ==K .AttrList
 
   syntax String ::= AttrToString(Attr) [function]
   rule AttrToString(tagSimple(KEY))

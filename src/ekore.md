@@ -122,7 +122,7 @@ module K-PRODUCTION-COMMON
 
   syntax KSortList ::= KSortList "," KSort [klabel(kSortList)]
                      | KSort
-  syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr)]
+  syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr), symbol(kProductionWAttr)]
   syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet         [klabel(kPrioritySeq)]
                         | KNeTagSet
   syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock), format(%1%n%2 %3)]
@@ -132,13 +132,13 @@ module K-PRODUCTION-COMMON
 
   syntax KProductionItem
   syntax KProduction ::= KProductionItem
-                       | KProductionItem KProduction [klabel(kProduction), unit(emptyKProduction)]
+                       | KProductionItem KProduction [klabel(kProduction), symbol(kProduction), unit(emptyKProduction)]
                        | Tag "(" KSortList ")"       [klabel(kFuncProduction)]
                        |     "(" KSortList ")"       [klabel(kTupleProduction)]
 
   syntax SyntaxDeclaration
     ::= "syntax" KSort OptionalAttributes [klabel(kSyntaxSort)]
-      | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), format(%1 %2 %3 %4)]
+      | "syntax" KSort "::=" PrioritySeqBlock [klabel(kSyntaxProduction), symbol(kSyntaxProduction), format(%1 %2 %3 %4)]
       | "syntax" "priority"   KPrioritySeq OptionalAttributes [klabel(kSyntaxPriority)]
       | "syntax" "priorities" KPrioritySeq OptionalAttributes [klabel(kSyntaxPriorities)]
       | "syntax" "left" KNeTagSet OptionalAttributes [klabel(kSyntaxLeft)]
@@ -183,8 +183,8 @@ module CONFIG-RULE-CONTEXT-COMMON
   imports EKORE-BASE
   imports ATTRIBUTES-COMMON
   syntax RuleContents
-  syntax EKoreDeclaration ::= "configuration" RuleContents [klabel(kConfiguration)]
-                            | "rule"    RuleContents       [klabel(kRule)]
+  syntax EKoreDeclaration ::= "configuration" RuleContents [klabel(kConfiguration), symbol(kConfiguration)]
+                            | "rule"    RuleContents       [klabel(kRule), symbol(kRule)]
                             | "context" RuleContents       [klabel(kContext)]
 endmodule
 
@@ -240,7 +240,7 @@ module ATTRIBUTES-COMMON
 
   syntax Attr
   syntax AttrList
-  syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration)]
+  syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration), symbol(kAttributesDeclaration)]
   syntax OptionalAttributes ::= KAttributesDeclaration
 
   syntax TagContent ::= UpperName | LowerName | Numbers | EKoreKString
@@ -252,14 +252,14 @@ endmodule
 module ATTRIBUTES-ABSTRACT
   imports ATTRIBUTES-COMMON
   syntax Attr ::= tagSimple(KEY)           [klabel(tagSimple), format(%3)]
-                | KEY "(" TagContents ")"  [klabel(tagContent)]
-  syntax AttrList ::= Attr "," AttrList    [klabel(consAttrList), format(%1 %2 %3)]
-                    | ".AttrList"          [klabel(dotAttrList)]
+                | KEY "(" TagContents ")"  [klabel(tagContent), symbol(tagContent)]
+  syntax AttrList ::= Attr "," AttrList    [klabel(consAttrList), symbol(consAttrList), format(%1 %2 %3)]
+                    | ".AttrList"          [klabel(dotAttrList), symbol(dotAttrList)]
 
   syntax OptionalAttributes ::= "noAtt" [klabel(noKAttributesDeclaration)]
 
   syntax TagContents ::= ".tagContents"  [klabel(dotTagContents), format()]
-                       | TagContent TagContents [klabel(tagContents)]
+                       | TagContent TagContents [klabel(tagContents), symbol(tagContents)]
 endmodule
 
 module ATTRIBUTES-SYNTAX
@@ -268,7 +268,7 @@ module ATTRIBUTES-SYNTAX
 
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
-  syntax EmptyAttrList ::= ""             [klabel(dotAttrList )]
+  syntax EmptyAttrList ::= ""             [klabel(dotAttrList)]
   syntax NeAttrList    ::=  Attr "," NeAttrList [klabel(consAttrList)]
                          | Attr EmptyAttrList  [klabel(consAttrList)]
   syntax AttrList ::= NeAttrList | EmptyAttrList
@@ -343,7 +343,7 @@ module K-DEFINITION-COMMON
   imports TOKENS
   imports EKORE-KSTRING-COMMON
 
-  syntax KImport       ::= "imports" KModuleName [klabel(kImport)]
+  syntax KImport       ::= "imports" KModuleName [klabel(kImport), symbol(kImport)]
   syntax KImportList
 
   syntax KRequire      ::= kRequire(EKoreKString) [klabel(kRequire)]

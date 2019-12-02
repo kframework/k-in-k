@@ -57,11 +57,11 @@ pdisamb= 'src/parser-disamb.md'
 file   = 'src/file-util.md'
 inner  = 'src/inner.md'
 
-kink = proj.definition( backend   = 'ocaml'
+kink = proj.definition( backend   = 'llvm'
                       , main      = 'src/kink.md'
                       , other     = [kore, ekore, parser, file, pgen, 'src/command-line.md', k_light, inner, pdisamb]
                       , directory = proj.builddir('kink')
-                      , flags     = '--syntax-module KINK-SYNTAX'
+                      , flags     = '--syntax-module KINK-SYNTAX -ccopt -g -ccopt -O0'
                       , alias     = 'kink'
                       , runner_script = './kink'
                       )
