@@ -40,13 +40,13 @@ module KORE-COMMON
                      | "injective"   [token]
                      | "klabel"      [token]
 
-  syntax Sort     ::= SortName | SortName "{" Sorts "}" [klabel(nameParam)]
+  syntax Sort     ::= SortName | SortName "{" Sorts "}" [klabel(nameParam), symbol]
   syntax Sorts
-  syntax Symbol   ::= SymbolName "{" Sorts "}" [klabel(symbolSorts)]
-  syntax Variable ::= VariableName ":" Sort [klabel(varType)]
+  syntax Symbol   ::= SymbolName "{" Sorts "}" [klabel(symbolSorts), symbol]
+  syntax Variable ::= VariableName ":" Sort [klabel(varType), symbol]
 
   syntax Pattern ::= Variable
-                   | Symbol "(" Patterns ")" [klabel(application)]
+                   | Symbol "(" Patterns ")" [klabel(application), symbol]
                    | "\\and"      "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(and)]
                    | "\\not"      "{" Sort "}"          "(" Pattern ")"              [klabel(not)]
                    | "\\or"       "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(or)]
@@ -62,26 +62,26 @@ module KORE-COMMON
                    | "\\bottom"   "{" Sort "}"          "(" ")"                      [klabel(bottom)]
                    | "\\next"     "{" Sort "}"          "(" Pattern ")"              [klabel(next)]
                    | "\\rewrites" "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(rewrites)]
-                   | "\\dv"       "{" Sort "}"          "(" KoreString ")"           [klabel(dv)]
+                   | "\\dv"       "{" Sort "}"          "(" KoreString ")"           [klabel(dv), symbol]
   syntax Patterns
 
-  syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes), symbol(koreAttributes)]
+  syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes), symbol]
 
   syntax KoreDeclaration ::=
-      "import" ModuleName Attribute [klabel(koreImport), symbol(koreImport)]
+      "import" ModuleName Attribute [klabel(koreImport), symbol]
     | "hook-sort" Sort Attribute
     | "hook-symbol" Symbol "(" Sorts ")" ":" Sort Attribute
-    | "sort" Sort Attribute [klabel(sortDeclaration)]
-    | "symbol" Symbol "(" Sorts ")" ":" Sort Attribute [klabel(symbolDeclaration)]
-    | "axiom" "{" Sorts "}" Pattern Attribute [klabel(axiomDeclaration)]
+    | "sort" Sort Attribute [klabel(sortDeclaration), symbol]
+    | "symbol" Symbol "(" Sorts ")" ":" Sort Attribute [klabel(symbolDeclaration), symbol]
+    | "axiom" "{" Sorts "}" Pattern Attribute [klabel(axiomDeclaration), symbol]
   syntax Declaration ::= KoreDeclaration
   syntax Declarations
 
-  syntax KoreModule ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModule), symbol(koreModule), format(%1 %2%i%n%3%n%d%4 %5%n)]
+  syntax KoreModule ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModule), symbol, format(%1 %2%i%n%3%n%d%4 %5%n)]
   syntax Module ::= KoreModule
   syntax Modules
 
-  syntax KoreDefinition ::= Attribute Modules [klabel(koreDefinition), symbol(koreDefinition), format(%1%n%n%2)]
+  syntax KoreDefinition ::= Attribute Modules [klabel(koreDefinition), symbol, format(%1%n%n%2)]
   syntax Definition ::= KoreDefinition
 endmodule
 
@@ -89,22 +89,22 @@ module KORE-SYNTAX
   imports KORE-COMMON
   imports TOKENS-SYNTAX
 
-  syntax EmptySorts ::= ""               [klabel(dotSorts )]
+  syntax EmptySorts ::= ""               [klabel(dotSorts)]
   syntax NeSorts    ::= Sort "," NeSorts [klabel(consSorts)]
                       | Sort EmptySorts  [klabel(consSorts)]
   syntax Sorts ::= NeSorts | EmptySorts
 
-  syntax EmptyPatterns ::= ""                  [klabel(dotPatterns )]
+  syntax EmptyPatterns ::= ""                  [klabel(dotPatterns)]
   syntax NePatterns    ::= Pattern "," NePatterns [klabel(consPatterns)]
                          | Pattern EmptyPatterns  [klabel(consPatterns)]
   syntax Patterns ::= NePatterns | EmptyPatterns
 
-  syntax EmptyDeclarations ::= ""               [klabel(dotDeclarations )]
+  syntax EmptyDeclarations ::= ""               [klabel(dotDeclarations)]
   syntax NeDeclarations    ::= Declaration NeDeclarations [klabel(consDeclarations)]
                              | Declaration EmptyDeclarations  [klabel(consDeclarations)]
   syntax Declarations ::= NeDeclarations | EmptyDeclarations
 
-  syntax EmptyModules ::= ""               [klabel(dotModules )]
+  syntax EmptyModules ::= ""               [klabel(dotModules)]
   syntax NeModules    ::= Module NeModules [klabel(consModules)]
                         | Module EmptyModules  [klabel(consModules)]
   syntax Modules ::= NeModules | EmptyModules
@@ -116,16 +116,16 @@ module KORE-ABSTRACT
   imports KORE-COMMON
 
   syntax Sorts ::= Sort
-                 | Sort "," Sorts        [klabel(consSorts)]
-                 | ".Sorts"              [klabel(dotSorts )]
+                 | Sort "," Sorts        [klabel(consSorts), symbol]
+                 | ".Sorts"              [klabel(dotSorts), symbol]
 
-  syntax Patterns ::= Pattern "," Patterns [klabel(consPatterns)]
-                    | ".Patterns"          [klabel(dotPatterns )]
+  syntax Patterns ::= Pattern "," Patterns [klabel(consPatterns), symbol]
+                    | ".Patterns"          [klabel(dotPatterns), symbol]
 
-  syntax Declarations ::= Declaration Declarations [klabel(consDeclarations), format(%1%n%2)]
-                    | ".Declarations"              [klabel(dotDeclarations )]
+  syntax Declarations ::= Declaration Declarations [klabel(consDeclarations), format(%1%n%2), symbol]
+                    | ".Declarations"              [klabel(dotDeclarations), symbol]
 
-  syntax Modules ::= Module Modules [klabel(consModules), format(%1%n%2)]
-                    | ".Modules"    [klabel(dotModules )]
+  syntax Modules ::= Module Modules [klabel(consModules), format(%1%n%2), symbol]
+                    | ".Modules"    [klabel(dotModules), symbol]
 endmodule
 ```

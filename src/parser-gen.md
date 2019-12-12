@@ -46,6 +46,7 @@ module PARSER-GEN-HELPERS
   // casts: Sort ::= Sort ":Sort"
   // expecting a list of productions as argument and returns a new list with added cast for each sort found
   // except for `noCastSortsInit`
+  syntax String ::= token2String(UpperName) [function, functional, hook(STRING.token2string)]
   syntax Set ::= "#addCasts" "(" Set ")" [function]
   syntax Set ::= "#addCasts2" "(" Set "," Set ")" [function]
   rule #addCasts(Prds) => #addCasts2(Prds, noCastSortsInit)
@@ -152,7 +153,7 @@ module PARSE-CONFIG
   // create config grammar in modules where we find configs as bubbles
   rule <k> #createConfigGrammar ... </k> 
        <name> MName </name>
-       <decl> kConfiguration(noAttrs(_:Bubble)) </decl>
+       <decl> kConfiguration(noAttrsB(_:Bubble)) </decl>
        <configGrammar> .Set => #addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("CONFIG-INNER", "UpperName")))) </configGrammar>
 
   rule <k> #createConfigGrammar => .K ... </k>
@@ -160,7 +161,7 @@ module PARSE-CONFIG
 
   // actually parsing the configuration once we have the grammar
   rule <k> #parseConfigBubbles ... </k>
-       <decl> kConfiguration(noAttrs(C:Bubble)) => kConfiguration(noAttrs({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
+       <decl> kConfiguration(noAttrsB(C:Bubble)) => kConfiguration(noAttrsP({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
        <configGrammar> GRAMMAR </configGrammar>
      requires GRAMMAR =/=K .Set
   
@@ -173,7 +174,7 @@ module PARSE-CONFIG
   syntax KItem ::= "#extractConfigInfo"
   syntax KItem ::= collectCellName(Patterns)
   rule <k> #extractConfigInfo => collectCellName(P, .Patterns) ~> #extractConfigInfo ... </k>
-       <decl> kConfiguration(noAttrs(P)) </decl>
+       <decl> kConfiguration(noAttrsP(P)) </decl>
        <collected> Configs => Configs SetItem(P) </collected>
      requires notBool P in Configs
 
@@ -182,6 +183,7 @@ module PARSE-CONFIG
     requires B =/=K .Patterns
   rule <k> collectCellName( .Patterns ) => .K ... </k>
 
+  syntax String ::= token2String(KoreString) [function, functional, hook(STRING.token2string)]
   rule <k> collectCellName(\dv { Srt { .Sorts } } ( CellName ), .Patterns) => .K ... </k>
        <cellName> .Map => substrString(token2String(CellName), 1, lengthString(token2String(CellName)) -Int 1) |-> token2String(Srt) ... </cellName>
 
@@ -210,22 +212,22 @@ module PARSE-RULE
 
   rule <k> #createRuleGrammar ... </k> // create rule grammar
        <name> MName </name>
-       <decl> kRule(noAttrs(_:Bubble)) </decl>
+       <decl> kRule(noAttrsB(_:Bubble)) </decl>
        <ruleGrammar> .Set => #addRuleCells(#addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName"))))) </ruleGrammar>
   rule <k> #createRuleGrammar ... </k> // create rule grammar for rules with attributes
        <name> MName </name>
-       <decl> kRule(attrs(_:Bubble, _)) </decl>
+       <decl> kRule(attrsB(_:Bubble, _)) </decl>
        <ruleGrammar> .Set => #addRuleCells(#addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("RULE-INNER", "UpperName"))))) </ruleGrammar>
 
   rule <k> #createRuleGrammar => .K ... </k>
        <s> #STUCK() => .K ... </s>
 
   rule <k> #parseRuleBubbles ... </k>
-       <decl> kRule(noAttrs(C:Bubble)) => kRule(noAttrs(disambiguate({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, GRAMMAR))) </decl>
+       <decl> kRule(noAttrsB(C:Bubble)) => kRule(noAttrsP(disambiguate({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, GRAMMAR))) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
   rule <k> #parseRuleBubbles ... </k>
-       <decl> kRule(attrs(C:Bubble, At)) => kRule(attrs({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, At)) </decl>
+       <decl> kRule(attrsB(C:Bubble, At)) => kRule(attrsP({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, At)) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
 

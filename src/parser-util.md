@@ -15,7 +15,7 @@ module PARSER-UTIL
                                , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
                                , start = "Definition"
                                , input = S
-                               , output = "kast"
+                               , output = "kore"
                    )           )
        ]]
        <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
@@ -26,7 +26,7 @@ module PARSER-UTIL
                              , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
                              , start = "Definition"
                              , input = S
-                             , output = "kast"
+                             , output = "kore"
                  )           )
        ]]
        <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
@@ -37,13 +37,13 @@ module PARSER-UTIL
                                  , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
                                  , start = "SymbolName"
                                  , input = S
-                                 , output = "kast"
+                                 , output = "kore"
                      )           )
        ]]
        <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 
   syntax KItem ::= doParseKAST(K) [function]
-  rule doParseKAST(S:String) => #parseKAST(S)
+  rule doParseKAST(S:String) => #parseKORE(S)
 
   // TODO: Deal with temp file removal
   syntax KItem ::= "parseHelper"  "(" "module" "=" String
@@ -61,7 +61,7 @@ module PARSER-UTIL
                  | "parseHelper2" "(" KItem ")" [function]
   rule parseHelper(module = MOD, grammarFile = GRAMMAR, start = START, input = INPUT:String, output = OUTPUT)
     => parseHelper1( module = MOD, grammarFile = GRAMMAR
-                   , start = START, inputFile = saveToTempFile(INPUT, "k-in-kXXXXXX")
+                   , start = START, inputFile = saveToTempFile(INPUT, "/tmp/parseHelperXXXXXX")
                    , output = OUTPUT
                    )
   rule parseHelper1(module = _, grammarFile = _, start = _, inputFile = E:IOError, output = _)
@@ -88,12 +88,12 @@ module PARSER-UTIL
                                                       , grammarFile = saveToTempFile("module LANGUAGE-GRAMMAR\n"
                                                                              +String grammarToString(GRAMMAR)
                                                                              +String "endmodule"
-                                                                                    , "")
+                                                                                    , "/tmp/parseKASTXXXXXXXX")
                                                       , start = START
                                                       , input = INPUT
                                                       , output = "kore"
                                                       )
-                                 , output = "kast"
+                                 , output = "kore"
                      )           )
        ]]
        <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>

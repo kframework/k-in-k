@@ -546,7 +546,7 @@ module TRANSLATE-FUNCTION-RULES
   syntax KItem ::= "#translateRules"
   rule <k> #translateRules ... </k>
        <name> MNAME </name>
-       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS, RHS)))
+       <decl> kRule(noAttrsP(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS, RHS)))
            => axiom { #token("R", "UpperName") , .Sorts }
                 \equals { #getReturnSort(MNAME, SYMBOL), #token("R", "UpperName") }
                 ( LHS , RHS )
@@ -556,7 +556,7 @@ module TRANSLATE-FUNCTION-RULES
 
   rule <k> #translateRules ... </k>
        <name> MNAME </name>
-       <decl> kRule(noAttrs(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS , RHS)))
+       <decl> kRule(noAttrsP(krewrite( SYMBOL { .Sorts } ( ARG_PATTERNS ) #as LHS , RHS)))
            => #fun( RETSORT
                  => axiom { .Sorts } \rewrites { RETSORT }
                         ( \and { RETSORT } (\top{ RETSORT }(), LHS)
