@@ -43,7 +43,7 @@ module PARSER-UTIL
        <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 
   syntax KItem ::= doParseKAST(K) [function]
-  rule doParseKAST(S:String) => #parseKORE(S)
+  rule doParseKAST(S:String) => #parseKORE(S):KDefinition
 
   // TODO: Deal with temp file removal
   syntax KItem ::= "parseHelper"  "(" "module" "=" String

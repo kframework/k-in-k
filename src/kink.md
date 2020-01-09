@@ -267,8 +267,9 @@ Convert K Import statements to Kore import statements:
 ```k
   rule <k> #defnToConfig
         ~> koreDefinition( _
-                         , (kModule(MNAME, ATTS, IMPORTS kImport(I), DECLS) MODS)
-                        => (kModule(MNAME, ATTS, IMPORTS, koreImport(I, koreAttributes(.Patterns)) DECLS) MODS)
+                         , (kModule(MNAME, ATTS, IMPORTS kImport(I), DECLS)
+                         => kModule(MNAME, ATTS, IMPORTS, koreImport(I, [.Patterns]) DECLS))
+                            MODS
                          )
            ...
        </k>

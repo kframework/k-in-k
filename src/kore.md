@@ -65,11 +65,10 @@ module KORE-COMMON
                    | "\\dv"       "{" Sort "}"          "(" KoreString ")"           [klabel(dv), symbol]
   syntax Patterns
 
-  syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes), symbol]
+  syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributesLbl), symbol]
 
   syntax KoreDeclaration ::=
-      "import" ModuleName Attribute [klabel(koreImport), symbol]
-    | "hook-sort" Sort Attribute
+      "hook-sort" Sort Attribute
     | "hook-symbol" Symbol "(" Sorts ")" ":" Sort Attribute
     | "sort" Sort Attribute [klabel(sortDeclaration), symbol]
     | "symbol" Symbol "(" Sorts ")" ":" Sort Attribute [klabel(symbolDeclaration), symbol]
@@ -77,11 +76,10 @@ module KORE-COMMON
   syntax Declaration ::= KoreDeclaration
   syntax Declarations
 
-  syntax KoreModule ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModule), symbol, format(%1 %2%i%n%3%n%d%4 %5%n)]
-  syntax Module ::= KoreModule
+  syntax Module
   syntax Modules
 
-  syntax KoreDefinition ::= Attribute Modules [klabel(koreDefinition), symbol, format(%1%n%n%2)]
+  syntax KoreDefinition
   syntax Definition ::= KoreDefinition
 endmodule
 
@@ -93,6 +91,7 @@ module KORE-SYNTAX
   syntax NeSorts    ::= Sort "," NeSorts [klabel(consSorts)]
                       | Sort EmptySorts  [klabel(consSorts)]
   syntax Sorts ::= NeSorts | EmptySorts
+  syntax KoreDeclaration ::= "import" ModuleName Attribute [klabel(koreImportLbl), symbol]
 
   syntax EmptyPatterns ::= ""                  [klabel(dotPatterns)]
   syntax NePatterns    ::= Pattern "," NePatterns [klabel(consPatterns)]
@@ -108,6 +107,8 @@ module KORE-SYNTAX
   syntax NeModules    ::= Module NeModules [klabel(consModules)]
                         | Module EmptyModules  [klabel(consModules)]
   syntax Modules ::= NeModules | EmptyModules
+  syntax Module ::= "module" ModuleName Declarations "endmodule" Attribute [klabel(koreModuleLbl), symbol, format(%1 %2%i%n%3%n%d%4 %5%n)]
+  syntax KoreDefinition ::= Attribute Modules [klabel(koreDefinitionLbl), symbol, format(%1%n%n%2)]
   
   syntax Layout ::= r"(/\\*([^\\*]|(\\*+([^\\*/])))*\\*+/|//[^\n\r]*|[\\ \n\r\t])*" [klabel(layout)]
 endmodule
@@ -125,7 +126,11 @@ module KORE-ABSTRACT
   syntax Declarations ::= Declaration Declarations [klabel(consDeclarations), format(%1%n%2), symbol]
                     | ".Declarations"              [klabel(dotDeclarations), symbol]
 
+  syntax Module ::= koreModule(ModuleName, Declarations, Attribute) [klabel(koreModuleLbl), symbol, format(%1 %2%i%n%3%n%d%4 %5%n)]
   syntax Modules ::= Module Modules [klabel(consModules), format(%1%n%2), symbol]
                     | ".Modules"    [klabel(dotModules), symbol]
+  syntax KoreDefinition ::= koreDefinition(Attribute, Modules) [klabel(koreDefinitionLbl), symbol, format(%3%n%n%5)]
+  syntax KoreDeclaration ::= koreImport(ModuleName, Attribute) [klabel(koreImportLbl), symbol]
+
 endmodule
 ```
