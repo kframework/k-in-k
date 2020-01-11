@@ -114,30 +114,24 @@ module K-PRODUCTION-COMMON
 
   syntax Tag ::= UpperName | LowerName
   syntax KNeTagSet    ::= Tag KNeTagSet [klabel(kTagSet), symbol]
-                        | Tag
 
   syntax AssocAttribute ::= "left:"      [klabel(leftAttribute), symbol]
                           | "right:"     [klabel(rightAttribute), symbol]
                           | "non-assoc:" [klabel(nonAssocAttribute), symbol]
 
   syntax KSortList ::= KSortList "," KSort [klabel(kSortList), symbol]
-                     | KSort
   syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr), symbol]
   syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet         [klabel(kPrioritySeq), symbol]
-                        | KNeTagSet
   syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock), format(%1%n%2 %3), symbol]
-                     | KProductionWAttr
   syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4), symbol]
-                            | ProdBlock
 
   syntax KProductionItem
-  syntax KProduction ::= KProductionItem
-                       | KProductionItem KProduction [klabel(kProduction), symbol, unit(emptyKProduction)]
+  syntax KProduction ::= KProductionItem KProduction [klabel(kProduction), symbol, unit(emptyKProduction)]
                        | Tag "(" KSortList ")"       [klabel(kFuncProduction), symbol]
                        |     "(" KSortList ")"       [klabel(kTupleProduction), symbol]
 
   syntax SyntaxDeclaration
-  syntax EKoreDeclaration ::= SyntaxDeclaration
+  syntax EKoreDeclaration
 endmodule
 
 module K-PRODUCTION-SYNTAX
@@ -145,6 +139,7 @@ module K-PRODUCTION-SYNTAX
   imports KORE-SYNTAX
   imports ATTRIBUTES-SYNTAX
 
+  syntax EKoreDeclaration ::= SyntaxDeclaration [klabel(inj)]
   syntax SyntaxDeclaration
     ::= "syntax" KSort OptionalAttributes                     [klabel(kSyntaxSortLbl), symbol]
       | "syntax" KSort "::=" PrioritySeqBlock                 [klabel(kSyntaxProductionLbl), format(%1 %2 %3 %4), symbol]
@@ -160,15 +155,23 @@ module K-PRODUCTION-SYNTAX
                            | "NeList" "{" KSort "," EKoreKString "}" [klabel(neListProdLbl)]
                            |   "List" "{" KSort "," EKoreKString "}" [klabel(listProdLbl)]
 
+  syntax KNeTagSet        ::= Tag               [klabel(inj)]
+  syntax KSortList        ::= KSort             [klabel(inj)]
+  syntax KPrioritySeq     ::= KNeTagSet         [klabel(inj)]
+  syntax ProdBlock        ::= KProductionWAttr  [klabel(inj)]
+  syntax PrioritySeqBlock ::= ProdBlock         [klabel(inj)]
+  syntax KProduction      ::= KProductionItem   [klabel(inj)]
+
 endmodule
 
 module K-PRODUCTION-ABSTRACT
   imports K-PRODUCTION-COMMON
   imports KORE-ABSTRACT
 
+  syntax EKoreDeclaration ::= SyntaxDeclaration
   syntax SyntaxDeclaration
     ::= kSyntaxSort(KSort, OptionalAttributes)              [klabel(kSyntaxSortLbl), symbol]
-      | kSyntaxProduction(KSort, PrioritySeqBlock)          [klabel(kSyntaxProductionLbl), format(%1%2%3%4%5), symbol]
+      | kSyntaxProduction(KSort, PrioritySeqBlock)          [klabel(kSyntaxProductionLbl), format(%1%2%3%4%5%6), symbol]
       | kSyntaxPriority(KPrioritySeq, OptionalAttributes)   [klabel(kSyntaxPriorityLbl), symbol]
       | kSyntaxPriorities(KPrioritySeq, OptionalAttributes) [klabel(kSyntaxPrioritiesLbl), symbol]
       | kSyntaxLeft(KNeTagSet, OptionalAttributes)          [klabel(kSyntaxLeftLbl), symbol]
@@ -180,6 +183,14 @@ module K-PRODUCTION-ABSTRACT
                            | regexTerminal(EKoreKString)     [klabel(regexTerminalLbl), symbol]
                            | neListProd(KSort, EKoreKString) [klabel(neListProdLbl), symbol]
                            | listProd(KSort,EKoreKString)    [klabel(listProdLbl), symbol]
+
+  syntax KNeTagSet        ::= Tag
+  syntax KSortList        ::= KSort
+  syntax KPrioritySeq     ::= KNeTagSet
+  syntax ProdBlock        ::= KProductionWAttr
+  syntax PrioritySeqBlock ::= ProdBlock
+  syntax KProduction      ::= KProductionItem
+
 endmodule
 ```
 
@@ -250,7 +261,7 @@ module ATTRIBUTES-COMMON
   syntax Attr
   syntax AttrList
   syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration), symbol]
-  syntax OptionalAttributes ::= KAttributesDeclaration
+  syntax OptionalAttributes
 
   syntax TagContent ::= UpperName | LowerName | Numbers | EKoreKString
   syntax TagContents
@@ -265,6 +276,7 @@ module ATTRIBUTES-ABSTRACT
   syntax AttrList ::= Attr "," AttrList    [klabel(consAttrList), format(%1 %2 %3), symbol]
                     | ".AttrList"          [klabel(dotAttrList), symbol]
 
+  syntax OptionalAttributes ::= KAttributesDeclaration
   syntax OptionalAttributes ::= "noAtt" [klabel(noKAttributesDeclaration), symbol]
 
   syntax TagContents ::= ".tagContents"  [klabel(dotTagContents), format(), symbol]
@@ -275,6 +287,7 @@ module ATTRIBUTES-SYNTAX
   imports ATTRIBUTES-COMMON
   imports TOKENS-SYNTAX
 
+  syntax OptionalAttributes ::= KAttributesDeclaration [klabel(inj)]
   syntax Attr ::= KEY                     [klabel(tagSimple)]
                 | KEY "(" TagContents ")" [klabel(tagContent)]
   syntax EmptyAttrList ::= ""             [klabel(dotAttrList)]
@@ -393,7 +406,7 @@ module K-DEFINITION-SYNTAX
                          | KRequireList KRequire [klabel(KRequireList), format(%1%2%n%3)]
 
   syntax KDefinition   ::= KRequireList Modules [klabel(kDefinitionLbl), format(%1%n%n%2)]
-  syntax Definition    ::= KDefinition
+  syntax Definition    ::= KDefinition [klabel(inj)]
 
   syntax Module        ::= "module" KModuleName OptionalAttributes
                                     KImportList
