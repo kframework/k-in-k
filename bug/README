@@ -1,0 +1,26 @@
+Regression started with: b54761f44616ea4268f388022e43d73209d2960c `Update dependencies (#1011)`
+Usage:
+radu@ubuntu:~/work/test/kink$ kompile kink.k -ccopt -g -ccopt -O0
+radu@ubuntu:~/work/test/kink$ krun -cCOMMANDLINE='frontend-to-ekore' -cKINKDEPLOYEDDIR=./. --directory ./. inner-parsing.k --debugger
+
+(gdb) break definition.kore:step
+Breakpoint 1 at 0x22c660
+(gdb) r
+Breakpoint 1, 0x000000000022c660 in step (subject=Traceback (most recent call last):
+  File "/home/radu/work/k-in-k/ext/k/k-distribution/target/release/k/lib/kllvm/gdb/kllvm.py", line 414, in to_string
+    self.append(self.val, False, self.sortName)
+  File "/home/radu/work/k-in-k/ext/k/k-distribution/target/release/k/lib/kllvm/gdb/kllvm.py", line 632, in append
+    sort = gdb.lookup_global_symbol("sort_table").value()[tag][i].string("iso-8859-1")
+gdb.error: Missing ELF symbol "sort_table".
+
+Python Exception <class 'gdb.error'> Missing ELF symbol "sort_table".: 
+) at /home/radu/work/k-in-k/ext/k/k-distribution/target/release/k/include/builtin/domains.k:1354
+1354	                      | "~" #RuleTag [symbol, klabel(#appliedRule)]
+(gdb) q
+
+
+----------- normal at this point would be: -------------------
+Breakpoint 1, 0x000000000022c660 in step (subject=
+    `<generatedTop>{}`(`<k>{}`(`kseq{}`(`#parseCommandLine(_,_)_COMMAND-LINE-SYNTAX_KItem_CommandLine_Pgm{}`(Lblfrontend-to-ekore'Unds'COMMAND-LINE-SYNTAX'Unds'CommandLine{}(.KList),`inj{Any{}, KItem{}}`(#token("module INNER-PARSING\n  syntax Layout ::= r\"(/\\\\*([^\\\\*]|(\\\\*+([^\\\\*/])))*\\\\*+/|//[^\\n\\r]*|[\\\\ \\n\\r\\t])*\" [klabel(layout)]\n\n  syntax Pgm ::= Foo\n  syntax Foo ::= \"bar\" [klabel(bar), function]\n               | \"buzz\" [klabel(buzz)]\n  configuration <T> <k> $PGM:Pgm </k> <env> .K </env> </T>\n  \n  rule A:Foo => .K\nendmodule\n","Id"))),dotk{}(.KList))),`<definition>{}`(`<defnAttrs>{}`(LbldotPatterns{}(.KList)),`<modules>{}`(`.Set`(.KList)),`<configInfo>{}`(`<cellName>{}`(`.Map`(.KList)),`<collected>{}`(`.Set`(.KList)))),`<exit-code>{}`(#token("1", "Int")),`<s>{}`(`kseq{}`(`inj{Strategy{}, KItem{}}`(`#applyRule{}`(#token("regular","Id"))),dotk{}(.KList))),`<generatedCounter>{}`(#token("0", "Int")),`<kinkDeployedDir>{}`(#token("./.","Id")))) at /home/radu/work/k/k-distribution/target/release/k/include/builtin/domains.k:1354
+1354	                      | "~" #RuleTag [symbol, klabel(#appliedRule)]
+(gdb) q
