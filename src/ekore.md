@@ -203,9 +203,7 @@ module CONFIG-RULE-CONTEXT-COMMON
   imports EKORE-BASE
   imports ATTRIBUTES-COMMON
   syntax RuleContents
-  syntax EKoreDeclaration ::= "configuration" RuleContents [klabel(kConfiguration), symbol]
-                            | "rule"    RuleContents       [klabel(kRule), symbol]
-                            | "context" RuleContents       [klabel(kContext), symbol]
+  syntax EKoreDeclaration
 endmodule
 
 module CONFIG-RULE-CONTEXT-ABSTRACT
@@ -216,6 +214,9 @@ module CONFIG-RULE-CONTEXT-ABSTRACT
                         | attrsP(Pattern, KAttributesDeclaration) [klabel(attrsP), symbol]
                         | noAttrsB(Bubble)                        [klabel(noAttrsB), format(%3), symbol]
                         | attrsB(Bubble, KAttributesDeclaration)  [klabel(attrsB), symbol]
+  syntax EKoreDeclaration ::= kConfiguration(RuleContents) [klabel(kConfigurationLbl), symbol]
+                            | kRule(RuleContents)          [klabel(kRuleLbl), symbol]
+                            | kContext(RuleContents)       [klabel(kContextLbl), symbol]
 endmodule
 
 module CONFIG-RULE-CONTEXT-SYNTAX
@@ -224,6 +225,9 @@ module CONFIG-RULE-CONTEXT-SYNTAX
   imports KORE-SYNTAX
   syntax RuleContents ::= Pattern                        [klabel(noAttrs)]
                         | Pattern KAttributesDeclaration [klabel(attrs), prefer]
+  syntax EKoreDeclaration ::= "configuration" RuleContents [klabel(kConfigurationLbl), symbol]
+                            | "rule"    RuleContents       [klabel(kRuleLbl), symbol]
+                            | "context" RuleContents       [klabel(kContextLbl), symbol]
 endmodule
 ```
 
