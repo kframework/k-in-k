@@ -100,7 +100,7 @@ K Productions
 module EKORE-BASE
   imports KORE-COMMON
   syntax EKoreDeclaration
-  syntax Declaration ::= EKoreDeclaration
+  syntax Declaration
 endmodule
 ```
 
@@ -132,6 +132,7 @@ module K-PRODUCTION-COMMON
 
   syntax SyntaxDeclaration
   syntax EKoreDeclaration
+  syntax Declaration
 endmodule
 
 module K-PRODUCTION-SYNTAX
@@ -161,6 +162,7 @@ module K-PRODUCTION-SYNTAX
   syntax ProdBlock        ::= KProductionWAttr  [klabel(inj)]
   syntax PrioritySeqBlock ::= ProdBlock         [klabel(inj)]
   syntax KProduction      ::= KProductionItem   [klabel(inj)]
+  syntax Declaration      ::= EKoreDeclaration  [klabel(inj)]
 
 endmodule
 
@@ -190,6 +192,7 @@ module K-PRODUCTION-ABSTRACT
   syntax ProdBlock        ::= KProductionWAttr
   syntax PrioritySeqBlock ::= ProdBlock
   syntax KProduction      ::= KProductionItem
+  syntax Declaration      ::= EKoreDeclaration
 
 endmodule
 ```
@@ -267,9 +270,9 @@ module ATTRIBUTES-COMMON
   syntax KAttributesDeclaration ::= "[" AttrList "]" [klabel(kAttributesDeclaration), symbol]
   syntax OptionalAttributes
 
-  syntax TagContent ::= UpperName | LowerName | Numbers | EKoreKString
+  syntax TagContent
   syntax TagContents
-  syntax KEY ::= LowerName //[token] // TODO: this token attribute causes a lot of weird ambiguities
+  syntax KEY
 
 endmodule
 
@@ -285,6 +288,7 @@ module ATTRIBUTES-ABSTRACT
 
   syntax TagContents ::= ".tagContents"  [klabel(dotTagContents), format(), symbol]
                        | TagContent TagContents [klabel(tagContents), symbol]
+  syntax KEY ::= LowerName
 endmodule
 
 module ATTRIBUTES-SYNTAX
@@ -303,6 +307,8 @@ module ATTRIBUTES-SYNTAX
 
   syntax TagContents ::= ""  [token, klabel(dotTagContents)]
                        | TagContent TagContents [token, klabel(tagContents)]
+  syntax TagContent ::= UpperName [token] | LowerName [token] | Numbers [token] | EKoreKString [klabel(inj)]
+  syntax KEY ::= LowerName [klabel(inj)]
 endmodule
 ```
 
@@ -390,7 +396,7 @@ module K-DEFINITION-ABSTRACT
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinitionLbl), format(%3%n%n%5), symbol]
   syntax Definition    ::= KDefinition
 
-  syntax Module        ::= kModule( KModuleName
+  syntax Module        ::= kModule( ModuleName
                                   , OptionalAttributes
                                   , KImportList
                                   , Declarations
@@ -412,7 +418,7 @@ module K-DEFINITION-SYNTAX
   syntax KDefinition   ::= KRequireList Modules [klabel(kDefinitionLbl), format(%1%n%n%2)]
   syntax Definition    ::= KDefinition [klabel(inj)]
 
-  syntax Module        ::= "module" KModuleName OptionalAttributes
+  syntax Module        ::= "module" ModuleName OptionalAttributes
                                     KImportList
                                     Declarations
                            "endmodule"

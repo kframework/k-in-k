@@ -8,14 +8,20 @@ module TOKENS
   syntax BacktickName
   syntax KoreString
 
-  // Abstract
-  syntax KModuleName ::= UpperName
-  syntax KSort       ::= UpperName
-  syntax ModuleName  ::= KModuleName | UpperName | LowerName
-  syntax SymbolName  ::= UpperName | LowerName
-  syntax SortName    ::= KSort | UpperName | LowerName
-  syntax VariableName ::= UpperName | LowerName
+  syntax KSort
+  syntax VariableName
+  syntax ModuleName
+  syntax SymbolName
 endmodule
+
+module TOKENS-ABSTRACT
+  imports TOKENS
+  syntax KSort        ::= UpperName
+  syntax VariableName ::= UpperName
+  syntax ModuleName   ::= UpperName
+  syntax SymbolName   ::= LowerName
+endmodule
+
 
 // TODO: UpperName is used for K modules names and shouldn't allow primes or #s.
 module TOKENS-SYNTAX
@@ -30,6 +36,10 @@ module TOKENS-SYNTAX
   syntax DollarName ::= r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
   syntax BacktickName ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
   syntax KoreString ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token]
+  syntax KSort        ::= UpperName [klabel(inj)]
+  syntax VariableName ::= UpperName [klabel(inj)]
+  syntax ModuleName   ::= UpperName [klabel(inj)]
+  syntax SymbolName   ::= LowerName [klabel(inj)]
 endmodule
 
 module KORE-COMMON
@@ -40,7 +50,7 @@ module KORE-COMMON
                      | "injective"   [token]
                      | "klabel"      [token]
 
-  syntax Sort     ::= SortName | SortName "{" Sorts "}" [klabel(nameParam), symbol]
+  syntax Sort     ::= KSort | KSort "{" Sorts "}" [klabel(nameParam), symbol]
   syntax Sorts
   syntax Symbol   ::= SymbolName "{" Sorts "}" [klabel(symbolSorts), symbol]
   syntax Variable ::= VariableName ":" Sort [klabel(varType), symbol]
@@ -115,6 +125,7 @@ endmodule
 
 module KORE-ABSTRACT
   imports KORE-COMMON
+  imports TOKENS-ABSTRACT
 
   syntax Sorts ::= Sort
                  | Sort "," Sorts        [klabel(consSorts), symbol]

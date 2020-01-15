@@ -61,7 +61,7 @@ kink = proj.definition( backend   = 'llvm'
                       , main      = 'src/kink.md'
                       , other     = [kore, ekore, parser, file, pgen, 'src/command-line.md', k_light, inner, pdisamb]
                       , directory = proj.builddir('kink')
-                      , flags     = '--syntax-module KINK-SYNTAX -ccopt -g -ccopt -O0'
+                      , flags     = '--syntax-module KINK-SYNTAX -ccopt -g -ccopt -O1'
                       , alias     = 'kink'
                       , runner_script = './kink'
                       )

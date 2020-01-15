@@ -142,14 +142,14 @@ module META-ACCESSORS
 ```
 
 ```k
-  syntax Bool ::= #isSortDeclaredMod(ModuleName, SortName) [function]
-  rule [[ #isSortDeclaredMod(MNAME:ModuleName, SORT:SortName) => true ]]
+  syntax Bool ::= #isSortDeclaredMod(ModuleName, KSort) [function]
+  rule [[ #isSortDeclaredMod(MNAME:ModuleName, SORT:KSort) => true ]]
        <name> MNAME </name>
        <decl> sort SORT { PARAMS } ATTRS </decl>
   rule #isSortDeclaredMod(_, _) => false [owise]
 
-  syntax Bool ::= #isSortDeclared(ModuleName, SortName) [function]
-  syntax Bool ::= #isSortDeclaredSet(Set, SortName)     [function]
+  syntax Bool ::= #isSortDeclared(ModuleName, KSort) [function]
+  syntax Bool ::= #isSortDeclaredSet(Set, KSort)     [function]
   rule #isSortDeclared(MNAME, SNAME)
     => #isSortDeclaredSet(#getImportedModules(MNAME), SNAME)
   rule #isSortDeclaredSet(SetItem(M) Ms, SNAME)
@@ -504,7 +504,7 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 
 ```k
   syntax Pattern ::= #attr2Pattern(Attr) [function]
-  rule #attr2Pattern(tagSimple(KEY:LowerName))
+  rule #attr2Pattern(tagSimple(KEY))
     => KEY { .Sorts } ( .Patterns )
 
   syntax Patterns ::= #attrList2Patterns(AttrList) [function]
@@ -522,7 +522,7 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
     => #sortsFromProdItem(PRODITEM) ++Sorts #symbolArgumentsFromProduction(PROD)
 
   syntax Sorts ::= #sortsFromProdItem(KProductionItem) [function]
-  rule #sortsFromProdItem(nonTerminal(KSORT:UpperName))
+  rule #sortsFromProdItem(nonTerminal(KSORT:KSort))
     => KSORT { .Sorts } , .Sorts
   rule #sortsFromProdItem(_) => .Sorts [owise]
 ```

@@ -8,45 +8,45 @@ module PARSER-GEN-HELPERS
   imports KORE-HELPERS
   imports META-ACCESSORS
 
-  syntax UpperName ::= String2UpperName (String) [function, functional, hook(STRING.string2token)]
+  syntax KSort ::= String2KSort (String) [function, functional, hook(STRING.string2token)]
   syntax Set ::= "noCastSortsInit" [function]
   rule noCastSortsInit => // sorts from this list do not receive productions for casting
-        SetItem(String2UpperName("Cell"))
-        SetItem(String2UpperName("CellName"))
-        SetItem(String2UpperName("CellProperties"))
-        SetItem(String2UpperName("CellProperty"))
-        SetItem(String2UpperName("KConfigVar"))
-        SetItem(String2UpperName("KLabel"))
-        SetItem(String2UpperName("KList"))
-        SetItem(String2UpperName("KString"))
-        SetItem(String2UpperName("KVariable"))
-        SetItem(String2UpperName("Layout"))
-        SetItem(String2UpperName("RuleBody"))
-        SetItem(String2UpperName("RuleContent"))
-        SetItem(String2UpperName("OptionalDots"))
+        SetItem(String2KSort("Cell"))
+        SetItem(String2KSort("CellName"))
+        SetItem(String2KSort("CellProperties"))
+        SetItem(String2KSort("CellProperty"))
+        SetItem(String2KSort("KConfigVar"))
+        SetItem(String2KSort("KLabel"))
+        SetItem(String2KSort("KList"))
+        SetItem(String2KSort("KString"))
+        SetItem(String2KSort("KVariable"))
+        SetItem(String2KSort("Layout"))
+        SetItem(String2KSort("RuleBody"))
+        SetItem(String2KSort("RuleContent"))
+        SetItem(String2KSort("OptionalDots"))
   syntax Set ::= "noLatticeSortsInit" [function]
   rule noLatticeSortsInit => // sorts from this list are not included in the automatic subsorts lattice
-        SetItem(String2UpperName("Cell"))
-        SetItem(String2UpperName("CellName"))
-        SetItem(String2UpperName("CellProperties"))
-        SetItem(String2UpperName("CellProperty"))
-        SetItem(String2UpperName("K"))
-        SetItem(String2UpperName("KBott"))
-        SetItem(String2UpperName("KConfigVar"))
-        SetItem(String2UpperName("KLabel"))
-        SetItem(String2UpperName("KList"))
-        SetItem(String2UpperName("KString"))
-        SetItem(String2UpperName("KVariable"))
-        SetItem(String2UpperName("Layout"))
-        SetItem(String2UpperName("RuleBody"))
-        SetItem(String2UpperName("RuleContent"))
-        SetItem(String2UpperName("OptionalDots"))
+        SetItem(String2KSort("Cell"))
+        SetItem(String2KSort("CellName"))
+        SetItem(String2KSort("CellProperties"))
+        SetItem(String2KSort("CellProperty"))
+        SetItem(String2KSort("K"))
+        SetItem(String2KSort("KBott"))
+        SetItem(String2KSort("KConfigVar"))
+        SetItem(String2KSort("KLabel"))
+        SetItem(String2KSort("KList"))
+        SetItem(String2KSort("KString"))
+        SetItem(String2KSort("KVariable"))
+        SetItem(String2KSort("Layout"))
+        SetItem(String2KSort("RuleBody"))
+        SetItem(String2KSort("RuleContent"))
+        SetItem(String2KSort("OptionalDots"))
 
   // Add parsing syntax
   // casts: Sort ::= Sort ":Sort"
   // expecting a list of productions as argument and returns a new list with added cast for each sort found
   // except for `noCastSortsInit`
-  syntax String ::= token2String(UpperName) [function, functional, hook(STRING.token2string)]
+  syntax String ::= token2String(KSort) [function, functional, hook(STRING.token2string)]
   syntax Set ::= "#addCasts" "(" Set ")" [function]
   syntax Set ::= "#addCasts2" "(" Set "," Set ")" [function]
   rule #addCasts(Prds) => #addCasts2(Prds, noCastSortsInit)
@@ -72,8 +72,8 @@ module PARSER-GEN-HELPERS
           SetItem(kSyntaxProduction(SORT, PROD))
           _:Set
           (.Set => 
-              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
-              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt))))
+              SetItem(kSyntaxProduction(String2KSort("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
+              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2KSort("KBott")), noAtt))))
           , SORTS (.Set => SetItem(SORT)))
      requires notBool SORT in SORTS
   rule #addSubsorts2(Prds, _) => Prds [owise]
@@ -143,7 +143,7 @@ module PARSE-CONFIG
   imports STRING
   imports FILE-UTIL
   imports PARSER-UTIL
-  imports KORE-ABSTRACT
+  imports EKORE-ABSTRACT
   imports META-ACCESSORS
   imports PARSER-GEN-HELPERS
 

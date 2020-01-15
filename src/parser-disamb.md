@@ -72,8 +72,8 @@ module DISAMBIGUATE
   
   // apply type check
   // checkType(<sort from top>, <term to apply on>, <signatures>, <subsort relations>, <types to enforce>)
-  syntax Pattern  ::= checkType (Pattern,  SortName, Map, Set, Set)
-  syntax Patterns ::= checkType2(Patterns, List,     Map, Set, Set)
+  syntax Pattern  ::= checkType (Pattern,  KSort, Map, Set, Set)
+  syntax Patterns ::= checkType2(Patterns, List,  Map, Set, Set)
   rule applyTypeCheck(P, Sigs, Subs, Types) => checkType(P, #token("K","UpperName"), Sigs, Subs, Types)
   rule checkType (SName { _ } ( Ps ), UpSort, ((SName |-> ListItem(SSort) Sig:List) _:Map) #as Sigs, Subs, Types)
     => checkType2(Ps, Sig, Sigs, Subs, Types)
