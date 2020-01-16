@@ -14,7 +14,8 @@ After installing python3, [ninja-build] and [pandoc] simply run `./build`.
 Running
 =======
 
-First, build K-in-K with `./build kink`. Then: 
+After cloning the repo and initializing the submodules (`git submodule update --init --recursive`),
+build K-in-K with `./build kink`. Then:
 
 * to kompile an ekore definition, use `./bin/kink kompile -- foo.ekore`
 * to parse a program, use `./bin/kink kast program.foo -- foo.k`
