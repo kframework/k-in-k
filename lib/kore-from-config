@@ -23,14 +23,12 @@ kore = input[begin.end():end.start()]
 
 # Remove unwanted units from Lists etc.
 commaSeparated = ['AttrList', 'KoreNames', 'Names',  'Patterns', 'Sorts']
-others = ['Modules', 'Declarations', 'KImportList', 'TagContents']
+others = ['Modules', 'Declarations', 'KImportList', 'TagContents', 'DeclCellSet' ]
 for listSort in commaSeparated:
     kore = kore.replace(' , .' + listSort, '')
 for listSort in commaSeparated + others:
     kore = kore.replace('.'   + listSort, '')
 kore = re.sub(r' *<k>\n *\.\n *</k>\n', '', kore)
-kore = re.sub(r' *<grammar>.*</grammar>\n', '', kore)
-kore = re.sub(r' *<grammar>\n.*\n *</grammar>\n', '', kore) # '.' doesn't match new lines?!
 
 outfile = open(out_file, 'w')
 for line in kore.split("\n")[1:-1]:

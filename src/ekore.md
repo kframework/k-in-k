@@ -70,7 +70,8 @@ module RULES-WITH-BUBBLES-COMMON
   imports CONFIG-RULE-CONTEXT-COMMON
   syntax BubbleItem
   syntax Bubble
-  syntax RuleContents ::= Bubble
+  syntax BubbleWithAttr
+  syntax RuleContents ::= BubbleWithAttr
 endmodule
 
 module RULES-WITH-BUBBLES-ABSTRACT
@@ -81,6 +82,8 @@ endmodule
 module RULES-WITH-BUBBLES-SYNTAX
   imports RULES-WITH-BUBBLES-COMMON
   imports CONFIG-RULE-CONTEXT-SYNTAX
+  syntax BubbleWithAttr ::= Bubble                        [klabel(noAttrs)]
+                          | Bubble KAttributesDeclaration [klabel(attrs), prefer]
   syntax BubbleItem ::= r"[^ \t\n\r]+" [token, reject2("rule|syntax|endmodule|configuration|context")]
   syntax Bubble ::= Bubble BubbleItem  [token]
                   | BubbleItem         [token]
@@ -187,9 +190,12 @@ endmodule
 
 module CONFIG-RULE-CONTEXT-ABSTRACT
   imports CONFIG-RULE-CONTEXT-COMMON
+  imports RULES-WITH-BUBBLES-COMMON
   imports KORE-ABSTRACT
   syntax RuleContents ::= noAttrs(Pattern)                   [klabel(noAttrs), format(%3)]
-                    | attrs(Pattern, KAttributesDeclaration) [klabel(attrs), prefer]
+                        | attrs(Pattern, KAttributesDeclaration) [klabel(attrs)]
+                        | noAttrs(Bubble)                   [klabel(noAttrs), format(%3)]
+                        | attrs(Bubble, KAttributesDeclaration) [klabel(attrs)]
 endmodule
 
 module CONFIG-RULE-CONTEXT-SYNTAX
@@ -239,7 +245,7 @@ module ATTRIBUTES-COMMON
 
   syntax TagContent ::= UpperName | LowerName | Numbers | EKoreKString
   syntax TagContents
-  syntax KEY ::= LowerName
+  syntax KEY ::= LowerName //[token] // TODO: this token attribute causes a lot of weird ambiguities
 
 endmodule
 
@@ -350,9 +356,9 @@ module K-DEFINITION-ABSTRACT
   imports ATTRIBUTES-ABSTRACT
 
   syntax KImportList   ::= ".KImportList" [klabel(emptyKImportList)]
-                         | KImportList KImport  [klabel(kImportList), format(%1%2%n%3)]
+                         | KImportList KImport  [klabel(kImportList), format(%1%2%n)]
   syntax KRequireList  ::= ".KRequireList" [klabel(emptyKRequireList)]
-                         | KRequireList KRequire [klabel(KRequireList), format(%1%2%n%3)]
+                         | KRequireList KRequire [klabel(KRequireList), format(%1%2%n)]
 
   syntax KDefinition   ::= kDefinition(KRequireList, Modules) [klabel(kDefinition), format(%3%n%n%5)]
   syntax Definition    ::= KDefinition

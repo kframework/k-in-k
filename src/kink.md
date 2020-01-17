@@ -33,6 +33,7 @@ module KINK-CONFIGURATION
   syntax Declaration ::= "nullDecl"
   syntax DeclCellSet
   syntax DeclarationsCellFragment
+
   configuration <k> #parseCommandLine($COMMANDLINE:CommandLine, $PGM:Any) </k>
                 <definition>
                    <defnAttrs format="[ %2 ]%n"> .Patterns </defnAttrs>
@@ -44,13 +45,22 @@ module KINK-CONFIGURATION
                        <declarations format="%2">
                          <decl format="%2%n" multiplicity="*" type="Set"> nullDecl </decl>
                        </declarations>
-                       <grammar> .Set </grammar>
+                       <parserGenerator format="/*%i%n%1%n%2%n%3%n%4%n%5%d%n*/">
+                         <prgGrammar> .Set </prgGrammar> // place to collect the grammar used to parse programs
+                         <configGrammar> .Set </configGrammar> // place to collect the grammar used to parse configurations
+                         <ruleGrammar> .Set </ruleGrammar> // place to collect the grammar used to parse rules
+                       </parserGenerator>
                      </mod>
                    </modules>
+                   <configInfo format="/*%i%n%1%n%2%n%3%n%4%n%d%n*/">
+                     <cellName> .Map </cellName>
+                     <collected> .Set </collected>
+                   </configInfo>
                 </definition>
                 <exit-code exit=""> 1 </exit-code>
                 initSCell(.Map)
                 <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
+
 endmodule
 ```
 
@@ -67,6 +77,7 @@ Meta functions
 module KORE-HELPERS
   imports KORE-ABSTRACT
   imports K-EQUAL
+  imports STRING
 
   syntax Declarations ::= Declarations "++Declarations" Declarations [function]
   rule (D1 DS1) ++Declarations DS2 => D1 (DS1 ++Declarations DS2)
@@ -86,6 +97,9 @@ module KORE-HELPERS
   rule (P inPatterns P1:Pattern ,  PS)
     => (P inPatterns               PS)
     requires notBool P ==K P1
+    
+  syntax EKoreKString ::= String2EKoreKString (String) [function, functional, hook(STRING.string2token)]
+  syntax TagContents  ::= String2TagContents  (String) [function, functional, hook(STRING.string2token)]
 endmodule
 ```
 
@@ -108,6 +122,23 @@ module META-ACCESSORS
        <decl> koreImport(IMPORTED, _) </decl>
     requires notBool IMPORTED in MODS
   rule #getImportedModulesSet(MNAME, MODS) => MODS [owise]
+  
+  syntax Set ::= #getLocalProds(ModuleName)      [function]
+  syntax Set ::= #getLocalProdsSet(ModuleName, Set) [function]
+  rule #getLocalProds(MNAME) => #getLocalProdsSet(MNAME, .Set)
+  rule [[ #getLocalProdsSet(MNAME, PRODS)
+       => #getLocalProdsSet(MNAME, PRODS SetItem(PRD))
+       ]]
+       <name> MNAME </name>
+       <decl> kSyntaxProduction(_, _) #as PRD </decl>
+    requires notBool PRD in PRODS
+  rule #getLocalProdsSet(MNAME, PRODS) => PRODS [owise]
+  
+  syntax Set ::= #getAllProds(ModuleName)      [function]
+  syntax Set ::= #getAllProdsSet(Set) [function]
+  rule #getAllProds(MName) => #getAllProdsSet(#getImportedModules(MName))
+  rule #getAllProdsSet(SetItem(MName) Rest) => #getLocalProds(MName) #getAllProdsSet(Rest)
+  rule #getAllProdsSet(.Set) => .Set
 ```
 
 ```k
@@ -198,67 +229,6 @@ endmodule
 
 Transforms
 ==========
-
-Parse Outer
------------
-
-```k
-module PARSE-OUTER
-  imports KINK-CONFIGURATION
-  imports PARSER-UTIL
-
-  // TODO: remove: #writeStringToFile, #doSystem, #doSystemGetOutput, #doParseAST
-  syntax KItem ::= "#parseOuter"
-  rule <k> PGM:Any ~> #parseOuter => parseOuter(tokenToString(PGM)) ... </k>
-endmodule
-```
-
-Parse Program
--------------
-
-```k
-module PARSE-PROGRAM
-  imports KINK-CONFIGURATION
-  imports K-PRODUCTION-ABSTRACT
-  imports EKORE-KSTRING-ABSTRACT
-  imports KORE-HELPERS
-  imports STRING
-  imports FILE-UTIL
-  imports PARSER-UTIL
-
-  syntax KItem ::= "#parseProgramPath" "(" String ")" // Program Filename
-                 | "#parseProgram" "(" IOString ")" // Program content
-                 | "#collectGrammar"
-  rule <k> #parseProgramPath(PGM_FILENAME) => #parseProgram(readFile(PGM_FILENAME)) ... </k>
-
-  rule <k> #parseProgram(PGM)
-        => parseWithProductions(GRAMMAR, "Pgm", PGM)
-           ...
-       </k>
-       <grammar> GRAMMAR </grammar>
-
-  rule <k> #collectGrammar ... </k>
-       <decl> kSyntaxProduction(SORT, PROD) #as SYNTAXDECL </decl>
-       <grammar> ( .Set => SetItem(SYNTAXDECL) ) REST </grammar>
-    requires notBool(SYNTAXDECL in REST)
-  rule <k> #collectGrammar => .K ... </k>
-       <s> #STUCK() => .K ... </s>
-endmodule
-```
-
-Parse into EKore
-----------------
-
-```k
-module PARSE-TO-EKORE
-  imports EKORE-ABSTRACT
-  imports KINK-CONFIGURATION
-  imports PARSER-UTIL
-
-  syntax KItem ::= "#parseToEKore"
-  rule <k> PGM:Any ~> #parseToEKore => parseEKore(tokenToString(PGM)) ... </k>
-endmodule
-```
 
 K (frontend) modules to Kore Modules
 ------------------------------------
@@ -391,7 +361,7 @@ module FLATTEN-PRODUCTIONS
   rule <k> #flattenProductions ... </k>
        <mod>
        <declarations>
-          <decl> kSyntaxProduction(SORT, P1 > P2) </decl>
+          <decl> kSyntaxProduction(SORT, P1 > _:AssocAttribute P2) </decl>
        => <decl> kSyntaxProduction(SORT, P1) </decl>
           <decl> kSyntaxProduction(SORT, P2) </decl>
           ...

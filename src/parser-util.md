@@ -116,7 +116,7 @@ module PARSER-UTIL
   rule KProductionToString(PI:KProductionItem)
     => KProductionItemToString(PI)
   rule KProductionToString(kProduction(PI, PIs))
-    => KProductionItemToString(PI) +String "\n" +String KProductionToString(PIs)
+    => KProductionItemToString(PI) +String " " +String KProductionToString(PIs)
   rule KProductionToString(TAG:Tag(KSORTLIST:KSortList))
     => tokenToString(TAG) +String "(" +String KSortListToString(KSORTLIST) +String ")"
 

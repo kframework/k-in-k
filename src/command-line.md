@@ -1,4 +1,7 @@
 ```k
+require "file-util.k"
+require "parser-gen.k"
+
 module COMMAND-LINE-SYNTAX
   imports STRING-SYNTAX
   syntax KItem ::= "#parseCommandLine" "(" CommandLine "," Pgm ")"
@@ -8,6 +11,7 @@ module COMMAND-LINE-SYNTAX
   syntax String ::= token2String(KItem) [function, functional, hook(STRING.token2string)]
   syntax CommandLine ::= "kompile"
                        | "kast" Path
+                       | "frontend-to-ekore"
                        | "ekore-to-kore"
 endmodule
 ```
@@ -18,6 +22,8 @@ module COMMAND-LINE
 
   imports PARSE-OUTER
   imports PARSE-PROGRAM
+  imports PARSE-CONFIG
+  imports PARSE-RULE
   imports PARSE-TO-EKORE
 
   imports FRONTEND-MODULES-TO-KORE-MODULES
@@ -28,6 +34,7 @@ module COMMAND-LINE
   imports PRODUCTIONS-TO-SYMBOL-DECLARATIONS
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
+  imports FILE-UTIL
 ```
 
 Command line options
@@ -53,6 +60,21 @@ the `PATH`:
        </k>
 ```
 
+`frontend-to-ekore`: gets a full K definition and:
+
+ - parses into bubbles
+ - sanity checks
+ - parse config
+ - parse rules
+
+```k
+  rule <k> #parseCommandLine(frontend-to-ekore, PGM)
+        => PGM ~> #frontendPipeline
+           ...
+       </k>
+
+```
+
 `ekore-to-kore`: Convert the EKore definition specified in `$PGM`
 to kore syntax. Frontend declarations that are not captured completely by
 the kore definition are kept.
@@ -76,16 +98,16 @@ High-level pipeline steps
 =========================
 
 ```k
-  syntax K ::= "#kastPipeline" "(" String ")" [function]
-  rule #kastPipeline(PATH)
-    => #parseOuter
+  syntax K ::= "#kastPipeline" "(" String ")"
+  rule PGM:Any ~> #kastPipeline(PATH:String)
+    => parseOuter(tokenToString(PGM))
     ~> #defnToConfig
     ~> #flattenProductions
-    ~> #collectGrammar
+    ~> #collectPgmGrammar
     ~> #parseProgramPath(PATH)
     ~> #success
 
-  syntax K ::= "#ekorePipeline" [function]
+  syntax K ::= "#ekorePipeline"
   rule #ekorePipeline
     => #parseToEKore
     ~> #defnToConfig
@@ -95,6 +117,25 @@ High-level pipeline steps
     ~> #productionsToSymbolDeclarations
     ~> #translateRules
     ~> #success
+    
+  syntax K ::= "#frontendPipeline"
+  rule <k> PGM:Any ~> #frontendPipeline
+    =>  parseOuter(
+      {readFile(DEPLOY_DIR +String "/src/inner.k")}:>String
+      +String
+      tokenToString(PGM)
+      ) // collect required files - hardcoded for now
+    ~> #defnToConfig
+    ~> #flattenProductions
+    // parse bubbles
+    ~> #createConfigGrammar
+    ~> #parseConfigBubbles
+    ~> #extractConfigInfo
+    ~> #createRuleGrammar
+    ~> #parseRuleBubbles
+    ~> #success
+    </k>
+    <kinkDeployedDir> DEPLOY_DIR </kinkDeployedDir>
 ```
 
 ```k

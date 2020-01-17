@@ -6,6 +6,7 @@ module TOKENS
   syntax DollarName
   syntax Numbers
   syntax BacktickName
+  syntax KoreString
 
   // Abstract
   syntax KModuleName ::= UpperName
@@ -28,6 +29,7 @@ module TOKENS-SYNTAX
   syntax Numbers   ::= r"[\\+-]?[0-9]+"        [token]
   syntax DollarName ::= r"(\\$)([A-Z][A-Za-z\\-0-9]*)" [token]
   syntax BacktickName ::= r"`(\\\\`|\\\\\\\\|[^`\\\\\\n\\r])+`" [token]
+  syntax KoreString ::= r"[\\\"](([^\\\"\n\r\\\\])|([\\\\][nrtf\\\"\\\\])|([\\\\][x][0-9a-fA-F]{2})|([\\\\][u][0-9a-fA-F]{4})|([\\\\][U][0-9a-fA-F]{8}))*[\\\"]"      [token]
 endmodule
 
 module KORE-COMMON
@@ -44,7 +46,6 @@ module KORE-COMMON
   syntax Variable ::= VariableName ":" Sort [klabel(varType)]
 
   syntax Pattern ::= Variable
-                // | String
                    | Symbol "(" Patterns ")" [klabel(application)]
                    | "\\and"      "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(and)]
                    | "\\not"      "{" Sort "}"          "(" Pattern ")"              [klabel(not)]
@@ -61,7 +62,7 @@ module KORE-COMMON
                    | "\\bottom"   "{" Sort "}"          "(" ")"                      [klabel(bottom)]
                    | "\\next"     "{" Sort "}"          "(" Pattern ")"              [klabel(next)]
                    | "\\rewrites" "{" Sort "}"          "(" Pattern "," Pattern ")"  [klabel(rewrites)]
-                   | "\\dv"       "{" Sort "}"          "(" Pattern ")"              [klabel(dv)]
+                   | "\\dv"       "{" Sort "}"          "(" KoreString ")"           [klabel(dv)]
   syntax Patterns
 
   syntax Attribute ::= "[" Patterns "]" [klabel(koreAttributes)]
@@ -114,7 +115,8 @@ endmodule
 module KORE-ABSTRACT
   imports KORE-COMMON
 
-  syntax Sorts ::= Sort "," Sorts        [klabel(consSorts)]
+  syntax Sorts ::= Sort
+                 | Sort "," Sorts        [klabel(consSorts)]
                  | ".Sorts"              [klabel(dotSorts )]
 
   syntax Patterns ::= Pattern "," Patterns [klabel(consPatterns)]

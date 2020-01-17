@@ -52,11 +52,13 @@ k_light = proj.dotTarget().then(build_k_light())
 ekore  = 'src/ekore.md'
 kore   = 'src/kore.md'
 parser = 'src/parser-util.md'
+pgen   = 'src/parser-gen.md'
 file   = 'src/file-util.md'
+inner  = 'src/inner.md'
 
 kink = proj.definition( backend   = 'ocaml'
                       , main      = 'src/kink.md'
-                      , other     = [kore, ekore, parser, file, 'src/command-line.md', k_light]
+                      , other     = [kore, ekore, parser, file, pgen, 'src/command-line.md', k_light, inner]
                       , directory = proj.builddir('kink')
                       , flags     = '--syntax-module KINK-SYNTAX'
                       , alias     = 'kink'
@@ -68,9 +70,9 @@ def pipeline(commandline, extension):
                 flags = "-cCOMMANDLINE='%s' -cKINKDEPLOYEDDIR=%s"
                       % (commandline, kink.directory()))
 
-def kink_test(base_dir, test_file, pipeline):
+def kink_test(base_dir, test_file, expected_file, pipeline):
     input = path.join(base_dir, test_file)
-    expected = path.join(base_dir, 'expected.ekore')
+    expected = path.join(base_dir, expected_file)
     return proj.source(input) \
                .then(pipeline) \
                .then(kore_from_config) \
@@ -78,7 +80,8 @@ def kink_test(base_dir, test_file, pipeline):
                          .variables(flags = '--ignore-all-space --ignore-blank-lines')) \
                .default()
 
-ekore_test = functools.partial(kink_test, pipeline = pipeline('ekore-to-kore'   , 'ekorePipeline'))
+ekore_test    = functools.partial(kink_test, expected_file = 'expected.ekore', pipeline = pipeline('ekore-to-kore', 'ekorePipeline'))
+frontend_test = functools.partial(kink_test, expected_file = 'parsed.ekore', pipeline = pipeline('frontend-to-ekore', 'frontendPipeline'))
 
 def parse_test(base_dir, def_file, input_program):
     def_path = path.join(base_dir, def_file)
@@ -134,5 +137,10 @@ imp_tests += [ ekore_test('t/imp-simple', 'expected.ekore') ]
 imp_tests += [ lang_test('t/imp-simple', 'IMP-SIMPLE', 'conjunction.imp') ]
 imp_tests += [ parse_test('t/imp-simple', 'imp-simple.k', 'conjunction.imp') ]
 proj.build('t/imp', 'phony', inputs = Target.to_paths(imp_tests))
+
+# Inner parsing
+inner_tests = []
+inner_tests += [ frontend_test('t/inner-parsing', 'inner-parsing.k') ]
+proj.build('t/inner-parsing', 'phony', inputs = Target.to_paths(inner_tests))
 
 proj.main()
