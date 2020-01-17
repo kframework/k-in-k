@@ -1,0 +1,31 @@
+//x
+
+x ie x
+// x +i y
+//x + y
+//x < y
+//appl2("+", x, y)
+
+
+
+    x ie x
+->  x ~> # ie x
+->  ?S ~> # ie x
+    x |-> ?S
+->  ?S ie x
+    x |-> ?S
+->  x ~> ?S ie #
+    x |-> ?S
+
+// narrow with: int => exp
+->  exp ~> int ie #
+    x |-> int
+
+->  int ie exp
+    x |-> int
+
+~>  int
+    x |-> int       [1]
+
+~>  exp
+    x |-> int       [2]

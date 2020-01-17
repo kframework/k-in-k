@@ -1,0 +1,3 @@
+<exp>
+  <k> True && ( False && True ) ~> .K </k>
+</exp>

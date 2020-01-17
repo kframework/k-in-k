@@ -1,0 +1,3 @@
+expCell{}(
+    kCell{}(kseq{}(inj{BExpResult{}, KItem{}}(False{}()), dotk{}())),
+)
