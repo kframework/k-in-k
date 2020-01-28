@@ -8,7 +8,6 @@ module COMMAND-LINE-SYNTAX
   syntax Pgm
 
   syntax Path ::= r"[\\\\./a-zA-Z0-9_-][\\\\./a-zA-Z0-9_-]*" [token]
-  syntax String ::= token2String(Path) [function, functional, hook(STRING.token2string)]
   syntax CommandLine ::= "kompile"
                        | "kast" Path
                        | "frontend-to-ekore"
@@ -35,6 +34,7 @@ module COMMAND-LINE
   imports TRANSLATE-FUNCTION-RULES
   imports REMOVE-FRONTEND-DECLARATIONS
   imports FILE-UTIL
+  imports PARSER-UTIL
 ```
 
 Command line options
@@ -55,7 +55,7 @@ the `PATH`:
 
 ```k
   rule <k> #parseCommandLine(kast PATH, PGM)
-        => PGM ~> #kastPipeline(token2String(PATH))
+        => PGM ~> #kastPipeline(tokenToString(PATH))
            ...
        </k>
 ```
@@ -98,7 +98,6 @@ High-level pipeline steps
 =========================
 
 ```k
-  syntax String ::= tokenToString(Any) [function, functional, hook(STRING.token2string)]
   syntax KItem ::= "#kastPipeline" "(" String ")"
   rule PGM:Any ~> #kastPipeline(PATH:String)
     => parseOuter(tokenToString(PGM))

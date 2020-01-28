@@ -59,7 +59,8 @@ module KINK-CONFIGURATION
                 </definition>
                 <exit-code exit=""> 1 </exit-code>
                 initSCell(.Map)
-                <kinkDeployedDir> token2String($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
+                <kinkDeployedDir> tokenToString($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
+  syntax String ::= tokenToString(Path) [function, functional, hook(STRING.token2string)]
 
 endmodule
 ```
@@ -215,7 +216,7 @@ module META-ACCESSORS
   rule #keyInAttributes(KEY, (_ , REST))
     => #keyInAttributes(KEY, REST) [owise]
 
-  syntax TagContents ::= #getAttributeContent(KEY, AttrList) [function]
+  syntax LowerName ::= #getAttributeContent(KEY, AttrList) [function]
 //  rule #getAttributeContent(_, .AttrList) => undefined
 //  rule #getAttributeContent(KEY, (tagSimple(KEY)    , _)) => undefined
   rule #getAttributeContent(KEY, (tagContent(KEY, CONTENT), _)) => CONTENT
@@ -490,7 +491,8 @@ module PRODUCTIONS-TO-SYMBOL-DECLARATIONS
 ```k
   syntax SymbolName ::= #symbolNameFromAttrList(AttrList) [function]
   rule #symbolNameFromAttrList(ATTRS)
-    => {parseSymbolName(tokenToString(#getAttributeContent(klabel, ATTRS)))}:>SymbolName
+    => {parseSymbolName(tokenToString({#getAttributeContent(klabel, ATTRS)}:>LowerName))}:>SymbolName
+    requires isLowerName(#getAttributeContent(klabel, ATTRS))
 
   syntax Patterns ::= #removeKlabelAttr(AttrList) [function]
   rule #removeKlabelAttr(consAttrList(tagContent(klabel, _), ATTRS))

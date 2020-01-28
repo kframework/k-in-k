@@ -7,47 +7,48 @@ module PARSER-GEN-HELPERS
   imports KINK-CONFIGURATION
   imports KORE-HELPERS
   imports META-ACCESSORS
+  imports PARSER-UTIL
 
-  syntax KSort ::= String2KSort (String) [function, functional, hook(STRING.string2token)]
+  syntax UpperName ::= String2UpperName (String) [function, functional, hook(STRING.string2token)]
   syntax Set ::= "noCastSortsInit" [function]
   rule noCastSortsInit => // sorts from this list do not receive productions for casting
-        SetItem(String2KSort("Cell"))
-        SetItem(String2KSort("CellName"))
-        SetItem(String2KSort("CellProperties"))
-        SetItem(String2KSort("CellProperty"))
-        SetItem(String2KSort("KConfigVar"))
-        SetItem(String2KSort("KLabel"))
-        SetItem(String2KSort("KList"))
-        SetItem(String2KSort("KString"))
-        SetItem(String2KSort("KVariable"))
-        SetItem(String2KSort("Layout"))
-        SetItem(String2KSort("RuleBody"))
-        SetItem(String2KSort("RuleContent"))
-        SetItem(String2KSort("OptionalDots"))
+        SetItem(String2UpperName("Cell"))
+        SetItem(String2UpperName("CellName"))
+        SetItem(String2UpperName("CellProperties"))
+        SetItem(String2UpperName("CellProperty"))
+        SetItem(String2UpperName("KConfigVar"))
+        SetItem(String2UpperName("KLabel"))
+        SetItem(String2UpperName("KList"))
+        SetItem(String2UpperName("KString"))
+        SetItem(String2UpperName("KVariable"))
+        SetItem(String2UpperName("Layout"))
+        SetItem(String2UpperName("RuleBody"))
+        SetItem(String2UpperName("RuleContent"))
+        SetItem(String2UpperName("OptionalDots"))
   syntax Set ::= "noLatticeSortsInit" [function]
   rule noLatticeSortsInit => // sorts from this list are not included in the automatic subsorts lattice
-        SetItem(String2KSort("Cell"))
-        SetItem(String2KSort("CellName"))
-        SetItem(String2KSort("CellProperties"))
-        SetItem(String2KSort("CellProperty"))
-        SetItem(String2KSort("K"))
-        SetItem(String2KSort("KBott"))
-        SetItem(String2KSort("KConfigVar"))
-        SetItem(String2KSort("KLabel"))
-        SetItem(String2KSort("KList"))
-        SetItem(String2KSort("KString"))
-        SetItem(String2KSort("KVariable"))
-        SetItem(String2KSort("Layout"))
-        SetItem(String2KSort("RuleBody"))
-        SetItem(String2KSort("RuleContent"))
-        SetItem(String2KSort("OptionalDots"))
+        SetItem(String2UpperName("Cell"))
+        SetItem(String2UpperName("CellName"))
+        SetItem(String2UpperName("CellProperties"))
+        SetItem(String2UpperName("CellProperty"))
+        SetItem(String2UpperName("K"))
+        SetItem(String2UpperName("KBott"))
+        SetItem(String2UpperName("KConfigVar"))
+        SetItem(String2UpperName("KLabel"))
+        SetItem(String2UpperName("KList"))
+        SetItem(String2UpperName("KString"))
+        SetItem(String2UpperName("KVariable"))
+        SetItem(String2UpperName("Layout"))
+        SetItem(String2UpperName("RuleBody"))
+        SetItem(String2UpperName("RuleContent"))
+        SetItem(String2UpperName("OptionalDots"))
 
   // Add parsing syntax
   // casts: Sort ::= Sort ":Sort"
   // expecting a list of productions as argument and returns a new list with added cast for each sort found
   // except for `noCastSortsInit`
-  syntax String ::= token2String(KSort) [function, functional, hook(STRING.token2string)]
-  syntax Set ::= "#addCasts" "(" Set ")" [function]
+
+syntax Set ::= "#addCasts" "(" Set ")" [function]
   syntax Set ::= "#addCasts2" "(" Set "," Set ")" [function]
   rule #addCasts(Prds) => #addCasts2(Prds, noCastSortsInit)
   rule #addCasts2(
@@ -56,10 +57,10 @@ module PARSER-GEN-HELPERS
           (.Set => SetItem(
             kSyntaxProduction(SORT,
                 kProductionWAttr(kProduction(nonTerminal(SORT),
-                                             terminal(String2EKoreKString("\":" +String token2String(SORT) +String "\""))),
+                                             terminal(String2EKoreKString("\":" +String tokenToString(SORT:UpperName) +String "\""))),
                                  kAttributesDeclaration(consAttrList(
                                     tagContent(#token("klabel","LowerName"),
-                                               String2TagContents("SemanticCastTo" +String token2String(SORT))),dotAttrList(.KList)))))))
+                                               String2TagContents("SemanticCastTo" +String tokenToString(SORT))),.AttrList))))))
           , SORTS (.Set => SetItem(SORT)))
      requires notBool SORT in SORTS
   rule #addCasts2(Prds, _) => Prds [owise]
@@ -72,8 +73,8 @@ module PARSER-GEN-HELPERS
           SetItem(kSyntaxProduction(SORT, PROD))
           _:Set
           (.Set => 
-              SetItem(kSyntaxProduction(String2KSort("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
-              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2KSort("KBott")), noAtt))))
+              SetItem(kSyntaxProduction(String2UpperName("K"), kProductionWAttr(nonTerminal(SORT), noAtt)))
+              SetItem(kSyntaxProduction(SORT, kProductionWAttr(nonTerminal(String2UpperName("KBott")), noAtt))))
           , SORTS (.Set => SetItem(SORT)))
      requires notBool SORT in SORTS
   rule #addSubsorts2(Prds, _) => Prds [owise]
@@ -124,7 +125,7 @@ module PARSE-PROGRAM
   rule <k> #collectPgmGrammar ... </k>
        <name> MName </name>
        <prgGrammar> .Set => #getAllProds(MName) </prgGrammar>
-    requires findString(tokenToString(MName), "-SYNTAX", 0) =/=Int -1
+    requires findString(tokenToString(MName:UpperName), "-SYNTAX", 0) =/=Int -1
   rule <k> #collectPgmGrammar => .K ... </k>
        <s> #STUCK() => .K ... </s>
 endmodule
@@ -151,7 +152,7 @@ module PARSE-CONFIG
                  | "#createConfigGrammar"
 
   // create config grammar in modules where we find configs as bubbles
-  rule <k> #createConfigGrammar ... </k> 
+  rule <k> #createConfigGrammar ... </k>
        <name> MName </name>
        <decl> kConfiguration(noAttrsB(_:Bubble)) </decl>
        <configGrammar> .Set => #addSubsorts(#addCasts(#getAllProds(MName) #getAllProds(#token("CONFIG-INNER", "UpperName")))) </configGrammar>
@@ -183,9 +184,8 @@ module PARSE-CONFIG
     requires B =/=K .Patterns
   rule <k> collectCellName( .Patterns ) => .K ... </k>
 
-  syntax String ::= token2String(KoreString) [function, functional, hook(STRING.token2string)]
   rule <k> collectCellName(\dv { Srt { .Sorts } } ( CellName ), .Patterns) => .K ... </k>
-       <cellName> .Map => substrString(token2String(CellName), 1, lengthString(token2String(CellName)) -Int 1) |-> token2String(Srt) ... </cellName>
+       <cellName> .Map => substrString(tokenToString(CellName), 1, lengthString(tokenToString(CellName)) -Int 1) |-> tokenToString(Srt:UpperName) ... </cellName>
 
   rule <k> #extractConfigInfo => .K ... </k>
        <s> #STUCK() => .K ... </s>

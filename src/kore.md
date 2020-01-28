@@ -19,6 +19,7 @@ module TOKENS-ABSTRACT
   syntax KSort        ::= UpperName
   syntax VariableName ::= UpperName
   syntax ModuleName   ::= UpperName
+  syntax SymbolName   ::= UpperName
   syntax SymbolName   ::= LowerName
 endmodule
 
@@ -39,6 +40,7 @@ module TOKENS-SYNTAX
   syntax KSort        ::= UpperName [klabel(inj)]
   syntax VariableName ::= UpperName [klabel(inj)]
   syntax ModuleName   ::= UpperName [klabel(inj)]
+  syntax SymbolName   ::= UpperName [klabel(inj)]
   syntax SymbolName   ::= LowerName [klabel(inj)]
 endmodule
 
