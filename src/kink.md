@@ -27,6 +27,7 @@ module KINK-CONFIGURATION
   imports SET
   imports STRING-SYNTAX
   imports DEFAULT-STRATEGY
+  imports STRING-UTIL
 
   syntax Any
   syntax Pgm ::= Any
@@ -60,7 +61,6 @@ module KINK-CONFIGURATION
                 <exit-code exit=""> 1 </exit-code>
                 initSCell(.Map)
                 <kinkDeployedDir> tokenToString($KINKDEPLOYEDDIR:Path) </kinkDeployedDir>
-  syntax String ::= tokenToString(Path) [function, functional, hook(STRING.token2string)]
 
 endmodule
 ```

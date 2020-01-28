@@ -1,19 +1,18 @@
 Parsing utils
 
 ```k
+module STRING-UTIL
+  imports STRING-SYNTAX
+  syntax {S} String ::= tokenToString(S) [function, functional, hook(STRING.token2string)]
+endmodule
+
 module PARSER-UTIL
   imports FILE-UTIL
   imports K-REFLECTION
   imports EKORE-ABSTRACT
   imports KINK-CONFIGURATION
+  imports STRING-UTIL
 
-  syntax String ::= tokenToString(LowerName) [function, functional, hook(STRING.token2string)]
-  syntax String ::= tokenToString(UpperName) [function, functional, hook(STRING.token2string)]
-  syntax String ::= tokenToString(EKoreKString) [function, functional, hook(STRING.token2string)]
-  syntax String ::= tokenToString(Bubble) [function, functional, hook(STRING.token2string)]
-  syntax String ::= tokenToString(Any) [function, functional, hook(STRING.token2string)]
-  syntax String ::= tokenToString(KoreString) [function, functional, hook(STRING.token2string)]
-  syntax String ::= tokenToString(TagContents) [function, functional, hook(STRING.token2string)]
 
   syntax KItem ::= parseOuter(String) [function]
   rule [[ parseOuter(S)
