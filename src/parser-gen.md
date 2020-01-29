@@ -185,7 +185,7 @@ module PARSE-CONFIG
   rule <k> collectCellName( .Patterns ) => .K ... </k>
 
   rule <k> collectCellName(\dv { Srt { .Sorts } } ( CellName ), .Patterns) => .K ... </k>
-       <cellName> .Map => substrString(tokenToString(CellName), 1, lengthString(tokenToString(CellName)) -Int 1) |-> tokenToString(Srt:UpperName) ... </cellName>
+       <cellName> M => M:Map [ substrString(tokenToString(CellName), 1, lengthString(tokenToString(CellName)) -Int 1) <- tokenToString(Srt:UpperName)] </cellName>
 
   rule <k> #extractConfigInfo => .K ... </k>
        <s> #STUCK() => .K ... </s>
@@ -254,7 +254,7 @@ module PARSE-RULE
                    tagSimple(#token("cell","LowerName")), dotAttrList(.KList)))))))))
         , Cells (.Set => SetItem(CellName)))
         ]]
-       <cellName> CellName |-> "CellName" ... </cellName>
+       <cellName> CellName |-> "SortCellName" ... </cellName>
      requires notBool CellName in Cells
   rule #addRuleCells2(Prods, _) => Prods [owise]
 
