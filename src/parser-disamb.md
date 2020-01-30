@@ -16,9 +16,9 @@ module DISAMBIGUATE
   syntax Set ::= collectCastsPs(Patterns) [function]
   syntax Set ::= collectCasts2(Pattern, String) [function]
   rule collectCasts(SName { _ } ( Ps )) => collectCastsPs(Ps)
-    requires findString(tokenToString(SName:UpperName), "SemanticCastTo", 0) =/=Int 0
-  rule collectCasts(SName { _ } ( P, .Patterns )) => collectCasts2(P, substrString(tokenToString(SName), 14, lengthString(tokenToString(SName))))
-    requires findString(tokenToString(SName:UpperName), "SemanticCastTo", 0) ==Int 0
+    requires findString(tokenToString(SName:UpperName), "LblSemanticCastTo", 0) =/=Int 0
+  rule collectCasts(SName { _ } ( P, .Patterns )) => collectCasts2(P, substrString(tokenToString(SName), 17, lengthString(tokenToString(SName))))
+    requires findString(tokenToString(SName:UpperName), "LblSemanticCastTo", 0) ==Int 0
     
   rule collectCasts2(\dv{_}(VarName), SortName) => SetItem(pair(VarName, SortName))
   rule collectCasts2(P, _) => collectCasts(P) [owise] // means cast is over a normal production so continue with normal traversal
@@ -57,7 +57,7 @@ module DISAMBIGUATE
   rule getKLabelFromArgs(noAtt) => ""
   rule getKLabelFromArgs(.AttrList) => ""
   rule getKLabelFromArgs(kAttributesDeclaration(A) => A)
-  rule getKLabelFromArgs(consAttrList(tagContent(#token("klabel","LowerName"), KL), _)) => tokenToString(KL:LowerName)
+  rule getKLabelFromArgs(consAttrList(tagContent(#token("klabel","LowerName"), KL), _)) => tokenToString(KL:TagContents)
   rule getKLabelFromArgs(consAttrList(_, A) => A) [owise]
   
   // isSubsorted
