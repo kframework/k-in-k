@@ -363,7 +363,7 @@ module FLATTEN-PRODUCTIONS
   rule <k> #flattenProductions ... </k>
        <mod>
        <declarations>
-          <decl> kSyntaxProduction(SORT, P1 > _:AssocAttribute P2) </decl>
+          <decl> kSyntaxProduction(SORT, prioritySeqBloc(P1, _:AssocAttribute, P2)) </decl>
        => <decl> kSyntaxProduction(SORT, P1) </decl>
           <decl> kSyntaxProduction(SORT, P2) </decl>
           ...
@@ -373,7 +373,7 @@ module FLATTEN-PRODUCTIONS
   rule <k> #flattenProductions ... </k>
        <mod>
        <declarations>
-          <decl> kSyntaxProduction(SORT, P1 | P2) </decl>
+          <decl> kSyntaxProduction(SORT, prodBlock(P1, P2)) </decl>
        => <decl> kSyntaxProduction(SORT, P1) </decl>
           <decl> kSyntaxProduction(SORT, P2) </decl>
           ...

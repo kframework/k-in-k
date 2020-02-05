@@ -119,17 +119,13 @@ module K-PRODUCTION-COMMON
                           | "right:"     [klabel(rightAttribute), symbol]
                           | "non-assoc:" [klabel(nonAssocAttribute), symbol]
 
-  syntax KSortList ::= KSortList "," KSort [klabel(kSortList), symbol]
-  syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttr), symbol]
-  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet         [klabel(kPrioritySeq), symbol]
-  syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlock), format(%1%n%2 %3), symbol]
-  syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlock), format(  %1%n%2 %3%4), symbol]
-
+  syntax KSortList
+  syntax KProductionWAttr
+  syntax KPrioritySeq
+  syntax ProdBlock
+  syntax PrioritySeqBlock
   syntax KProductionItem
-  syntax KProduction ::= KProductionItem KProduction [klabel(kProduction), symbol, unit(emptyKProduction)]
-                       //| Tag "(" KSortList ")"       [klabel(kFuncProduction), symbol] // not yet, it can be ambiguous
-                       //|     "(" KSortList ")"       [klabel(kTupleProduction), symbol]
-
+  syntax KProduction
   syntax SyntaxDeclaration
   syntax EKoreDeclaration
   syntax Declaration
@@ -155,6 +151,17 @@ module K-PRODUCTION-SYNTAX
                            | "r" EKoreKString [klabel(regexTerminalLbl)]
                            | "NeList" "{" KSort "," EKoreKString "}" [klabel(neListProdLbl)]
                            |   "List" "{" KSort "," EKoreKString "}" [klabel(listProdLbl)]
+
+  syntax KSortList ::= KSortList "," KSort [klabel(kSortListLbl), symbol]
+  syntax KProductionWAttr ::= KProduction OptionalAttributes [klabel(kProductionWAttrLbl), symbol]
+  syntax KPrioritySeq ::= KPrioritySeq ">" KNeTagSet         [klabel(kPrioritySeqLbl), symbol]
+  syntax ProdBlock ::= ProdBlock "|" KProductionWAttr [klabel(prodBlockLbl), format(%1%n%2 %3), symbol]
+  syntax PrioritySeqBlock ::= PrioritySeqBlock ">" AssocAttribute ProdBlock [klabel(prioritySeqBlockLbl), format(  %1%n%2 %3%4), symbol]
+
+  syntax KProductionItem
+  syntax KProduction ::= KProductionItem KProduction [klabel(kProductionLbl), symbol, unit(emptyKProduction)]
+                       //| Tag "(" KSortList ")"       [klabel(kFuncProduction), symbol] // not yet, it can be ambiguous
+                       //|     "(" KSortList ")"       [klabel(kTupleProduction), symbol]
 
   syntax KNeTagSet        ::= Tag               [klabel(inj)]
   syntax KSortList        ::= KSort             [klabel(inj)]
@@ -185,6 +192,17 @@ module K-PRODUCTION-ABSTRACT
                            | regexTerminal(EKoreKString)     [klabel(regexTerminalLbl), symbol]
                            | neListProd(KSort, EKoreKString) [klabel(neListProdLbl), symbol]
                            | listProd(KSort,EKoreKString)    [klabel(listProdLbl), symbol]
+
+  syntax KSortList ::= kSortList(KSortList, KSort) [klabel(kSortListLbl), symbol]
+  syntax KProductionWAttr ::= kProductionWAttr(KProduction, OptionalAttributes) [klabel(kProductionWAttrLbl), symbol]
+  syntax KPrioritySeq ::= kPrioritySeq(KPrioritySeq, KNeTagSet)         [klabel(kPrioritySeqLbl), symbol]
+  syntax ProdBlock ::= prodBlock(ProdBlock, KProductionWAttr) [klabel(prodBlockLbl), symbol]
+  syntax PrioritySeqBlock ::= prioritySeqBloc(PrioritySeqBlock, AssocAttribute, ProdBlock) [klabel(prioritySeqBlockLbl), symbol]
+
+  syntax KProductionItem
+  syntax KProduction ::= kProduction(KProductionItem, KProduction) [klabel(kProductionLbl), symbol, unit(emptyKProduction)]
+                       //| Tag "(" KSortList ")"       [klabel(kFuncProduction), symbol] // not yet, it can be ambiguous
+                       //|     "(" KSortList ")"       [klabel(kTupleProduction), symbol]
 
   syntax KNeTagSet        ::= Tag
   syntax KSortList        ::= KSort

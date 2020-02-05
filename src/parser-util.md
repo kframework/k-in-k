@@ -47,7 +47,6 @@ module PARSER-UTIL
   syntax SymbolName ::= parseSymbolName(String) [function]
   syntax SymbolName ::= doParseSymbolName(K) [function]
   rule doParseSymbolName(S:String) => #parseKORE(S)
-  rule doParseSymbolName(S:String) => #parseKORE(S)
   rule [[ parseSymbolName(S)
        => doParseSymbolName(parseHelper( module = "EKORE-SYNTAX"
                                  , grammarFile = DEPLOY_DIR +String "/src/ekore.k"
@@ -122,7 +121,7 @@ module PARSER-UTIL
 
   syntax String ::= KSortListToString(KSortList) [function]
   rule KSortListToString(S:UpperName) => tokenToString(S)
-  rule KSortListToString(Ss, S) => KSortListToString(Ss) +String "," +String tokenToString(S:UpperName)
+  rule KSortListToString(kSortList(Ss, S)) => KSortListToString(Ss) +String "," +String tokenToString(S:UpperName)
 
   syntax String ::= KProductionToString(KProduction) [function]
   rule KProductionToString(PI:KProductionItem)

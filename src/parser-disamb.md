@@ -56,9 +56,9 @@ module DISAMBIGUATE
   
   rule getKLabelFromArgs(noAtt) => ""
   rule getKLabelFromArgs(.AttrList) => ""
-  rule getKLabelFromArgs(kAttributesDeclaration(A) => A)
-  rule getKLabelFromArgs(consAttrList(tagContent(#token("klabel","LowerName"), KL), _)) => tokenToString(KL:TagContents)
-  rule getKLabelFromArgs(consAttrList(_, A) => A) [owise]
+  rule getKLabelFromArgs([A:AttrList] => A)
+  rule getKLabelFromArgs(tagContent(#token("klabel","LowerName"), KL), _) => tokenToString(KL:TagContents)
+  rule getKLabelFromArgs(_, A:AttrList => A) [owise]
   
   // isSubsorted
   syntax Bool ::= isSubsorted  (Sort, Sort, Set) [function]

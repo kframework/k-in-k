@@ -162,7 +162,7 @@ module PARSE-CONFIG
 
   // actually parsing the configuration once we have the grammar
   rule <k> #parseConfigBubbles ... </k>
-       <decl> kConfiguration(noAttrsB(C:Bubble)) => kConfiguration(noAttrsP({parseWithProductions(GRAMMAR, "K", tokenToString(C))}:>Pattern)) </decl>
+       <decl> kConfiguration(noAttrsB(C:Bubble)) => kConfiguration(noAttrsP(parseWithProductions(GRAMMAR, "K", tokenToString(C)))) </decl>
        <configGrammar> GRAMMAR </configGrammar>
      requires GRAMMAR =/=K .Set
   
@@ -223,11 +223,11 @@ module PARSE-RULE
        <s> #STUCK() => .K ... </s>
 
   rule <k> #parseRuleBubbles ... </k>
-       <decl> kRule(noAttrsB(C:Bubble)) => kRule(noAttrsP(disambiguate({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, GRAMMAR))) </decl>
+       <decl> kRule(noAttrsB(C:Bubble)) => kRule(noAttrsP(disambiguate(parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C)), GRAMMAR))) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
   rule <k> #parseRuleBubbles ... </k>
-       <decl> kRule(attrsB(C:Bubble, At)) => kRule(attrsP({parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C))}:>Pattern, At)) </decl>
+       <decl> kRule(attrsB(C:Bubble, At)) => kRule(attrsP(parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C)), At)) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
 
