@@ -61,14 +61,14 @@ kink = proj.definition( backend   = 'llvm'
                       , main      = 'src/kink.md'
                       , other     = [kore, ekore, parser, file, pgen, 'src/command-line.md', k_light, inner, pdisamb]
                       , directory = proj.builddir('kink')
-                      , flags     = '--syntax-module KINK-SYNTAX -ccopt -g -ccopt -O1'
+                      , flags     = '--syntax-module KINK-SYNTAX -ccopt -g'
                       , alias     = 'kink'
                       , runner_script = './kink'
                       )
 
 def pipeline(commandline, extension):
     return kink.krun().ext(extension).variables(
-                flags = "-cCOMMANDLINE='%s' -cKINKDEPLOYEDDIR=%s --debug --debugger"
+                flags = "-cCOMMANDLINE='%s' -cKINKDEPLOYEDDIR=%s --debug"
                       % (commandline, kink.directory()))
 
 def kink_test(base_dir, test_file, expected_file, pipeline):
