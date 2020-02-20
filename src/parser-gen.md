@@ -261,16 +261,3 @@ module PARSE-RULE
 endmodule
 ```
 
-Parse into EKore
-----------------
-
-```k
-module PARSE-TO-EKORE
-  imports EKORE-ABSTRACT
-  imports KINK-CONFIGURATION
-  imports PARSER-UTIL
-
-  syntax KItem ::= "#parseToEKore"
-  rule <k> PGM:Any ~> #parseToEKore => parseEKore(tokenToString(PGM)) ... </k>
-endmodule
-```

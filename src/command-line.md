@@ -23,7 +23,6 @@ module COMMAND-LINE
   imports PARSE-PROGRAM
   imports PARSE-CONFIG
   imports PARSE-RULE
-  imports PARSE-TO-EKORE
 
   imports FRONTEND-MODULES-TO-KORE-MODULES
   imports FLATTEN-PRODUCTIONS
@@ -108,8 +107,8 @@ High-level pipeline steps
     ~> #success
 
   syntax KItem ::= "#ekorePipeline"
-  rule #ekorePipeline
-    => #parseToEKore
+  rule PGM:Any ~> #ekorePipeline
+    => parseEKore(tokenToString(PGM))
     ~> #defnToConfig
     ~> #flattenProductions
     ~> #nonFunctionProductionsToConstructors
