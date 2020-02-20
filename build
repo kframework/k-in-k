@@ -68,7 +68,7 @@ kink = proj.definition( backend   = 'llvm'
 
 def pipeline(commandline, extension):
     return kink.krun().ext(extension).variables(
-                flags = "-cCOMMANDLINE='%s' -cKINKDEPLOYEDDIR=%s --debug"
+                flags = "-cCOMMANDLINE='%s' -cKINKDEPLOYEDDIR=%s"
                       % (commandline, kink.directory()))
 
 def kink_test(base_dir, test_file, expected_file, pipeline):

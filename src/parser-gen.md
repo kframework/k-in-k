@@ -223,7 +223,8 @@ module PARSE-RULE
        <s> #STUCK() => .K ... </s>
 
   rule <k> #parseRuleBubbles ... </k>
-       <decl> kRule(noAttrsB(C:Bubble)) => kRule(noAttrsP(disambiguate(parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C)), GRAMMAR))) </decl>
+       // <decl> kRule(noAttrsB(C:Bubble)) => kRule(noAttrsP(disambiguate(parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C)), GRAMMAR))) </decl> // TODO: call the disambiguation step
+       <decl> kRule(noAttrsB(C:Bubble)) => kRule(noAttrsP(parseWithProductions(GRAMMAR, "RuleContent", tokenToString(C)))) </decl>
        <ruleGrammar> GRAMMAR </ruleGrammar>
      requires GRAMMAR =/=K .Set
   rule <k> #parseRuleBubbles ... </k>
