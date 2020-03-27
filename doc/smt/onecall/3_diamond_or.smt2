@@ -17,21 +17,21 @@
         (mkTuple B D) (singleton
         (mkTuple C D)))))
 
-(define-fun isSubsortedStrict ((x Sort) (y Sort)) Bool
+(define-fun <Sort ((x Sort) (y Sort)) Bool
    (member (mkTuple x y) tsubs))
-(define-fun isSubsorted ((x Sort) (y Sort)) Bool
-   (or (= x y) (isSubsortedStrict x y)))
+(define-fun <=Sort ((x Sort) (y Sort)) Bool
+   (or (= x y) (<Sort x y)))
 
 ; constraints predicate
 (define-fun constraints ((x Sort)) Bool
-    (or  (isSubsorted x B)
-         (isSubsorted x C)))
+    (or  (<=Sort x B)
+         (<=Sort x C)))
 
 ; maximality
 (define-fun maximality ((x Sort)) Bool
     (not (exists ((xp Sort))
                 (and (constraints xp)
-                     (isSubsortedStrict x xp)))))
+                     (<Sort x xp)))))
 
 (define-fun isSol ((x (Tuple Sort))) Bool
     (and (constraints ((_ tupSel 0) x))

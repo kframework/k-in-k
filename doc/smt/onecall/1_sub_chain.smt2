@@ -1,5 +1,5 @@
-; A < B C < D
-; X:B /\ X:C
+; A < B < C < D
+; X:C
 
 (set-logic ALL)
 (set-info :status sat)
@@ -13,25 +13,23 @@
 (define-fun tsubs () (Set (Tuple Sort Sort))
     (tclosure (insert ; initial subsorts
         (mkTuple A B)
-        (mkTuple A C)
-        (mkTuple B D) (singleton
+        (mkTuple B C) (singleton
         (mkTuple C D)))))
 
-(define-fun isSubsortedStrict ((x Sort) (y Sort)) Bool
+(define-fun <Sort ((x Sort) (y Sort)) Bool
    (member (mkTuple x y) tsubs))
-(define-fun isSubsorted ((x Sort) (y Sort)) Bool
-   (or (= x y) (isSubsortedStrict x y)))
+(define-fun <=Sort ((x Sort) (y Sort)) Bool
+   (or (= x y) (<Sort x y)))
 
 ; constraints predicate
 (define-fun constraints ((x Sort)) Bool
-    (and  (isSubsorted x B)
-          (isSubsorted x C)))
+    (and  (<=Sort x C)))
 
 ; maximality
 (define-fun maximality ((x Sort)) Bool
     (not (exists ((xp Sort))
                 (and (constraints xp)
-                     (isSubsortedStrict x xp)))))
+                     (<Sort x xp)))))
 
 (define-fun isSol ((x (Tuple Sort))) Bool
     (and (constraints ((_ tupSel 0) x))
@@ -48,4 +46,4 @@
 (check-sat)
 (get-model)
 
-; SOLUTION: (define-fun solSet () (Set (Tuple Sort)) (singleton (mkTuple A)))
+; SOLUTION: (define-fun solSet () (Set (Tuple Sort)) (singleton (mkTuple C)))

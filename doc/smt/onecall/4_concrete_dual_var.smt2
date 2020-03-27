@@ -15,26 +15,26 @@
         (mkTuple Id Exp) (singleton
         (mkTuple Exp Exps)))))
 
-(define-fun isSubsortedStrict ((x Sort) (y Sort)) Bool
+(define-fun <Sort ((x Sort) (y Sort)) Bool
    (member (mkTuple x y) tsubs))
-(define-fun isSubsorted ((x Sort) (y Sort)) Bool
-   (or (= x y) (isSubsortedStrict x y)))
+(define-fun <=Sort ((x Sort) (y Sort)) Bool
+   (or (= x y) (<Sort x y)))
 
 ; constraints predicate: rule var X; S => (X, S)
 (define-fun constraints ((x Sort) (s Sort)) Bool
-    (and (isSubsorted x Exps)
-         (isSubsorted s Stmt)
-         (or (and (isSubsorted x Exp)
-                  (isSubsorted s Exps))
-             (and (isSubsorted x Id)
-                  (isSubsorted s Stmt)))))
+    (and (<=Sort x Exps)
+         (<=Sort s Stmt)
+         (or (and (<=Sort x Exp)
+                  (<=Sort s Exps))
+             (and (<=Sort x Id)
+                  (<=Sort s Stmt)))))
 
 ; maximality
 (define-fun maximality ((x Sort) (s Sort)) Bool
     (not (exists ((xp Sort) (sp Sort))
                 (and (constraints xp sp)
-                     (or (isSubsortedStrict x xp)
-                         (isSubsortedStrict s sp))))))
+                     (or (<Sort x xp)
+                         (<Sort s sp))))))
 
 (define-fun isSol ((x (Tuple Sort Sort))) Bool
     (and (constraints ((_ tupSel 0) x) ((_ tupSel 1) x))

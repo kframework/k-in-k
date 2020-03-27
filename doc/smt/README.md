@@ -47,7 +47,7 @@ X:Exps /\ S:Stmt /\ ((X:Exp /\ S:Exps) \/ (X:Id /\ S:Stmt))
 ```
 
 ## Modeling in SMT
-After playing with Z3 for a bit, we ended up working with CVC4 because of their builtin support for Sets.
+First, we are looking at what we can do with CVC4 and their builtin support for Sets. This has some performance issues because of the quantifier in the completeness assert (see /onecall/7_sub_chain_w_3params.smt2)
 
 First step in modeling the problem was to represent the sorts and the subsort relations in SMT2.
 ```
@@ -63,23 +63,23 @@ First step in modeling the problem was to represent the sorts and the subsort re
 ```
 We introduce the sort names as datatypes and the subsort relations as a set of tuples, transitively closed.
 ```
-(define-fun isSubsortedStrict ((x Sort) (y Sort)) Bool
+(define-fun <Sort ((x Sort) (y Sort)) Bool
    (member (mkTuple x y) tsubs))
-(define-fun isSubsorted ((x Sort) (y Sort)) Bool
-   (or (= x y) (isSubsortedStrict x y)))
+(define-fun <=Sort ((x Sort) (y Sort)) Bool
+   (or (= x y) (<Sort x y)))
 ```
 Subsorting can be represented as uninterpreted functions which just simply check membership of the relation in question in the `tsubs` set.
 
 Modeling the constraints on `X` is as simple as:
 ```
 (declare-const X Sort)
-(assert (and (isSubsorted X C))) ; constraints on variable
+(assert (and (<=Sort X C))) ; constraints on variable
 ```
 At this point, the SMT solver would find any of the `A`, `B`, or `C` sorts as satisfiable. To make sure we get the maximum, we must add a new constraint:
 ```
 (assert (not (exists ((y Sort))  ; maximality
-                (and (isSubsorted y C)
-                     (isSubsortedStrict X y)))))
+                (and (<=Sort y C)
+                     (<Sort X y)))))
 ```
 which says that there is no `y` which is strictly bigger than `X` and meets the same constraints.
 
@@ -103,26 +103,26 @@ Here is how example (2) would look like:
         (mkTuple Id Exp) (singleton
         (mkTuple Exp Exps)))))
 
-(define-fun isSubsortedStrict ((x Sort) (y Sort)) Bool
+(define-fun <Sort ((x Sort) (y Sort)) Bool
    (member (mkTuple x y) tsubs))
-(define-fun isSubsorted ((x Sort) (y Sort)) Bool
-   (or (= x y) (isSubsortedStrict x y)))
+(define-fun <=Sort ((x Sort) (y Sort)) Bool
+   (or (= x y) (<Sort x y)))
 
 ; constraints predicate: rule var X; S => (X, S)
 (define-fun constraints ((x Sort) (s Sort)) Bool
-    (and (isSubsorted x Exps)
-         (isSubsorted s Stmt)
-         (or (and (isSubsorted x Exp)
-                  (isSubsorted s Exps))
-             (and (isSubsorted x Id)
-                  (isSubsorted s Stmt)))))
+    (and (<=Sort x Exps)
+         (<=Sort s Stmt)
+         (or (and (<=Sort x Exp)
+                  (<=Sort s Exps))
+             (and (<=Sort x Id)
+                  (<=Sort s Stmt)))))
 
 ; maximality
 (define-fun maximality ((x Sort) (s Sort)) Bool
     (not (exists ((xp Sort) (sp Sort))
                 (and (constraints xp sp)
-                     (or (isSubsortedStrict x xp)
-                         (isSubsortedStrict s sp))))))
+                     (or (<Sort x xp)
+                         (<Sort s sp))))))
 
 (define-fun isSol ((x (Tuple Sort Sort))) Bool
     (and (constraints ((_ tupSel 0) x) ((_ tupSel 1) x))
@@ -159,21 +159,21 @@ Since we don't always have a top sort, we may end up with multiple solutions. CV
         (mkTuple A B) (singleton
         (mkTuple A C)))))
 
-(define-fun isSubsortedStrict ((x Sort) (y Sort)) Bool
+(define-fun <Sort ((x Sort) (y Sort)) Bool
    (member (mkTuple x y) tsubs))
-(define-fun isSubsorted ((x Sort) (y Sort)) Bool
-   (or (= x y) (isSubsortedStrict x y)))
+(define-fun <=Sort ((x Sort) (y Sort)) Bool
+   (or (= x y) (<Sort x y)))
 
 ; constraints predicate
 (define-fun constraints ((x Sort)) Bool
-    (or (isSubsorted x B)
-        (isSubsorted x C)))
+    (or (<=Sort x B)
+        (<=Sort x C)))
 
 ; maximality
 (define-fun maximality ((x Sort)) Bool
     (not (exists ((xp Sort))
                 (and (constraints xp)
-                     (isSubsortedStrict x xp)))))
+                     (<Sort x xp)))))
 
 (define-fun isSol ((x (Tuple Sort))) Bool
     (and (constraints ((_ tupSel 0) x))
@@ -196,6 +196,11 @@ Output: `(define-fun solSet () (Set (Tuple Sort)) (union (singleton (mkTuple B))
 1. The CVC4 option is important: `(set-option :finite-model-find true)` use finite model finding heuristic for quantifier instantiation.
 2. To extract the solution just take every tuple from the `solSet` and match it with the same variables used at generation time.
 3. Not modeled here, but it is possible to have no solution for certain variables. In order to still provide the user with useful feedback, we can forcefully add a `KBott` sort as a bottom, which ensures that the SMT solver will always find a solution. Then it's just a matter of post-processing to find the correct solution and return an error when needed.
+
+### Iterative approach
+Because of the performance issues in the one call approach, we try to model the same problem but ask the solver for one solution at a time. (/iterative)
+We remove the completeness assert, which means we don't need sets anymore. This makes it so we can use z3 or cvc4 on the same input file.
+Because we keep the maximality/minimality assert, each SMT call will return a final solution, until we get `unsat`.
 
 ## TODO:
 ### Overloaded productions
