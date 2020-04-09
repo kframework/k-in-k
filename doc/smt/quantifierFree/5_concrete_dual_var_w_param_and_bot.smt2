@@ -52,13 +52,12 @@
 
 
 (check-sat)
-(assert (not (and (= x Id) (= s Stmt) (= r Stmt))))
-(assert (not (and (= x Bot) (= s Stmt) (= r Stmt))))
-(assert (not (and (= x Id) (= s Bot) (= r Stmt))))
-(assert (not (and (= x Bot) (= s Bot) (= r Stmt))))
-
-(check-sat)
 (get-model)
+; Assert not to give the current solution and any other solution subsorted to the current one.
+; Supersorted or uncomparable are ok. This makes it reach the final solutions much faster.
+; Parameters should not be minimized here since it might restrict variables.
+(assert (and (not (and (= x Id) (= s Stmt) (= r Stmt)))
+                 (not (<Sort x Id)) (not (<Sort s Stmt))))
 
 (set-info :status unsat)
 (check-sat)

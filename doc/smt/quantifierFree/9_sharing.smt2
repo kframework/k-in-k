@@ -60,8 +60,19 @@
 (assert-soft (= Unused p)  :id A)
 
 
-(assert (not (and (= x A) (= y A) (= z A) (= q A) (= r1 B) (= p B)))) ; first sol
-; many others
+; Assert not to give the current solution and any other solution subsorted to the current one.
+; Supersorted or uncomparable are ok. This makes it reach the final solutions much faster.
+; Parameters should not be minimized here since it might restrict variables.
+(assert (and (not (and (= x A)            (= y A)           (= z A)           (= q A)           (= B r1)           (= B p)))
+              (not (<Sort x A))  (not (<Sort y A)) (not (<Sort z A)) (not (<Sort q A)) ))
+(assert (and (not (and (= x A)            (= y B)           (= z A)           (= q B)           (= B r2)           (= B p)))
+              (not (<Sort x A))  (not (<Sort y B)) (not (<Sort z A)) (not (<Sort q B)) ))
+(assert (and (not (and (= x A)            (= y B)           (= z B)           (= q B)           (= B r2)           (= B p))) ; sol 1
+              (not (<Sort x A))  (not (<Sort y B)) (not (<Sort z B)) (not (<Sort q B)) ))
+(assert (and (not (and (= x A)            (= y B)           (= z B)           (= q B)           (= B r1)           (= B p))) ; sol 2
+              (not (<Sort x A))  (not (<Sort y B)) (not (<Sort z B)) (not (<Sort q B)) ))
+(assert (and (not (and (= x A)            (= y B)           (= z B)           (= q B)           (= C r1)           (= B p)))
+              (not (<Sort x A))  (not (<Sort y B)) (not (<Sort z B)) (not (<Sort q B)) ))
 
 (check-sat)
 (get-model)

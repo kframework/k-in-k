@@ -48,28 +48,40 @@
 (assert-soft (= Unused r2) :id A)
 
 
+; all possible solutions
+;(assert (not (and (= x A) (= y A) (= z A) (= r2 A))))
+;(assert (not (and (= x A) (= y A) (= z B) (= r2 A))))
+;(assert (not (and (= x A) (= y A) (= z A) (= r2 B))))
+;(assert (not (and (= x A) (= y B) (= z A) (= r2 B))))1
+;(assert (not (and (= x A) (= y B) (= z B) (= r2 B))))
+;(assert (not (and (= x A) (= y A) (= z B) (= r2 B))))
+;(assert (not (and (= x B) (= y A) (= z A) (= r2 B))))
+;(assert (not (and (= x B) (= y B) (= z A) (= r2 B))))
+;(assert (not (and (= x B) (= y A) (= z B) (= r2 B))))
+;(assert (not (and (= x B) (= y B) (= z B) (= r2 B))))
+
+;(assert (not (and (= r1 B) (= x A) (= y A) (= z A))))
+;(assert (not (and (= r1 B) (= x B) (= y A) (= z A))))
+;(assert (not (and (= r1 B) (= x B) (= y B) (= z A))))
+;(assert (not (and (= r1 B) (= x A) (= y B) (= z A))))
+;(assert (not (and (= r1 B) (= x A) (= y A) (= z B))))
+;(assert (not (and (= r1 B) (= x A) (= y B) (= z B))))
+;(assert (not (and (= r1 B) (= x B) (= y A) (= z B))))
+;(assert (not (and (= r1 B) (= x B) (= y B) (= z B))))
+
+; Assert not to give the current solution and any other solution subsorted to the current one.
+; Supersorted or uncomparable are ok. This makes it reach the final solutions much faster.
+; Parameters should not be minimized here since it might restrict variables.
+(assert (and (not (and (= x A)           (= y A)           (= z A)           (= A r2)))
+              (not (<Sort x A)) (not (<Sort y A)) (not (<Sort z A))                  ))
+(assert (and (not (and (= x A)           (= y A)           (= z B)           (= A r2)))
+              (not (<Sort x A)) (not (<Sort y A)) (not (<Sort z B))                  ))
+(assert (and (not (and (= x B)           (= y B)           (= z B)           (= B r2))) ; maximal sol 1
+              (not (<Sort x B)) (not (<Sort y B)) (not (<Sort z B))                  ))
+(assert (and (not (and (= x B)           (= y B)           (= z B)           (= B r1))) ; maximal sol 2
+              (not (<Sort x B)) (not (<Sort y B)) (not (<Sort z B))                  ))
 (check-sat)
 (get-model)
-
-(assert (not (and (= x A) (= y A) (= z A) (= r2 A))))
-(assert (not (and (= x A) (= y A) (= z B) (= r2 A))))
-(assert (not (and (= x A) (= y A) (= z A) (= r2 B))))
-(assert (not (and (= x A) (= y B) (= z A) (= r2 B))))
-(assert (not (and (= x A) (= y B) (= z B) (= r2 B))))
-(assert (not (and (= x A) (= y A) (= z B) (= r2 B))))
-(assert (not (and (= x B) (= y A) (= z A) (= r2 B))))
-(assert (not (and (= x B) (= y B) (= z A) (= r2 B))))
-(assert (not (and (= x B) (= y A) (= z B) (= r2 B))))
-(assert (not (and (= x B) (= y B) (= z B) (= r2 B))))
-
-(assert (not (and (= r1 B) (= x A) (= y A) (= z A))))
-(assert (not (and (= r1 B) (= x B) (= y A) (= z A))))
-(assert (not (and (= r1 B) (= x B) (= y B) (= z A))))
-(assert (not (and (= r1 B) (= x A) (= y B) (= z A))))
-(assert (not (and (= r1 B) (= x A) (= y A) (= z B))))
-(assert (not (and (= r1 B) (= x A) (= y B) (= z B))))
-(assert (not (and (= r1 B) (= x B) (= y A) (= z B))))
-(assert (not (and (= r1 B) (= x B) (= y B) (= z B))))
 
 (set-info :status unsat)
 (check-sat)
