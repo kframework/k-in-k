@@ -29,7 +29,7 @@ module KINK-CONFIGURATION
   imports DEFAULT-STRATEGY
   imports STRING-UTIL
 
-  syntax Any
+  syntax Any [token]
   syntax Pgm ::= Any
   syntax Declaration ::= "nullDecl"
   syntax DeclCellSet
